@@ -95,16 +95,16 @@ void predictThinPlateMatrix(const MatrixXd P_new, const MatrixXd P, MatrixXd& L,
   }
 }
 
-void mrts(const Eigen::MatrixXd &Xu,
-          const Eigen::MatrixXd &xobs_diag,
-          const int k,
-          const int n,
-          const int d,
-          Eigen::MatrixXd &H,
-          Eigen::MatrixXd &X,
-          Eigen::MatrixXd &UZ,
-          Eigen::MatrixXd &BBB,
-          Eigen::VectorXd &nconst){
+void mrtsCore(const Eigen::MatrixXd &Xu,
+              const Eigen::MatrixXd &xobs_diag,
+              const int k,
+              const int n,
+              const int d,
+              Eigen::MatrixXd &H,
+              Eigen::MatrixXd &X,
+              Eigen::MatrixXd &UZ,
+              Eigen::MatrixXd &BBB,
+              Eigen::VectorXd &nconst){
   double root = sqrt(n);
   Eigen::MatrixXd B, gammas, X2_temp, gamma;
   Eigen::VectorXd rho;
@@ -144,14 +144,14 @@ void mrts(const Eigen::MatrixXd &Xu,
 }
 
 // [[Rcpp::export]]
-Rcpp::List mrtsrcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
+Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,
                     const int k){
   int n(Xu.rows()), d(Xu.cols());
   Eigen::MatrixXd  H, X, UZ, BBB;
   Eigen::VectorXd nconst;
   
-  mrts(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
+  mrtsCore(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
   
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
@@ -160,18 +160,17 @@ Rcpp::List mrtsrcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
 }
 
 // [[Rcpp::export]]
-Rcpp::List mrtsrcpp_predict0(const Eigen::Map<Eigen::MatrixXd> Xu,
-                             const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                             const Eigen::Map<Eigen::MatrixXd> xnew,
-                             const int k){
+Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
+                           const Eigen::Map<Eigen::MatrixXd> xobs_diag,
+                           const Eigen::Map<Eigen::MatrixXd> xnew,
+                           const int k){
   int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
   Eigen::MatrixXd  H, X, UZ, BBB, Hnew;
   Eigen::VectorXd nconst;
   
-  mrts(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
+  mrtsCore(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
   Hnew = MatrixXd::Zero(n2, n);
   predictThinPlateMatrix(xnew, Xu, Hnew, d);
-  
   
   Eigen::MatrixXd X1 = Hnew * UZ.block(0, 0, n, k);
   Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
@@ -186,13 +185,13 @@ Rcpp::List mrtsrcpp_predict0(const Eigen::Map<Eigen::MatrixXd> Xu,
 }
 
 // [[Rcpp::export]]
-Rcpp::List mrtsrcpp_predict(const Eigen::Map<Eigen::MatrixXd> Xu,
-                            const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                            const Eigen::Map<Eigen::MatrixXd> xnew,
-                            const Eigen::Map<Eigen::MatrixXd> BBBH,
-                            const Eigen::Map<Eigen::MatrixXd> UZ,
-                            const Eigen::Map<Eigen::VectorXd> nconst,
-                            const int k){
+Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu,
+                                    const Eigen::Map<Eigen::MatrixXd> xobs_diag,
+                                    const Eigen::Map<Eigen::MatrixXd> xnew,
+                                    const Eigen::Map<Eigen::MatrixXd> BBBH,
+                                    const Eigen::Map<Eigen::MatrixXd> UZ,
+                                    const Eigen::Map<Eigen::VectorXd> nconst,
+                                    const int k){
   int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
   Eigen::MatrixXd  Hnew;
   Hnew = MatrixXd::Zero(n2, n);
