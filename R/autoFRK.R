@@ -231,142 +231,125 @@ checkDiag <- function(X) {
             x <- diag.spam(diag.of.spam(X), NROW(X))
             return(identical(x, X))
         }
+}
+
+sol.v <- function(d, s, trS, n) {
+    if (max(d) < max(trS/n, s)) 
+        result <- max(trS/n - s, 0)
+    else{
+        k <- length(d)
+        cumd <- cumsum(d)
+        ks <- 1:k
+        if (k == n) ks[n] <- n - 1
+        pick <- d > ((trS - cumd)/(n - ks))
+        L <- max(which(pick))
+        if (L == n) L <- n - 1
+        result <- max((trS - cumd[L])/(n - L) - s, 0)
     }
+    
+    return(result)
+}
+
+sol.eta <- function(d, s, v) pmax(d - s - v, 0)
+
+neg2llik <- function(d, s, v, trS, n) {
+    eta <- sol.eta(d, s, v)
+    if (max(eta/(s + v)) > 1e20) 
+        result <- Inf
+    else{
+        k <- length(d)
+        result <- n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * 
+            (n - k) + 1/(s + v) * trS - 1/(s + v) * sum(d * eta/(eta + s + v))
+    }
+    
+    return(result)
+}
 
 cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL, wSave = FALSE,
                  onlylogLike = !wSave, vfixed = NULL) {
-    sol.v <- function(d, s, trS, n) {
-        k <- length(d)
-        if (max(d) < max(trS/n, s)) 
-            return(max(trS/n - s, 0))
-        cumd <- cumsum(d)
-        ks <- 1:k
-        if (k == n) 
-            ks[n] <- n - 1
-        pick <- d > ((trS - cumd)/(n - ks))
-        L <- max(which(pick))
-        if (L == n) 
-            L <- n - 1
-        
-        return(max((trS - cumd[L])/(n - L) - s, 0))
-    }
-    sol.eta <- function(d, s, v) pmax(d - s - v, 0)
-    neg2llik <- function(d, s, v, trS, n) {
-        k <- length(d)
-        eta <- pmax(d - s - v, 0)
-        if (max(eta/(s + v)) > 10^20) 
-            return(Inf)
-        else
-            return(n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * 
-                    (n - k) + 1/(s + v) * trS - 1/(s + v) * sum(d * eta/(eta + s + v)))
-    }
     
-    if (is.null(ldet)) 
-        ldet <- 0
+    if (is.null(ldet)) ldet <- 0
     n <- nrow(Fk)
     k <- ncol(Fk)
     eg <- eigen(JSJ)
     d <- eg$value[1:k]
     P <- eg$vector[, 1:k]
-    if (is.null(vfixed)) 
-        v <- sol.v(d, s, trS, n)
-    else
-        v <- vfixed
+    v <- ifelse(is.null(vfixed), sol.v(d, s, trS, n), vfixed)
     dii <- pmax(d, 0)
-    dhat <- sol.eta(dii, s, v)
+ 
     if (onlylogLike) 
-        return(list(negloglik = neg2llik(dii, s, v, trS, n) * 
-                        TT + ldet * TT))
-    M <- half %*% P %*% (dhat * t(P)) %*% half
-    dimnames(M) <- NULL
-    if (!wSave) 
-        L <- NULL
-    else {
-        L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
-        if (all(dhat == 0)) 
-            dhat[1] <- 0.1^10
-        L <- as.matrix(L[, dhat > 0])
+        result_list <- list(negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT)
+    else{
+        dhat <- sol.eta(dii, s, v)
+        M <- half %*% P %*% (dhat * t(P)) %*% half
+        dimnames(M) <- NULL
+        if (!wSave) 
+            L <- NULL
+        else {
+            L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
+            if (all(dhat == 0)) dhat[1] <- 1e-10
+            L <- as.matrix(L[, dhat > 0])
+        }
+    
+        result_list <- list(v = v,
+                            M = M,
+                            s = s,
+                            negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT,
+                            L = L)
     }
     
-    return(list(v = v,
-                M = M,
-                s = s,
-                negloglik = neg2llik(dii,s, v, trS, n) * TT + ldet * TT,
-                L = L))
+    return(result_list)
 }
 
 cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
-    sol.v <- function(d, s, trS, n) {
-        k <- length(d)
-        if (max(d) < max(trS/n, s)) 
-            return(max(trS/n - s, 0))
-        cumd <- cumsum(d)
-        ks <- 1:k
-        if (k == n) 
-            ks[n] <- n - 1
-        pick <- d > ((trS - cumd)/(n - ks))
-        L <- max(which(pick))
-        if (L == n) 
-            L <- n - 1
-        return(max((trS - cumd[L])/(n - L) - s, 0))
-    }
-    sol.eta <- function(d, s, v) pmax(d - s - v, 0)
-    neg2llik <- function(d, s, v, trS, n) {
-        k <- length(d)
-        eta <- pmax(d - s - v, 0)
-        if (max(eta/(s + v)) > 10^20) 
-            return(Inf)
-        else
-            return(n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * 
-            (n - k) + 1/(s + v) * trS - 1/(s + v) * sum(d * eta/(eta + s + v)))
-    }
-    
+
     n <- nrow(Fk)
     k <- ncol(Fk)
     TT <- NCOL(Data)
     trS <- sum(rowSums(as.matrix(Data)^2))/TT
     half <- getHalf(Fk, Fk)
     ihF <- half %*% t(Fk)
-    if (is.null(S)) {
-        JSJ <- tcrossprod(ihF %*% Data)/TT
-    }
-    else 
-        JSJ <- (ihF %*% S) %*% t(ihF)
+    JSJ <- ifelse(is.null(S), tcrossprod(ihF %*% Data)/TT, (ihF %*% S) %*% t(ihF))
     JSJ <- (JSJ + t(JSJ))/2
     eg <- eigen(JSJ)
     d <- eg$value[1:k]
-    P <- eg$vector[, 1:k]
     v <- sol.v(d, s, trS, n)
     dii <- pmax(d, 0)
 
-    if (onlylogLike) 
-        return(list(negloglik = neg2llik(dii, s, v, trS, n) * TT))
-    
-    dhat <- sol.eta(dii, s, v)
-    M <- half %*% P %*% (dhat * t(P)) %*% half
-    dimnames(M) <- NULL
-    if (!wSave) 
-        return(list(v = v, M = M, s = s, negloglik = neg2llik(dii, s, v, trS, n) * TT))
-    else {
-        L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
-        if (all(dhat == 0)) 
-            dhat[1] <- 0.1^10
-        L <- L[, dhat > 0]
-        invD <- rep(1, n)/(s + v)
-        iDZ <- invD * Data
-        right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
-        INVtZ <- iDZ - invD * right
-        etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
-        GM <- Fk %*% M
-        V <- as.matrix(M - t(GM) %*% invCz((s + v) * diag.spam(n), L, GM))
-        
-        return(list(v = v,
-                    M = M, 
-                    s = s, 
-                    negloglik = neg2llik(dii, s, v, trS, n) * TT, 
-                    w = etatt, 
-                    V = V))
+    if (onlylogLike)
+        result_list <- list(negloglik = neg2llik(dii, s, v, trS, n) * TT)
+    else{
+        P <- eg$vector[, 1:k]
+        dhat <- sol.eta(dii, s, v)
+        M <- half %*% P %*% (dhat * t(P)) %*% half
+        dimnames(M) <- NULL
+        if (!wSave) 
+            result_list <- list(v = v,
+                                M = M,
+                                s = s,
+                                negloglik = neg2llik(dii, s, v, trS, n) * TT)
+        else {
+            L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
+            if (all(dhat == 0)) dhat[1] <- 1e-10
+            L <- L[, dhat > 0]
+            invD <- rep(1, n)/(s + v)
+            iDZ <- invD * Data
+            right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
+            INVtZ <- iDZ - invD * right
+            etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
+            GM <- Fk %*% M
+            V <- as.matrix(M - t(GM) %*% invCz((s + v) * diag.spam(n), L, GM))
+            
+            result_list <- list(v = v,
+                                M = M, 
+                                s = s, 
+                                negloglik = neg2llik(dii, s, v, trS, n) * TT, 
+                                w = etatt, 
+                                V = V)
+        }
     }
+    
+    return(result_list)
 }
 
 cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
