@@ -888,10 +888,9 @@ mrts <- function(knot, k, x = NULL) {
     if ((!is64bit) & (max(NROW(x), NROW(knot)) > 20000)) 
         stop("Use 64-bit version of R for such a volume of data!")
     
-    if (NCOL(knot) == 1) 
-        xobs <- as.matrix(as.double(as.matrix(knot)))
-    else 
-        xobs <- apply(knot, 2, as.double)
+    xobs <- ifelse(NCOL(knot) == 1,
+                   as.matrix(as.double(as.matrix(knot))),
+                   apply(knot, 2, as.double))
     
     Xu <- uniquecombs(cbind(xobs))
     
@@ -918,10 +917,9 @@ mrts <- function(knot, k, x = NULL) {
     xobs_diag <- diag(sqrt(n/(n - 1))/apply(xobs, 2, sd), ndims)
     
     if (!is.null(x)) {
-        if (NCOL(x) == 1) 
-            x <- as.matrix(as.double(as.matrix(x)))
-        else 
-            x <- as.matrix(array(as.double(as.matrix(x)), dim(x)))
+        x <- ifelse(NCOL(x) == 1,
+                    as.matrix(as.double(as.matrix(x))),
+                    as.matrix(array(as.double(as.matrix(x)), dim(x))))
         if (k - ndims - 1 > 0) 
             result <- predictMrtsRcpp(Xu,
                                       xobs_diag,
@@ -960,10 +958,9 @@ mrts <- function(knot, k, x = NULL) {
         shift <- colMeans(attr(obj, "Xu"))
         X2 <- sweep(cbind(x), 2, shift, "-")
         X2 <- cbind(1, sweep(X2, 2, attr(obj, "nconst"), "/"))
-        if (k - ndims - 1 > 0) 
-            obj0 <- as.matrix(cbind(X2, result$X1))
-        else 
-            obj0 <- as.matrix(X2)
+        obj0 <- ifelse(k - ndims - 1 > 0,
+                       as.matrix(cbind(X2, result$X1)),
+                       as.matrix(X2))
         dimnames(obj) <- NULL
         aname <- names(attributes(obj))
         attributes(obj0) <- c(attributes(obj0),
@@ -986,18 +983,17 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
             if (class(object$G) != "mrts") 
                 stop("Basis matrix of new locations should be given (unless the model was fitted with mrts bases)!")
             else {
-                if (is.null(newloc)) 
-                    basis <- object$G
-                else basis <- predict.mrts(object$G, newx = newloc)
+                basis <- ifelse(is.null(newloc),
+                                object$G,
+                                predict.mrts(object$G, newx = newloc))
             }
         }
     }
     if (NROW(basis) == 1) 
         basis <- as.matrix(t(basis))
-    if (is.null(obsloc)) 
-        nobs <- NROW(object$G)
-    else 
-        nobs <- NROW(obsloc)
+
+    nobs <- ifelse(is.null(obsloc), NROW(object$G), NROW(obsloc))
+
     if (!is.null(obsData)) {
         obsData <- as.matrix(obsData - mu.obs)
         if (length(obsData) != nobs) 
@@ -1106,8 +1102,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
             }
         }
         if (is.null(obsloc) & is.null(obsData)) {
-            if (is.null(newloc)) 
-                newloc <- attr(object, "pinfo")$loc
+            if (is.null(newloc)) newloc <- attr(object, "pinfo")$loc
             miss <- attr(object, "missing")
             info <- object$LKobj$LKinfo.MLE
             phi0 <- LKrig.basis(newloc, info)
@@ -1203,8 +1198,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
                            only.wlk = !se.report)
 
             yhat <- basis %*% pred$w + phi0 %*% pred$wlk
-            if (se.report) 
-                se <- pred$se
+            if (se.report) se <- pred$se
         }
     }
     if (!se.report) 
@@ -1257,10 +1251,8 @@ print.FRK <- function(x, ...) {
 }
 
 print.mrts <- function(x, ...) {
-    if (NCOL(x) == 1) 
-        out = c(x)
-    else out = x[, 1:NCOL(x)]
     
+    if (NCOL(x) == 1) out = c(x) else out = x[, 1:NCOL(x)]
     print(out)
 }
 
@@ -1292,14 +1284,10 @@ subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     else 
         x <- as.matrix(sort(x))
     
-    if (is.null(xrng)) {
-        if (xdim[2] > 1) {
-            xrng <- apply(x, 2, range)
-        }
-        else {
-            xrng <- matrix(range(x), 2, 1)
-        }
-    }
+    if (is.null(xrng))
+        xrng <- ifelse(xdim[2] > 1,
+                       apply(x, 2, range),
+                       matrix(range(x), 2, 1))
     
     mysamp <- function(zANDid) {
         z <- as.double(names(zANDid))
@@ -1348,10 +1336,7 @@ subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     names(gid) <- 1:xdim[1]
     index <- unlist(tapply(gid, gvec, mysamp))
     
-    if (xdim[2] > 1) 
-        x[index, ]
-    else 
-        x[index]
+    if (xdim[2] > 1) x[index, ] else  x[index]
 }
 
 system_ram <- function(os) {
@@ -1362,8 +1347,7 @@ system_ram <- function(os) {
         units <- value[2]
         power <- match(units, c("kB", "MB", "GB", "TB"))
         
-        if (!is.na(power)) 
-            return(num * 1024^power)
+        if (!is.na(power)) return(num * 1024^power)
         
         power <- match(units, c("Kilobytes",
                                 "Megabytes",
@@ -1410,7 +1394,6 @@ toSpMat <- function(mat) {
     
     if (class(mat) == "matrix") {
         if (length(mat) > MAX_LIMIT) {
-            
             warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
             
             db <- tempfile()
