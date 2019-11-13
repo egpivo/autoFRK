@@ -24,11 +24,11 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
     # Coerce type of `loc` as matrix
     if (!is.matrix(loc))
         loc <- as.matrix(loc)
-    # Determine basis functions
+    # Determine basis functions (n x K matrix)
     if (!is.null(G)) 
         Fk <- G
     else {
-        Fk <- basisSelect(Data = Data,
+        Fk <- selectBasis(Data = Data,
                           loc = loc,
                           D = D,
                           maxit = maxit,
@@ -40,22 +40,12 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
                           maxknot = 5000
         )
     }
+    
     K <- NCOL(Fk)
     # Execute KNN for imputation
     if (method == "fast") {
         # Fill missing data by k-nearest-neighbor imputation
-        for (tt in 1:NCOL(Data)) {
-            where <- is.na(Data[, tt])
-            if (sum(where) == 0) 
-                next
-            cidx <- which(!where)
-            nnidx <- FNN::get.knnx(data = loc[cidx, ],
-                                  query = loc[where, ],
-                                  k = n.neighbor)
-            nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
-            nnval <- array((Data[, tt])[nnidx], dim(nnidx))
-            Data[where, tt] <- rowMeans(nnval)
-        }
+        Data <- apply(Data, 2, impute_by_knn, loc=loc, k=n.neighbor)
     }
     if (!isFineScale) 
         obj <- indeMLE(Data = Data,
@@ -74,7 +64,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
         if (is.null(nlevel)) 
             nlevel <- 3
         iniobj <- LKnFRKini(Data, loc, nlevel, weights = 1/diag(D), 
-                           n.neighbor, nu)
+                            n.neighbor, nu)
         DnLK <- LKnFRKopt(iniobj, Fk[, 1:K], nc = NC, a.wght = a.wght)
         DfromLK <- DnLK$DfromLK
         LKobj <- DnLK$LKobj
@@ -103,7 +93,24 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
     return(obj)
 }
 
-basisSelect <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6, 
+
+impute_by_knn <- function(data, loc, k) {
+    where <- is.na(data)
+    if (sum(where) == 0) 
+        next
+    cidx <- which(!where)
+    nnidx <- FNN::get.knnx(data = loc[cidx, ],
+                           query = loc[where, ],
+                           k = k)
+    nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
+    nnval <- array(data[nnidx], dim(nnidx))
+    data[where] <- rowMeans(nnval)
+    
+    return(data)
+}
+
+
+selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6, 
                         maxK = NULL, Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3, 
                         maxknot = 5000, DfromLK = NULL, Fk = NULL) {
     Data <- as.matrix(Data)
