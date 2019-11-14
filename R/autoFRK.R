@@ -18,12 +18,10 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
         stop("Please enter one method at a time")
     method <- match.arg(method)
     # Coerce type of `Data`` as matrix; center `Data`
-    if (!is.matrix(Data))
-        Data <- as.matrix(Data)
+    if (!is.matrix(Data)) Data <- as.matrix(Data)
     Data <- Data - mu
     # Coerce type of `loc` as matrix
-    if (!is.matrix(loc))
-        loc <- as.matrix(loc)
+    if (!is.matrix(loc)) loc <- as.matrix(loc)
     # Determine basis functions (n x K matrix)
     if (!is.null(G)) 
         Fk <- G
@@ -113,55 +111,53 @@ impute_by_knn <- function(data, loc, k) {
 selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6, 
                         maxK = NULL, Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3, 
                         maxknot = 5000, DfromLK = NULL, Fk = NULL) {
-    Data <- as.matrix(Data)
-    empty <- apply(!is.na(Data), 2, sum) == 0
-    if (sum(empty) > 0) 
-        Data <- Data[, which(!empty)]
+
+    # Remove columnwise and rowwise NAs of Data in order
     if (class(Data) == "numeric") 
-        Data <- as.matrix(Data)
-    loc <- as.matrix(loc)
-    d <- NCOL(loc)
-    withNA <- sum(is.na(Data)) > 0
-    del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
-    pick <- 1:NROW(Data)
-    if (length(del) > 0) {
-        Data <- Data[-del, ]
-        D <- D[-del, -del]
-        pick <- pick[-del]
-        withNA <- sum(is.na(Data)) > 0
-    }
+        Data <- Data[which(!is.na(Data))]
+    else if (class(Data) == "matrix") 
+        Data <- Data[, colSums(is.na(Data)) != nrow(Data)]
+    else
+        stop("Please enter a valid class of Data")
+    if (class(Data) == "numeric") Data <- as.matrix(Data)
+    #
+    # Assume all elements of Data are not NAs
+    # TODO: Add protection in `autoFRK ` for detection `length(pick) > 0`
+    #
+    naDataMatrix <- is.na(Data)
+    isWithNA <- sum(naDataMatrix) > 0
+    pick <- which(rowSums(naDataMatrix) != 0)
     N <- length(pick)
+    Data <- Data[pick, ]
+         
     klim <-min(N, round(10 * sqrt(N)))
-    if (N < maxknot) 
-        knot <- loc[pick, ]
-    else 
-        knot <- subknot(loc[pick, ], min(maxknot, klim))
+    if (class(loc) != "matrix") loc <- as.matrix(loc)
+    knot <- ifelse(N < maxknot,
+                   loc[pick, ],
+                   subknot(loc[pick, ], min(maxknot, klim)))
+    
     if (!is.null(maxK)) 
         maxK <- round(maxK)
-    else {
-        if (!is.null(Kseq)) 
-            maxK <- round(max(Kseq))
-        else 
-            maxK <- klim
-    }
+    else
+        maxK <- ifelse(!is.null(Kseq), round(max(Kseq)), klim)
+    
+    d <- NCOL(loc)
     if (!is.null(Kseq)) {
         K <- unique(round(Kseq))
-        if (max(K) > maxK) 
-            stop("maximum of Kseq is larger than maxK!")
+        if (max(K) > maxK) stop("maximum of Kseq is larger than maxK!")
         if (any(K < (d + 1))) 
             warning("The minimum of Kseq can not less than ", 
                     d + 1, ". Too small values will be ignored.")
         K <- K[K > d]
-        if (length(K) == 0) 
-            stop("Not valid Kseq!")
+        if (length(K) == 0) stop("Not valid Kseq!")
     }
     else {
         K <- unique(round(seq(d + 1, maxK, by = maxK^(1/3) * d)))
         if (length(K) > 30) 
             K <- unique(round(seq(d + 1, maxK, l = 30)))
     }
-    if (is.null(Fk)) 
-        Fk <- mrts(knot, max(K), loc)
+    
+    if (is.null(Fk)) Fk <- mrts(knot, max(K), loc)
     AIClist <- rep(Inf, length(K))
     method <- match.arg(method)
     if ((method == "EM") & (is.null(DfromLK))) {
@@ -174,7 +170,7 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
                                   num.report = FALSE)$negloglik
     }
     else {
-        if (withNA) {
+        if (isWithNA) {
             Data <- as.matrix(Data)
             for (tt in 1:NCOL(Data)) {
                 where <- is.na(Data[, tt])
@@ -609,7 +605,7 @@ getlik <- function(Data, Fk, M, s, Depsilon) {
 indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6, 
                     wSave = FALSE, DfromLK = NULL, vfixed = NULL, num.report = TRUE) {
 
-    withNA <- sum(is.na(Data)) > 0
+    isWithNA <- sum(is.na(Data)) > 0
     if (class(Data) == "numeric") Data <- as.matrix(Data)
     TT <- NCOL(Data)
     empty <- apply(!is.na(Data), 2, sum) == 0
@@ -621,21 +617,21 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e
     pick <- 1:NROW(Data)
     D0 <- ifelse(!checkDiag(D), toSpMat(D), diag.spam(diag(D), NROW(Data))) 
 
-    if (withNA && (length(del) > 0)) {
+    if (isWithNA && (length(del) > 0)) {
         pick <- pick[-del]
         Data <- Data[-del, ]
         Fk <- Fk[-del, ]
         D <- ifelse(!checkDiag(D),
                     D[-del, -del], 
                     diag.spam(diag(D)[-del], NROW(Data)))
-        withNA <- sum(is.na(Data)) > 0
+        isWithNA <- sum(is.na(Data)) > 0
     }
     N <- NROW(Data)
     K <- NCOL(Fk)
     Depsilon <- toSpMat(D)
     isimat <- checkDiag(D) * (sum(abs(rep(mean(diag(D)), N) -  diag(Depsilon))) < .Machine$double.eps)
     
-    if (!withNA) {
+    if (!isWithNA) {
         if (isimat & is.null(DfromLK)) {
             
             sigma <- ifelse(!is.null(.Options$sigma_FRK),
