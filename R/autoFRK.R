@@ -128,7 +128,7 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
     isWithNA <- sum(naDataMatrix) > 0
     pick <- which(rowSums(naDataMatrix) != 0)
     N <- length(pick)
-    Data <- Data[pick, ]
+    Data <- ifelse(N == 1, as.matrix(Data[pick, ]), Data[pick, ])
          
     klim <-min(N, round(10 * sqrt(N)))
     if (class(loc) != "matrix") loc <- as.matrix(loc)
@@ -142,6 +142,7 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
         maxK <- ifelse(!is.null(Kseq), round(max(Kseq)), klim)
     
     d <- NCOL(loc)
+    TT <- NCOL(Data)
     if (!is.null(Kseq)) {
         K <- unique(round(Kseq))
         if (max(K) > maxK) stop("maximum of Kseq is larger than maxK!")
@@ -170,22 +171,8 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
                                   num.report = FALSE)$negloglik
     }
     else {
-        if (isWithNA) {
-            Data <- as.matrix(Data)
-            for (tt in 1:NCOL(Data)) {
-                where <- is.na(Data[, tt])
-                if (sum(where) == 0) 
-                    next
-                cidx <- which(!where)
-                nnidx <- FNN::get.knnx(data=loc[cidx, ],
-                                      query=as.matrix(loc[where, ]),
-                                      k = n.neighbor)
-                nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
-                nnval <- array((Data[, tt])[nnidx], dim(nnidx))
-                Data[where, tt] <- rowMeans(nnval)
-            }
-        }
-        TT <- NCOL(Data)
+        if (isWithNA) Data <- apply(Data, 2, impute_by_knn, loc=loc, k=n.neighbor)
+        
         if (is.null(DfromLK)) {
             iD <- solve(D)
             iDFk <- iD %*% Fk[pick, ]
@@ -200,20 +187,26 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
             iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*% as.matrix(Fk[pick, ]))
             iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
         }
+        
         trS <- sum(rowSums(as.matrix(iDZ) * Data))/TT
         for (k in 1:length(K)) {
             half <- getHalf(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
             ihFiD <- half %*% t(iDFk[, 1:K[k]])
             JSJ <- tcrossprod(ihFiD %*% Data)/TT
             JSJ <- (JSJ + t(JSJ))/2
-            AIClist[k] <- cMLE(Fk[pick, 1:K[k]], TT, trS, half, JSJ, s = 0)$negloglik
+            AIClist[k] <- cMLE(Fk = Fk[pick, 1:K[k]],
+                               TT = TT,
+                               trS = trS,
+                               half = half,
+                               JSJ = JSJ)$negloglik
         }
     }
-    TT <- NCOL(Data)
+
     df <- (K * (K + 1)/2 + 1) * (K <= TT) + (K * TT + 1 - TT * (TT - 1)/2) * (K > TT)
     AIClist <- AIClist + 2 * df
     Kopt <- K[which.min(AIClist)]
     out <- Fk[, 1:Kopt]
+    
     dimnames(Fk) <- NULL
     aname <- names(attributes(Fk))
     attributes(out) <- c(attributes(out), attributes(Fk)[setdiff(aname, "dim")])
