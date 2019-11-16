@@ -43,7 +43,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
     # Execute KNN for imputation
     if (method == "fast") {
         # Fill missing data by k-nearest-neighbor imputation
-        Data <- apply(Data, 2, impute_by_knn, loc=loc, k=n.neighbor)
+        Data <- apply(Data, 2, imputeByKnn , loc=loc, k=n.neighbor)
     }
     if (!isFineScale) 
         obj <- indeMLE(Data = Data,
@@ -91,142 +91,15 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
     return(obj)
 }
 
-
-impute_by_knn <- function(data, loc, k) {
-    where <- is.na(data)
-    if (sum(where) == 0) 
-        next
-    cidx <- which(!where)
-    nnidx <- FNN::get.knnx(data = loc[cidx, ],
-                           query = loc[where, ],
-                           k = k)
-    nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
-    nnval <- array(data[nnidx], dim(nnidx))
-    data[where] <- rowMeans(nnval)
-    
-    return(data)
-}
-
-
-selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6, 
-                        maxK = NULL, Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3, 
-                        maxknot = 5000, DfromLK = NULL, Fk = NULL) {
-
-    # Remove columnwise and rowwise NAs of Data in order
-    if (class(Data) == "numeric") 
-        Data <- Data[which(!is.na(Data))]
-    else if (class(Data) == "matrix") 
-        Data <- Data[, colSums(is.na(Data)) != nrow(Data)]
-    else
-        stop("Please enter a valid class of Data")
-    if (class(Data) == "numeric") Data <- as.matrix(Data)
-    #
-    # Assume all elements of Data are not NAs
-    # TODO: Add protection in `autoFRK ` for detection `length(pick) > 0`
-    #
-    naDataMatrix <- is.na(Data)
-    isWithNA <- sum(naDataMatrix) > 0
-    pick <- which(rowSums(naDataMatrix) != 0)
-    N <- length(pick)
-    Data <- ifelse(N == 1, as.matrix(Data[pick, ]), Data[pick, ])
-         
-    klim <-min(N, round(10 * sqrt(N)))
-    if (class(loc) != "matrix") loc <- as.matrix(loc)
-    knot <- ifelse(N < maxknot,
-                   loc[pick, ],
-                   subknot(loc[pick, ], min(maxknot, klim)))
-    
-    if (!is.null(maxK)) 
-        maxK <- round(maxK)
-    else
-        maxK <- ifelse(!is.null(Kseq), round(max(Kseq)), klim)
-    
-    d <- NCOL(loc)
-    TT <- NCOL(Data)
-    if (!is.null(Kseq)) {
-        K <- unique(round(Kseq))
-        if (max(K) > maxK) stop("maximum of Kseq is larger than maxK!")
-        if (any(K < (d + 1))) 
-            warning("The minimum of Kseq can not less than ", 
-                    d + 1, ". Too small values will be ignored.")
-        K <- K[K > d]
-        if (length(K) == 0) stop("Not valid Kseq!")
-    }
-    else {
-        K <- unique(round(seq(d + 1, maxK, by = maxK^(1/3) * d)))
-        if (length(K) > 30) 
-            K <- unique(round(seq(d + 1, maxK, l = 30)))
-    }
-    
-    if (is.null(Fk)) Fk <- mrts(knot, max(K), loc)
-    AIClist <- rep(Inf, length(K))
-    method <- match.arg(method)
-    if ((method == "EM") & (is.null(DfromLK))) {
-        for (k in 1:length(K)) 
-            AIClist[k] <- indeMLE(Data = Data,
-                                  Fk = Fk[pick, 1:K[k]],
-                                  D = D,
-                                  maxit = maxit,
-                                  avgtol = avgtol,
-                                  num.report = FALSE)$negloglik
-    }
-    else {
-        if (isWithNA) Data <- apply(Data, 2, impute_by_knn, loc=loc, k=n.neighbor)
-        
-        if (is.null(DfromLK)) {
-            iD <- solve(D)
-            iDFk <- iD %*% Fk[pick, ]
-            iDZ <- iD %*% Data
-        }
-        else {
-            wX <- DfromLK$wX[pick, ]
-            G <- t(DfromLK$wX) %*% DfromLK$wX + DfromLK$lambda * DfromLK$Q
-            weight <- DfromLK$weights[pick]
-            wwX <- diag.spam(sqrt(weight)) %*% wX
-            wXiG <- (wwX) %*% solve(G)
-            iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*% as.matrix(Fk[pick, ]))
-            iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-        }
-        
-        trS <- sum(rowSums(as.matrix(iDZ) * Data))/TT
-        for (k in 1:length(K)) {
-            half <- getHalf(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
-            ihFiD <- half %*% t(iDFk[, 1:K[k]])
-            JSJ <- tcrossprod(ihFiD %*% Data)/TT
-            JSJ <- (JSJ + t(JSJ))/2
-            AIClist[k] <- cMLE(Fk = Fk[pick, 1:K[k]],
-                               TT = TT,
-                               trS = trS,
-                               half = half,
-                               JSJ = JSJ)$negloglik
-        }
-    }
-
-    df <- (K * (K + 1)/2 + 1) * (K <= TT) + (K * TT + 1 - TT * (TT - 1)/2) * (K > TT)
-    AIClist <- AIClist + 2 * df
-    Kopt <- K[which.min(AIClist)]
-    out <- Fk[, 1:Kopt]
-    
-    dimnames(Fk) <- NULL
-    aname <- names(attributes(Fk))
-    attributes(out) <- c(attributes(out), attributes(Fk)[setdiff(aname, "dim")])
-    
-    return(out)
-}
-
 checkDiag <- function(X) {
-        if (class(X) == "numeric") 
-            return(TRUE)
-        if (class(X) == "matrix") {
-            if (sum(abs(diag(diag(X)) - X)) < .Machine$double.eps) 
-                return(TRUE)
-            else 
-                return(FALSE)
-        }
-        else {
-            x <- diag.spam(diag.of.spam(X), NROW(X))
-            return(identical(x, X))
-        }
+    if (class(X) == "numeric")
+        status <- TRUE
+    else if (class(X) == "matrix") 
+        status <- ifelse(sum(abs(diag(diag(X)) - X)) < .Machine$double.eps, TRUE, FALSE) 
+    else
+        status <- identical(diag.spam(diag.of.spam(X), NROW(X)), X)
+    
+    return(status)
 }
 
 cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL, wSave = FALSE,
@@ -237,10 +110,10 @@ cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL, wSave = FALS
     eg <- eigen(JSJ)
     d <- eg$value[1:k]
     P <- eg$vector[, 1:k]
-    v <- ifelse(is.null(vfixed), sol.v(d, s, trS, n), vfixed)
+    if (is.null(vfixed)) v <- sol.v(d, s, trS, n) else v <- vfixed
     dii <- pmax(d, 0)
- 
-    if (onlylogLike) 
+
+    if (onlylogLike)
         result_list <- list(negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT)
     else{
         dhat <- sol.eta(dii, s, v)
@@ -271,8 +144,12 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
     trS <- sum(rowSums(as.matrix(Data)^2))/TT
     half <- getHalf(Fk, Fk)
     ihF <- half %*% t(Fk)
-    JSJ <- ifelse(is.null(S), tcrossprod(ihF %*% Data)/TT, (ihF %*% S) %*% t(ihF))
+    if (is.null(S))
+        JSJ <- tcrossprod(ihF %*% Data)/TT
+    else
+        JSJ <- (ihF %*% S) %*% t(ihF)
     JSJ <- (JSJ + t(JSJ))/2
+    
     eg <- eigen(JSJ)
     d <- eg$value[1:k]
     v <- sol.v(d, s, trS, n)
@@ -439,7 +316,10 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
             BiDBt <- t(Bt) %*% iDBt
         }
         else {
-            iDt <- ifelse(!diagD, solve(D[O[, tt], O[, tt]]), iD[O[, tt], O[, tt]])
+            if (!diagD) 
+                iDt <- solve(D[O[, tt], O[, tt]]) 
+            else 
+                iDt <- iD[O[, tt], O[, tt]]
             Bt <- Fk[O[, tt], ]
             if (NCOL(Bt) == 1) Bt <- t(Bt)
             iDBt <- as.matrix(iDt %*% Bt)
@@ -448,13 +328,14 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
             ziDB[tt, ] <- t(zt) %*% iDBt
             BiDBt <- t(Bt) %*% iDBt
         }
-        db[[tt]] <- ifelse(external, 
-                           dumpObjects(iDBt, zt, BiDBt, external, oldfile, dbName = ftmp[tt]),
-                           list(iDBt = iDBt,
-                                zt = zt,
-                                BiDBt = BiDBt, 
-                                external = external,
-                                oldfile = oldfile))
+        if (external)
+            db[[tt]] <- dumpObjects(iDBt, zt, BiDBt, external, oldfile, dbName = ftmp[tt])
+        else
+            db[[tt]] <- list(iDBt = iDBt,
+                             zt = zt,
+                             BiDBt = BiDBt, 
+                             external = external,
+                             oldfile = oldfile)
     }
     # gc
     rm(iDt, Bt, iDBt, zt, BiDBt)
@@ -465,7 +346,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
     Z0 <- Data
     Z0[is.na(Z0)] <- 0
     old <- cMLEimat(Fk, Z0, s = 0, wSave = T)
-    old$s <- ifelse(is.null(vfixed), old$v, vfixed)
+    if(is.null(vfixed)) old$s <- old$v else old$s <- vfixed
     old$M <- mkpd(old$M)
     Ptt1 <- old$M
     saveOLD(external)
@@ -489,11 +370,12 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
             etatt[, tt] <- s1.eta.P[2, ]
             s1[tt] <- sum(s1.eta.P[1, ])
         }
-        new <- ifelse(is.null(vfixed),
-                      list(M = (etatt %*% t(etatt) + sumPtt)/TT, 
-                           s = max((sum(ziDz) - 2 * sum(ziDB * t(etatt)) + sum(s1))/sum(O), 1e-8)),
-                      list(M = (etatt %*% t(etatt) + sumPtt)/TT, 
-                           s = vfixed))
+        if (is.null(vfixed))
+            new <- list(M = (etatt %*% t(etatt) + sumPtt)/TT, 
+                        s = max((sum(ziDz) - 2 * sum(ziDB * t(etatt)) + sum(s1))/sum(O), 1e-8))
+        else
+            new <- list(M = (etatt %*% t(etatt) + sumPtt)/TT, 
+                        s = vfixed)
         new$M <- (new$M + t(new$M)) / 2
         dif <- sum(abs(new$M - old$M)) + abs(new$s - old$s)
         cnt <- cnt + 1
@@ -595,6 +477,21 @@ getlik <- function(Data, Fk, M, s, Depsilon) {
     return(n2loglik)
 }
 
+imputeByKnn <- function(data, loc, k) {
+    where <- is.na(data)
+    if (sum(where) == 0) 
+        next
+    cidx <- which(!where)
+    nnidx <- FNN::get.knnx(data = loc[cidx, ],
+                           query = loc[where, ],
+                           k = k)
+    nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
+    nnval <- array(data[nnidx], dim(nnidx))
+    data[where] <- rowMeans(nnval)
+    
+    return(data)
+}
+
 indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6, 
                     wSave = FALSE, DfromLK = NULL, vfixed = NULL, num.report = TRUE) {
 
@@ -608,15 +505,16 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e
     
     del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
     pick <- 1:NROW(Data)
-    D0 <- ifelse(!checkDiag(D), toSpMat(D), diag.spam(diag(D), NROW(Data))) 
+    if (!checkDiag(D)) D0 <- toSpMat(D) else D0 <- diag.spam(diag(D), NROW(Data))
 
     if (isWithNA && (length(del) > 0)) {
         pick <- pick[-del]
         Data <- Data[-del, ]
         Fk <- Fk[-del, ]
-        D <- ifelse(!checkDiag(D),
-                    D[-del, -del], 
-                    diag.spam(diag(D)[-del], NROW(Data)))
+        if (!checkDiag(D))
+            D <- D[-del, -del]
+        else
+            D <- diag.spam(diag(D)[-del], NROW(Data))
         isWithNA <- sum(is.na(Data)) > 0
     }
     N <- NROW(Data)
@@ -698,16 +596,17 @@ invCz <- function(R, L, z) {
 
 LKextract <- function(obj, loc = NULL, w = NULL, pick = NULL) {
     out <- list()
-    if (is.null(loc)) 
-        loc <- ifelse(is.null(obj$LKinfo.MLE$x),
-                      obj$LKinfo.MLE$call["x"][[1]], 
-                      obj$LKinfo.MLE$x)
+    if (is.null(loc))
+        if (is.null(obj$LKinfo.MLE$x))
+            loc <- obj$LKinfo.MLE$call["x"][[1]]
+        else
+            loc <- obj$LKinfo.MLE$x
     
     phi <- LKrig.basis(loc, obj$LKinfo)
     Q <- LKrig.precision(obj$LKinfo)
     out$Q <- Q
     
-    out$weights <- ifelse(!is.null(w), w, obj$LKinfo.MLE$weights)
+    if (!is.null(w)) out$weights <- w else out$weights <- obj$LKinfo.MLE$weights
     
     w <- diag.spam(sqrt(out$weights))
     wX <- w %*% phi
@@ -879,19 +778,23 @@ mkpd <- function(M) {
 }
 
 mrts <- function(knot, k, x = NULL) {
-    is64bit = length(grep("64", Sys.info()["release"])) > 0
+    is64bit = length(grep("64", version["system"])) > 0
+    rlimit <- ramSize()
     
     if ((!is64bit) & (max(NROW(x), NROW(knot)) > 20000)) 
         stop("Use 64-bit version of R for such a volume of data!")
     
-    xobs <- ifelse(NCOL(knot) == 1,
-                   as.matrix(as.double(as.matrix(knot))),
-                   apply(knot, 2, as.double))
+    #
+    # Check: xobs consists of redundant lines
+    #
+    if (NCOL(knot) == 1)
+        xobs <- as.matrix(as.double(as.matrix(knot)))
+    else
+        xobs <- apply(knot, 2, as.double)
     
-    Xu <- uniquecombs(cbind(xobs))
+    Xu <- unique(cbind(xobs))
     
-    if (is.null(x) & length(Xu) != length(xobs)) 
-        x <- xobs
+    if (is.null(x) & length(Xu) != length(xobs)) x <- xobs
     
     colnames(Xu) <- NULL
     n <- n.Xu <- NROW(Xu)
@@ -913,9 +816,11 @@ mrts <- function(knot, k, x = NULL) {
     xobs_diag <- diag(sqrt(n/(n - 1))/apply(xobs, 2, sd), ndims)
     
     if (!is.null(x)) {
-        x <- ifelse(NCOL(x) == 1,
-                    as.matrix(as.double(as.matrix(x))),
-                    as.matrix(array(as.double(as.matrix(x)), dim(x))))
+        if (NCOL(x) == 1)
+            x <- as.matrix(as.double(as.matrix(x)))
+        else
+            x <- as.matrix(array(as.double(as.matrix(x)), dim(x)))
+        
         if (k - ndims - 1 > 0) 
             result <- predictMrtsRcpp(Xu,
                                       xobs_diag,
@@ -954,9 +859,10 @@ mrts <- function(knot, k, x = NULL) {
         shift <- colMeans(attr(obj, "Xu"))
         X2 <- sweep(cbind(x), 2, shift, "-")
         X2 <- cbind(1, sweep(X2, 2, attr(obj, "nconst"), "/"))
-        obj0 <- ifelse(k - ndims - 1 > 0,
-                       as.matrix(cbind(X2, result$X1)),
-                       as.matrix(X2))
+        if (k - ndims - 1 > 0)
+            obj0 <- as.matrix(cbind(X2, result$X1))
+        else
+            obj0 <- as.matrix(X2)
         dimnames(obj) <- NULL
         aname <- names(attributes(obj))
         attributes(obj0) <- c(attributes(obj0),
@@ -979,14 +885,14 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
             if (class(object$G) != "mrts") 
                 stop("Basis matrix of new locations should be given (unless the model was fitted with mrts bases)!")
             else {
-                basis <- ifelse(is.null(newloc),
-                                object$G,
-                                predict.mrts(object$G, newx = newloc))
+                if (is.null(newloc))
+                    basis <- object$G
+                else
+                    basis <- predict.mrts(object$G, newx = newloc)
             }
         }
     }
-    if (NROW(basis) == 1) 
-        basis <- as.matrix(t(basis))
+    if (NROW(basis) == 1) basis <- as.matrix(t(basis))
 
     nobs <- ifelse(is.null(obsloc), NROW(object$G), NROW(obsloc))
 
@@ -1205,8 +1111,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
 
 predict.mrts <- function(object, newx, ...) {
     
-    if (missing(newx)) 
-        return(object)
+    if (missing(newx)) return(object)
     
     Xu <- attr(object, "Xu")
     n <- NROW(Xu)
@@ -1252,15 +1157,6 @@ print.mrts <- function(x, ...) {
     print(out)
 }
 
-ramSize <- function() {
-    os <- R.version$os
-    ram <- try(system_ram(os), silent = TRUE)
-    if (class(ram) == "try-error") 
-        ram = 2048 * 1024 * 1024
-    
-    return(ram[1])
-}
-
 setNC <- function(z, loc, nlevel) {
     Dimension <- NCOL(loc)
     N <- nrow(z)
@@ -1268,6 +1164,112 @@ setNC <- function(z, loc, nlevel) {
     NCtest <- (N/a)^(1/Dimension)
     
     return(round(max(4, NCtest)))
+}
+
+selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6, 
+                        maxK = NULL, Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3, 
+                        maxknot = 5000, DfromLK = NULL, Fk = NULL) {
+    
+    # Remove columnwise and rowwise NAs of Data in order
+    if (class(Data) == "numeric") 
+        Data <- Data[which(!is.na(Data))]
+    else if (class(Data) == "matrix") 
+        Data <- Data[, colSums(is.na(Data)) != nrow(Data)]
+    else
+        stop("Please enter a valid class of Data")
+    if (class(Data) == "numeric") Data <- as.matrix(Data)
+    #
+    # Assume all elements of Data are not NAs
+    # TODO: Add protection in `autoFRK ` for detection `length(pick) > 0`
+    #
+    naDataMatrix <- is.na(Data)
+    isWithNA <- sum(naDataMatrix) > 0
+    pick <- which(rowSums(naDataMatrix) != 0)
+    N <- length(pick)
+    if (N == 1) Data <- as.matrix(Data[pick, ]) else Data <- Data[pick, ]
+    
+    klim <-min(N, round(10 * sqrt(N)))
+    if (class(loc) != "matrix") loc <- as.matrix(loc)
+    if (N < maxknow)
+        knot <- loc[pick, ]
+    else 
+        knot <- subknot(loc[pick, ], min(maxknot, klim))
+    
+    if (!is.null(maxK)) 
+        maxK <- round(maxK)
+    else
+        maxK <- ifelse(!is.null(Kseq), round(max(Kseq)), klim)
+    
+    d <- NCOL(loc)
+    TT <- NCOL(Data)
+    if (!is.null(Kseq)) {
+        K <- unique(round(Kseq))
+        if (max(K) > maxK) stop("maximum of Kseq is larger than maxK!")
+        if (any(K < (d + 1))) 
+            warning("The minimum of Kseq can not less than ", 
+                    d + 1, ". Too small values will be ignored.")
+        K <- K[K > d]
+        if (length(K) == 0) stop("Not valid Kseq!")
+    }
+    else {
+        K <- unique(round(seq(d + 1, maxK, by = maxK^(1/3) * d)))
+        if (length(K) > 30) K <- unique(round(seq(d + 1, maxK, l = 30)))
+    }
+    
+    if (is.null(Fk)) Fk <- mrts(knot, max(K), loc)
+    AIClist <- rep(Inf, length(K))
+    method <- match.arg(method)
+    if ((method == "EM") & (is.null(DfromLK))) {
+        for (k in 1:length(K)) 
+            AIClist[k] <- indeMLE(Data = Data,
+                                  Fk = Fk[pick, 1:K[k]],
+                                  D = D,
+                                  maxit = maxit,
+                                  avgtol = avgtol,
+                                  num.report = FALSE)$negloglik
+    }
+    else {
+        if (isWithNA) Data <- apply(Data, 2, imputeByKnn , loc=loc, k=n.neighbor)
+        
+        if (is.null(DfromLK)) {
+            iD <- solve(D)
+            iDFk <- iD %*% Fk[pick, ]
+            iDZ <- iD %*% Data
+        }
+        else {
+            wX <- DfromLK$wX[pick, ]
+            G <- t(DfromLK$wX) %*% DfromLK$wX + DfromLK$lambda * DfromLK$Q
+            weight <- DfromLK$weights[pick]
+            wwX <- diag.spam(sqrt(weight)) %*% wX
+            wXiG <- (wwX) %*% solve(G)
+            iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*% as.matrix(Fk[pick, ]))
+            iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
+        }
+        
+        trS <- sum(rowSums(as.matrix(iDZ) * Data))/TT
+        for (k in 1:length(K)) {
+            half <- getHalf(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
+            ihFiD <- half %*% t(iDFk[, 1:K[k]])
+            JSJ <- tcrossprod(ihFiD %*% Data)/TT
+            JSJ <- (JSJ + t(JSJ))/2
+            AIClist[k] <- cMLE(Fk = Fk[pick, 1:K[k]],
+                               TT = TT,
+                               trS = trS,
+                               half = half,
+                               JSJ = JSJ)$negloglik
+        }
+    }
+    
+    df <- (K * (K + 1)/2 + 1) * (K <= TT) + (K * TT + 1 - TT * (TT - 1)/2) * (K > TT)
+    AIClist <- AIClist + 2 * df
+    Kopt <- K[which.min(AIClist)]
+    out <- Fk[, 1:Kopt]
+    
+    dimnames(Fk) <- NULL
+    aname <- names(attributes(Fk))
+    attributes(out) <- c(attributes(out), attributes(Fk)[setdiff(aname, "dim")])
+    
+    return(out)
 }
 
 subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
@@ -1281,9 +1283,10 @@ subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
         x <- as.matrix(sort(x))
     
     if (is.null(xrng))
-        xrng <- ifelse(xdim[2] > 1,
-                       apply(x, 2, range),
-                       matrix(range(x), 2, 1))
+        if (xdim[2] > 1)
+            xrng <- apply(x, 2, range)
+        else
+            xrng <- matrix(range(x), 2, 1)
     
     mysamp <- function(zANDid) {
         z <- as.double(names(zANDid))
@@ -1335,53 +1338,6 @@ subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     if (xdim[2] > 1) x[index, ] else  x[index]
 }
 
-system_ram <- function(os) {
-    remove_white <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
-    
-    to_Bytes <- function(value) {
-        num <- as.numeric(value[1])
-        units <- value[2]
-        power <- match(units, c("kB", "MB", "GB", "TB"))
-        
-        if (!is.na(power)) return(num * 1024^power)
-        
-        power <- match(units, c("Kilobytes",
-                                "Megabytes",
-                                "Gigabytes", 
-                                "Terabytes"))
-        
-        if (!is.na(power)) 
-            return(num * 1024^power)
-        else 
-            return(num)
-    }
-    
-    if (length(grep("^linux", os))) {
-        cmd <- "awk '/MemTotal/ {print $2}' /proc/meminfo"
-        ram <- system(cmd, intern = TRUE)
-        ram <- as.numeric(ram) * 1024
-    }
-    else if (length(grep("^darwin", os))) {
-        ram <- system("system_profiler -detailLevel mini | grep \"  Memory:\"", 
-                     intern = TRUE)[1]
-        ram <- remove_white(ram)
-        ram <- to_Bytes(unlist(strsplit(ram, " "))[2:3])
-    }
-    else if (length(grep("^solaris", os))) {
-        cmd <- "prtconf | grep Memory"
-        ram <- system(cmd, intern = TRUE)
-        ram <- remove_white(ram)
-        ram <- to_Bytes(unlist(strsplit(ram, " "))[3:4])
-    }
-    else {
-        ram <- system("wmic MemoryChip get Capacity", intern = TRUE)[-1]
-        ram <- remove_white(ram)
-        ram <- ram[nchar(ram) > 0]
-        sum(as.numeric(ram))
-    }
-    as.double(ram)
-}
-
 toSpMat <- function(mat) {
     MAX_LIMIT <- 1e8
     
@@ -1417,8 +1373,6 @@ toSpMat <- function(mat) {
     return(mat)
 }
 
-uniquecombs <- function(x) return(unique(x))
-
 ZinvC <- function(R, L, z) {
     K <- NCOL(L)
     iR <- solve(R)
@@ -1427,7 +1381,6 @@ ZinvC <- function(R, L, z) {
     
     return(ZiR - left %*% iR)
 }
-
 
 sol.v <- function(d, s, trS, n) {
     if (max(d) < max(trS/n, s)) 
@@ -1450,22 +1403,20 @@ sol.eta <- function(d, s, v) pmax(d - s - v, 0)
 
 neg2llik <- function(d, s, v, trS, n) {
     eta <- sol.eta(d, s, v)
+    
     if (max(eta/(s + v)) > 1e20) 
         result <- Inf
-    else{
-        k <- length(d)
+    else
         result <- n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * 
-            (n - k) + 1/(s + v) * trS - 1/(s + v) * sum(d * eta/(eta + s + v))
-    }
+            (n - length(d)) + 1/(s + v) * trS - 1/(s + v) * sum(d * eta/(eta + s + v))
     
     return(result)
 }
 
 ldet <- function(m) spam::determinant(m, logarithm = TRUE)$modulus
 
-
 DIST <- fields::rdist
 SQLdbList <- filehashSQLite::dbList
 log <- base::log
 diag.spam <- spam::diag.spam
-rlimit <- ramSize()
+
