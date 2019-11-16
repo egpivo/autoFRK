@@ -54,3 +54,10 @@ ramSize <- function() {
   return(ram[1])
 }
 
+ldet <- function(m) spam::determinant(m, logarithm = TRUE)$modulus
+
+DIST <- fields::rdist
+SQLdbList <- filehashSQLite::dbList
+log <- base::log
+diag.spam <- spam::diag.spam
+
