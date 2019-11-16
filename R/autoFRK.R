@@ -1152,7 +1152,6 @@ print.FRK <- function(x, ...) {
 }
 
 print.mrts <- function(x, ...) {
-    
     if (NCOL(x) == 1) out = c(x) else out = x[, 1:NCOL(x)]
     print(out)
 }
@@ -1338,9 +1337,7 @@ subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     if (xdim[2] > 1) x[index, ] else  x[index]
 }
 
-toSpMat <- function(mat) {
-    MAX_LIMIT <- 1e8
-    
+toSpMat <- function(mat, MAX_LIMIT = 1e8) {
     if (class(mat) == "data.frame") 
         mat <- as.matrix(mat)
     
@@ -1412,11 +1409,4 @@ neg2llik <- function(d, s, v, trS, n) {
     
     return(result)
 }
-
-ldet <- function(m) spam::determinant(m, logarithm = TRUE)$modulus
-
-DIST <- fields::rdist
-SQLdbList <- filehashSQLite::dbList
-log <- base::log
-diag.spam <- spam::diag.spam
 
