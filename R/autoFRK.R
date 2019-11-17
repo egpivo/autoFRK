@@ -1380,17 +1380,15 @@ ZinvC <- function(R, L, z) {
 }
 
 sol.v <- function(d, s, trS, n) {
+    # Assume d is in acsending order
     if (max(d) < max(trS/n, s)) 
         result <- max(trS/n - s, 0)
     else{
-        k <- length(d)
-        cumd <- cumsum(d)
-        ks <- 1:k
-        if (k == n) ks[n] <- n - 1
-        pick <- d > ((trS - cumd)/(n - ks))
-        L <- max(which(pick))
-        if (L == n) L <- n - 1
-        result <- max((trS - cumd[L])/(n - L) - s, 0)
+        estimated_ds <- (trS - cumsum(d)) / (n - 1:length(d))
+        L <- max(which(d > estimated_ds))
+        result <- ifelse(L == n,
+                         max(estimated_ds[L-1] - s, 0), 
+                         max(estimated_ds[L] - s, 0))
     }
     
     return(result)
