@@ -1111,42 +1111,42 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
 
 predict.mrts <- function(object, newx, ...) {
     
-    if (missing(newx)) return(object)
-    
-    Xu <- attr(object, "Xu")
-    n <- NROW(Xu)
-    xobs_diag <- diag(sqrt(n/(n - 1))/apply(Xu, 2, sd), ncol(Xu))
-    ndims <- NCOL(Xu)
-    k <- NCOL(object)
-    x0 <- matrix(as.matrix(newx), ncol = ndims)
-    
-    kstar <- (k - ndims - 1)
-    if (kstar <= 0) 
-        X1 <- NULL
-    else {
-        X1 <- predictMrtsRcppWithBasis(Xu,
-                                       xobs_diag,
-                                       x0,
-                                       attr(object,"BBBH"),
-                                       attr(object, "UZ"),
-                                       attr(object, "nconst"),
-                                       k)$X1
-        X1 <- X1[, 1:kstar]
+    if (missing(newx)) 
+        result <- object
+    else{
+        Xu <- attr(object, "Xu")
+        n <- NROW(Xu)
+        xobs_diag <- diag(sqrt(n/(n - 1))/apply(Xu, 2, sd), ncol(Xu))
+        ndims <- NCOL(Xu)
+        k <- NCOL(object)
+        x0 <- matrix(as.matrix(newx), ncol = ndims)
+        
+        shift <- colMeans(attr(object, "Xu"))
+        X2 <- sweep(cbind(x0), 2, shift, "-")
+        X2 <- cbind(1, sweep(X2, 2, attr(object, "nconst"), "/"))
+        
+        kstar <- (k - ndims - 1)
+        if (kstar <= 0) 
+            result <- as.matrix(X2)
+        else {
+            X1 <- predictMrtsRcppWithBasis(Xu,
+                                           xobs_diag,
+                                           x0,
+                                           attr(object,"BBBH"),
+                                           attr(object, "UZ"),
+                                           attr(object, "nconst"),
+                                           k)$X1
+            X1 <- X1[, 1:kstar]
+            result <- as.matrix(cbind(X2, X1)) 
+        }
     }
-    shift <- colMeans(attr(object, "Xu"))
-    X2 <- sweep(cbind(x0), 2, shift, "-")
-    X2 <- cbind(1, sweep(X2, 2, attr(object, "nconst"), "/"))
     
-    if (kstar > 0)
-        return(as.matrix(cbind(X2, X1)))
-    else
-        return(as.matrix(X2))
+    return(result)
 }
 
 print.FRK <- function(x, ...) {
     attr(x, "pinfo") = NULL
-    if (!is.null(x$LKobj)) 
-        x$LKobj = x$LKobj$summary
+    if (!is.null(x$LKobj)) x$LKobj = x$LKobj$summary
     out <- paste("a ", NROW(x$G), " by ", NCOL(x$G), " mrts matrix", sep = "")
     print(out)
 }
