@@ -177,7 +177,7 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
             INVtZ <- iDZ - invD * right
             etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
             GM <- Fk %*% M
-            V <- as.matrix(M - t(GM) %*% invCz((s + v) * diag.spam(n), L, GM))
+            V <- as.matrix(M - t(GM) %*% invCz(R = (s + v) * diag.spam(n), L = L, z = GM))
             
             result_list <- list(v = v,
                                 M = M, 
@@ -471,7 +471,7 @@ getlik <- function(Data, Fk, M, s, Depsilon) {
             n2loglik <- n2loglik + log(Rt + Lt %*% t(Lt))
         }
         else 
-            n2loglik <- n2loglik + logdet(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
+            n2loglik <- n2loglik + logdet(Rt, Lt, K) + sum(zt * invCz(R = Rt, L = Lt, z = zt))
     }
     
     return(n2loglik)
@@ -875,7 +875,10 @@ mrts <- function(knot, k, x = NULL) {
 predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0, 
                         newloc = obsloc, basis = NULL, mu.new = 0, se.report = FALSE, 
                         ...) {
-    
+    #
+    # TODO: 1. modify the multiple returns  (hard to implement)
+    #       2. modify multiple types of returns -_-
+    #
     if (!"w" %in% names(object)) 
         stop("input model (object) should use the option \"wsave=TRUE\"!")
     if (is.null(basis)) {
@@ -892,6 +895,8 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
             }
         }
     }
+    #??? # row and # col of basis (column vector or row vector)
+    #as.matrix(t(basis)) --> row vector
     if (NROW(basis) == 1) basis <- as.matrix(t(basis))
 
     nobs <- ifelse(is.null(obsloc), NROW(object$G), NROW(obsloc))
@@ -932,7 +937,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
                         GM <- G %*% M
                         De <- D0[!miss[, tt], !miss[, tt]]
                         L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value, 0)), NROW(M))
-                        V <- as.matrix(M - t(GM) %*% invCz(object$s * De, L, GM))
+                        V <- as.matrix(M - t(GM) %*% invCz(R = object$s * De, L = L, z = GM))
                         se[, tt] <- sqrt(pmax(0, rowSums((basis %*% V) * basis)))
                     }
                 }
@@ -952,16 +957,14 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
             GM <- G %*% M
             dec <- eigen(M)
             L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value, 0)), NROW(M))
-            yhat <- basis %*% t(GM) %*% invCz(object$s * De, L, 
-                                              obsData[pick])
+            yhat <- basis %*% t(GM) %*% invCz(R = object$s * De, L = L, z = obsData[pick])
             if (se.report) {
-                V <- as.matrix(M - t(GM) %*% invCz(object$s * De, L, GM))
+                V <- as.matrix(M - t(GM) %*% invCz(R = object$s * De, L = L, z = GM))
                 se <- sqrt(pmax(0, rowSums((basis %*% V) * basis)))
             }
         }
     }
     else {
-        
         LKpeon <- function(M, s, Fk, basis, weight, phi1, phi0, 
                            Q, lambda, phi0P, L = NULL, Data = NULL, only.wlk = FALSE, 
                            only.se = FALSE) {
