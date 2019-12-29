@@ -875,10 +875,7 @@ mrts <- function(knot, k, x = NULL) {
 predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0, 
                         newloc = obsloc, basis = NULL, mu.new = 0, se.report = FALSE, 
                         ...) {
-    #
-    # TODO: 1. modify the multiple returns  (hard to implement)
-    #       2. modify multiple types of returns -_-
-    #
+    
     if (!"w" %in% names(object)) 
         stop("input model (object) should use the option \"wsave=TRUE\"!")
     if (is.null(basis)) {
@@ -895,8 +892,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
             }
         }
     }
-    #??? # row and # col of basis (column vector or row vector)
-    #as.matrix(t(basis)) --> row vector
+
     if (NROW(basis) == 1) basis <- as.matrix(t(basis))
 
     nobs <- ifelse(is.null(obsloc), NROW(object$G), NROW(obsloc))
@@ -986,25 +982,27 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
                 LiiLiDZ <- L %*% (iiLiD %*% Data)
                 w <- M %*% t(iDFk) %*% Data/s - (M %*% t(iDFk/s)) %*% (LiiLiDZ)
                 wlk <- t(wXiG) %*% Data - t(wXiG) %*% (LiiLiDZ)
-                return(list(w = w, wlk = wlk))
+                result <- list(w = w, wlk = wlk)
             }
-            
-            MFiS11 <- M %*% t(iDFk)/s - ((M %*% t(iDFk/s)) %*% L) %*% iiLiD
-            FMfi <- basis %*% MFiS11
-            p0Pp1 <- as.matrix(phi0P %*% t(phi1))
-            se0 <- rowSums((basis %*% M) * basis) + rowSums(as.matrix(phi0P * phi0))/lambda * s
-            se11 <- rowSums((FMfi %*% fM) * basis)
-            se12 <- rowSums(p0Pp1 * (FMfi)) * s/lambda
-            se13 <- se12
-            se14 <- rowSums(as.matrix(phi0 %*% t(wXiG)) * p0Pp1) * s/lambda - colSums((ihL %*% wXiG %*% t(phi0))^2)
-            se <- sqrt(pmax(se0 - (se11 + se12 + se13 + se14), 0))
-            if (only.se) 
-                return(se)
             else {
-                return(list(se = se,
-                            w = MFiS11 %*% Data,
-                            wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
+                MFiS11 <- M %*% t(iDFk)/s - ((M %*% t(iDFk/s)) %*% L) %*% iiLiD
+                FMfi <- basis %*% MFiS11
+                p0Pp1 <- as.matrix(phi0P %*% t(phi1))
+                se0 <- rowSums((basis %*% M) * basis) + rowSums(as.matrix(phi0P * phi0))/lambda * s
+                se11 <- rowSums((FMfi %*% fM) * basis)
+                se12 <- rowSums(p0Pp1 * (FMfi)) * s/lambda
+                se13 <- se12
+                se14 <- rowSums(as.matrix(phi0 %*% t(wXiG)) * p0Pp1) * s/lambda - colSums((ihL %*% wXiG %*% t(phi0))^2)
+                se <- sqrt(pmax(se0 - (se11 + se12 + se13 + se14), 0))
+                if (only.se) 
+                    result <- se
+                else {
+                    result <- list(se = se,
+                                w = MFiS11 %*% Data,
+                                wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data))
+                }
             }
+            return(result)
         }
         if (is.null(obsloc) & is.null(obsData)) {
             if (is.null(newloc)) newloc <- attr(object, "pinfo")$loc
@@ -1107,13 +1105,14 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
         }
     }
     if (!se.report) 
-        return(list(pred.value = yhat + mu.new, se = NULL))
+        result <- list(pred.value = yhat + mu.new, se = NULL)
     else
-        return(list(pred.value = yhat + mu.new, se = as.matrix(se)))
+        result <- list(pred.value = yhat + mu.new, se = as.matrix(se))
+    
+    return(result)
 }
 
 predict.mrts <- function(object, newx, ...) {
-    
     if (missing(newx)) 
         result <- object
     else{
