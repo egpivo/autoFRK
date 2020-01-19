@@ -43,7 +43,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
     # Execute KNN for imputation
     if (method == "fast") {
         # Fill missing data by k-nearest-neighbor imputation
-        Data <- apply(Data, 2, imputeByKnn , loc=loc, k=n.neighbor)
+        Data <- apply(Data, 2, imputeByKnn, loc=loc, k=n.neighbor)
     }
     if (!isFineScale) 
         obj <- indeMLE(Data = Data,
@@ -479,16 +479,15 @@ getlik <- function(Data, Fk, M, s, Depsilon) {
 
 imputeByKnn <- function(data, loc, k) {
     where <- is.na(data)
-    if (sum(where) == 0) 
-        next
-    cidx <- which(!where)
-    nnidx <- FNN::get.knnx(data = loc[cidx, ],
-                           query = loc[where, ],
-                           k = k)
-    nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
-    nnval <- array(data[nnidx], dim(nnidx))
-    data[where] <- rowMeans(nnval)
-    
+    if (sum(where) != 0) {
+        cidx <- which(!where)
+        nnidx <- get.knnx(data = loc[cidx, ],
+                          query = loc[where, ],
+                          k = k)
+        nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
+        nnval <- array(data[nnidx], dim(nnidx))
+        data[where] <- rowMeans(nnval)
+    }    
     return(data)
 }
 
@@ -791,7 +790,6 @@ mrts <- function(knot, k, x = NULL) {
         xobs <- as.matrix(as.double(as.matrix(knot)))
     else
         xobs <- apply(knot, 2, as.double)
-    
     Xu <- unique(cbind(xobs))
     
     if (is.null(x) & length(Xu) != length(xobs)) x <- xobs
@@ -812,7 +810,7 @@ mrts <- function(knot, k, x = NULL) {
         n <- NROW(Xu)
         n.Xu <- n
     }
-    
+
     xobs_diag <- diag(sqrt(n/(n - 1))/apply(xobs, 2, sd), ndims)
     
     if (!is.null(x)) {
@@ -1185,13 +1183,15 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
     #
     naDataMatrix <- is.na(Data)
     isWithNA <- sum(naDataMatrix) > 0
-    pick <- which(rowSums(naDataMatrix) != 0)
+    pick <- which(rowSums(naDataMatrix) == 0)
+    
     N <- length(pick)
     if (N == 1) Data <- as.matrix(Data[pick, ]) else Data <- Data[pick, ]
     
     klim <-min(N, round(10 * sqrt(N)))
     if (class(loc) != "matrix") loc <- as.matrix(loc)
-    if (N < maxknow)
+    
+    if (N < maxknot)
         knot <- loc[pick, ]
     else 
         knot <- subknot(loc[pick, ], min(maxknot, klim))
@@ -1218,6 +1218,7 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
     }
     
     if (is.null(Fk)) Fk <- mrts(knot, max(K), loc)
+    
     AIClist <- rep(Inf, length(K))
     method <- match.arg(method)
     if ((method == "EM") & (is.null(DfromLK))) {
