@@ -84,9 +84,9 @@ in \code{spam} package.
 set.seed(0)
 n <- 150
 s <- 5
-grid1 <- grid2=seq(0, 1, l = 30)
+grid1 <- grid2 <- seq(0, 1, l = 30)
 grids <- expand.grid(grid1, grid2)
-fn <- matrix(0,900,2)
+fn <- matrix(0, 900, 2)
 fn[,1] <- cos(sqrt((grids[,1]-0)^2 + (grids[,2]-1)^2)*pi)
 fn[,2] <- cos(sqrt((grids[,1]-0.75)^2 + (grids[,2]-0.25)^2)*2*pi)
 

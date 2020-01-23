@@ -35,7 +35,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
                           Kseq = Kseq,
                           method = method,
                           n.neighbor = n.neighbor,
-                          maxknot = 5000
+                          maxknot = maxknot
         )
     }
     
@@ -777,8 +777,7 @@ mkpd <- function(M) {
 }
 
 mrts <- function(knot, k, x = NULL) {
-    is64bit = length(grep("64", version["system"])) > 0
-    rlimit <- ramSize()
+    is64bit <- length(grep("64", version["system"])) > 0
     
     if ((!is64bit) & (max(NROW(x), NROW(knot)) > 20000)) 
         stop("Use 64-bit version of R for such a volume of data!")
@@ -791,9 +790,8 @@ mrts <- function(knot, k, x = NULL) {
     else
         xobs <- apply(knot, 2, as.double)
     Xu <- unique(cbind(xobs))
-    
     if (is.null(x) & length(Xu) != length(xobs)) x <- xobs
-    
+
     colnames(Xu) <- NULL
     n <- n.Xu <- NROW(Xu)
     ndims <- NCOL(Xu)
@@ -1200,7 +1198,6 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
         maxK <- round(maxK)
     else
         maxK <- ifelse(!is.null(Kseq), round(max(Kseq)), klim)
-    
     d <- NCOL(loc)
     TT <- NCOL(Data)
     if (!is.null(Kseq)) {
@@ -1217,7 +1214,9 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
         if (length(K) > 30) K <- unique(round(seq(d + 1, maxK, l = 30)))
     }
     
-    if (is.null(Fk)) Fk <- mrts(knot, max(K), loc)
+    if (is.null(Fk)) {
+        Fk <- mrts(knot, max(K), loc)
+    }
     
     AIClist <- rep(Inf, length(K))
     method <- match.arg(method)
