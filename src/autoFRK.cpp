@@ -4,6 +4,8 @@
 #include <iostream>
 #include <math.h>
 // [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(BH)]]
+#include <boost/math/special_functions/bessel.hpp>
 
 using Eigen::Map;
 using Eigen::MatrixXd;
@@ -12,7 +14,9 @@ using namespace Spectra;
 using namespace Eigen;
 using namespace Rcpp;
 using namespace std;
+using boost::math::cyl_bessel_k;
 typedef Map<MatrixXd> MapMatd;
+
 
 void decomposeSymmetricMatrix(const Eigen::MatrixXd & M, const int ncv, const int k, Eigen::VectorXd &rho, Eigen::MatrixXd &gamma){
   DenseSymMatProd<double> op(M);
@@ -206,4 +210,35 @@ Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu,
                             Rcpp::Named("nconst") = nconst,
                             Rcpp::Named("X1") = X1 - B*((BBBH) *UZ.block(0, 0, n, k)));
   
+}
+
+// [[Rcpp::export]]
+double maternRcpp(const Eigen::VectorXd s1,
+                  const Eigen::VectorXd s2,
+                  double tau,
+                  double nu,
+                  double rho) {
+  /* Matern covariance function by L2-norm
+   * 
+   * Parameters
+   *    s1, s2: position
+   *    tau, nu, rho: positive real number
+   * Returns
+   *    double, covariance function(s1, s2)
+   */
+  double ret;
+  if(s1 == s2) {
+    ret = pow(tau, 2);
+  }
+  else{
+    double l2_dist = (s1 - s2).norm();
+    double scalar = (pow(2 * nu, 0.5) / rho) * l2_dist;
+    double first = pow(tau, 2) * (pow(2, nu - 1) * std::tgamma(nu));
+    double second = pow(scalar, nu);
+    double third = boost::math::cyl_bessel_k(nu, scalar);
+    
+    ret = first * second * third;
+  }
+  
+  return ret;
 }

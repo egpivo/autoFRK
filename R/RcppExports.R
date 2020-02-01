@@ -13,3 +13,7 @@ predictMrtsRcppWithBasis <- function(Xu, xobs_diag, xnew, BBBH, UZ, nconst, k) {
     .Call(`_autoFRK_predictMrtsRcppWithBasis`, Xu, xobs_diag, xnew, BBBH, UZ, nconst, k)
 }
 
+maternRcpp <- function(s1, s2, tau, nu, rho) {
+    .Call(`_autoFRK_maternRcpp`, s1, s2, tau, nu, rho)
+}
+

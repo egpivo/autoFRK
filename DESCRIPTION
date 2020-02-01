@@ -21,7 +21,7 @@ Date: 2019-03-29
 Depends: R (>= 3.0.2), spam
 Imports: fields (>= 6.9.1), filehashSQLite, filehash, MASS, mgcv,
         LatticeKrig (>= 5.4), FNN, filematrix, Rcpp
-LinkingTo: Rcpp, RSpectra, RcppEigen, RcppParallel
+LinkingTo: Rcpp, RSpectra, RcppEigen, RcppParallel, BH
 Author: ShengLi Tzeng [aut, cre], Hsin-Cheng Huang [aut], Wen-Ting Wang [ctb], Douglas Nychka [ctb], Colin Gillespie [ctb]
 Maintainer: ShengLi Tzeng <slt.cmu@gmail.com>
 NeedsCompilation: yes
