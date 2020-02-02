@@ -50,18 +50,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// maternRcpp
-double maternRcpp(const Eigen::VectorXd s1, const Eigen::VectorXd s2, double tau, double nu, double rho);
-RcppExport SEXP _autoFRK_maternRcpp(SEXP s1SEXP, SEXP s2SEXP, SEXP tauSEXP, SEXP nuSEXP, SEXP rhoSEXP) {
+// maternCov
+Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s, double tau, double nu, double rho);
+RcppExport SEXP _autoFRK_maternCov(SEXP sSEXP, SEXP tauSEXP, SEXP nuSEXP, SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type s1(s1SEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type s2(s2SEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s(sSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(maternRcpp(s1, s2, tau, nu, rho));
+    rcpp_result_gen = Rcpp::wrap(maternCov(s, tau, nu, rho));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -70,7 +69,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_autoFRK_mrtsRcpp", (DL_FUNC) &_autoFRK_mrtsRcpp, 3},
     {"_autoFRK_predictMrtsRcpp", (DL_FUNC) &_autoFRK_predictMrtsRcpp, 4},
     {"_autoFRK_predictMrtsRcppWithBasis", (DL_FUNC) &_autoFRK_predictMrtsRcppWithBasis, 7},
-    {"_autoFRK_maternRcpp", (DL_FUNC) &_autoFRK_maternRcpp, 5},
+    {"_autoFRK_maternCov", (DL_FUNC) &_autoFRK_maternCov, 4},
     {NULL, NULL, 0}
 };
 

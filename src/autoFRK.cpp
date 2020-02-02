@@ -18,11 +18,15 @@ using boost::math::cyl_bessel_k;
 typedef Map<MatrixXd> MapMatd;
 
 
-void decomposeSymmetricMatrix(const Eigen::MatrixXd & M, const int ncv, const int k, Eigen::VectorXd &rho, Eigen::MatrixXd &gamma){
+void decomposeSymmetricMatrix(const Eigen::MatrixXd & M,
+                              const int ncv,
+                              const int k,
+                              Eigen::VectorXd &rho,
+                              Eigen::MatrixXd &gamma) {
   DenseSymMatProd<double> op(M);
   
   // Construct eigen solver object, requesting the largest three eigenvalues
-  SymEigsSolver< double, LARGEST_ALGE, DenseSymMatProd<double> > eigs(&op, k, ncv);
+  SymEigsSolver< double, LARGEST_ALGE, DenseSymMatProd<double>> eigs(&op, k, ncv);
   
   eigs.init();
   eigs.compute(1000, 1e-10);
@@ -31,30 +35,30 @@ void decomposeSymmetricMatrix(const Eigen::MatrixXd & M, const int ncv, const in
   gamma.noalias() = eigs.eigenvectors();
 }
 
-void createThinPlateMatrix(const MatrixXd P, MatrixXd& L, int p, int d){
+void createThinPlateMatrix(const MatrixXd P, MatrixXd& L, int p, int d) {
   double r;
   
-  if(d == 1){
-    for(unsigned int i = 0; i < p; i++){
-      for(unsigned int j = i + 1; j < p; ++j){
+  if(d == 1) {
+    for(unsigned int i = 0; i < p; ++i) {
+      for(unsigned int j = i + 1; j < p; ++j) {
         r  = abs(P(i, 0) - P(j, 0));
-        L(i,j) = pow(r, 3)/12;
+        L(i,j) = pow(r, 3) / 12;
       }
     }
   }
-  else if(d == 2){
-    for(unsigned int i = 0; i < p; i++){
-      for(unsigned int j = i + 1; j < p; ++j){
-        r  = sqrt(pow(P(i, 0) - P(j, 0),2) +
+  else if(d == 2) {
+    for(unsigned int i = 0; i < p; ++i) {
+      for(unsigned int j = i + 1; j < p; ++j) {
+        r  = sqrt(pow(P(i, 0) - P(j, 0), 2) +
           (pow(P(i, 1) - P(j, 1), 2)));
         if(r != 0)
-          L(i, j) = r*r*log(r)/(8.0*M_PI);
+          L(i, j) = r * r * log(r) / (8.0 * M_PI);
       }
     }
   }
-  else if(d ==3){
-    for(unsigned int i = 0; i < p; i++){
-      for(unsigned int j = i + 1; j < p; ++j){
+  else if(d == 3) {
+    for(unsigned int i = 0; i < p; ++i) {
+      for(unsigned int j = i + 1; j < p; ++j) {
         r = sqrt(pow(P(i, 0) - P(j, 0), 2) +
           pow(P(i, 1) - P(j, 1), 2) +
           pow(P(i, 2) - P(j, 2), 2));
@@ -69,31 +73,31 @@ void predictThinPlateMatrix(const MatrixXd P_new, const MatrixXd P, MatrixXd& L,
   int p1 = P_new.rows();
   int p2 = P.rows();
   
-  if(d == 1){
-    for(unsigned int i = 0; i < p1; i++){
-      for(unsigned int j = 0; j < p2; ++j){
+  if(d == 1) {
+    for(unsigned int i = 0; i < p1; ++i) {
+      for(unsigned int j = 0; j < p2; ++j) {
         r  = abs(P_new(i, 0) - P(j, 0));
-        L(i,j) = pow(r, 3)/12;
+        L(i, j) = pow(r, 3) / 12;
       }
     }
   }
-  else if(d == 2){
-    for(unsigned int i = 0; i < p1; i++){
-      for(unsigned int j = 0; j < p2; ++j){
-        r  = sqrt(pow(P_new(i, 0) - P(j, 0),2) +
+  else if(d == 2) {
+    for(unsigned int i = 0; i < p1; ++i) {
+      for(unsigned int j = 0; j < p2; ++j) {
+        r  = sqrt(pow(P_new(i, 0) - P(j, 0), 2) +
           (pow(P_new(i, 1) - P(j, 1), 2)));
         if(r != 0)
-          L(i, j) = r*r*log(r)/(8.0*M_PI);
+          L(i, j) = r * r * log(r) / (8.0 * M_PI);
       }
     }
   }
-  else if(d ==3){
-    for(unsigned int i = 0; i < p1; i++){
-      for(unsigned int j = 0; j < p2; ++j){
+  else if(d == 3) {
+    for(unsigned int i = 0; i < p1; ++i) {
+      for(unsigned int j = 0; j < p2; ++j) {
         r = sqrt(pow(P_new(i, 0) - P(j, 0), 2) +
           pow(P_new(i, 1) - P(j, 1), 2) +
           pow(P_new(i, 2) - P(j, 2), 2));
-        L(i, j) = -r/8;
+        L(i, j) = -r / 8;
       }
     }
   }
@@ -108,7 +112,7 @@ void mrtsCore(const Eigen::MatrixXd &Xu,
               Eigen::MatrixXd &X,
               Eigen::MatrixXd &UZ,
               Eigen::MatrixXd &BBB,
-              Eigen::VectorXd &nconst){
+              Eigen::VectorXd &nconst) {
   double root = sqrt(n);
   Eigen::MatrixXd B, gammas, X2_temp, gamma;
   Eigen::VectorXd rho;
@@ -122,7 +126,7 @@ void mrtsCore(const Eigen::MatrixXd &Xu,
   H += H.transpose().eval();
   B.rightCols(d) = Xu;
   const Eigen::MatrixXd Bt = B.transpose();
-  Eigen::MatrixXd BtB(MatrixXd(d+1, d+1).setZero().
+  Eigen::MatrixXd BtB(MatrixXd(d + 1, d + 1).setZero().
                         selfadjointView<Lower>().rankUpdate(Bt));
   
   const Eigen::LLT<MatrixXd> llt(BtB);
@@ -150,7 +154,7 @@ void mrtsCore(const Eigen::MatrixXd &Xu,
 // [[Rcpp::export]]
 Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                    const int k){
+                    const int k) {
   int n(Xu.rows()), d(Xu.cols());
   Eigen::MatrixXd  H, X, UZ, BBB;
   Eigen::VectorXd nconst;
@@ -167,9 +171,9 @@ Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
 Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                            const Eigen::Map<Eigen::MatrixXd> xobs_diag,
                            const Eigen::Map<Eigen::MatrixXd> xnew,
-                           const int k){
+                           const int k) {
   int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
-  Eigen::MatrixXd  H, X, UZ, BBB, Hnew;
+  Eigen::MatrixXd H, X, UZ, BBB, Hnew;
   Eigen::VectorXd nconst;
   
   mrtsCore(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
@@ -184,7 +188,7 @@ Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                             Rcpp::Named("UZ") = UZ,
                             Rcpp::Named("BBBH") = BBB * H,
                             Rcpp::Named("nconst") = nconst,
-                            Rcpp::Named("X1") = X1 - B*((BBB* H) *UZ.block(0, 0, n, k)));
+                            Rcpp::Named("X1") = X1 - B * ((BBB * H) * UZ.block(0, 0, n, k)));
   
 }
 
@@ -195,11 +199,12 @@ Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu,
                                     const Eigen::Map<Eigen::MatrixXd> BBBH,
                                     const Eigen::Map<Eigen::MatrixXd> UZ,
                                     const Eigen::Map<Eigen::VectorXd> nconst,
-                                    const int k){
+                                    const int k) {
   int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
-  Eigen::MatrixXd  Hnew;
-  Hnew = MatrixXd::Zero(n2, n);
+  Eigen::MatrixXd Hnew = MatrixXd::Zero(n2, n);
+  //Predict Tinn Plate Matrix with `Hnew` by `xnew`
   predictThinPlateMatrix(xnew, Xu, Hnew, d);
+  
   Eigen::MatrixXd X1 = Hnew * UZ.block(0, 0, n, k);
   Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
   B.rightCols(d) = xnew;
@@ -208,37 +213,45 @@ Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu,
                             Rcpp::Named("UZ") = UZ,
                             Rcpp::Named("BBBH") = BBBH,
                             Rcpp::Named("nconst") = nconst,
-                            Rcpp::Named("X1") = X1 - B*((BBBH) *UZ.block(0, 0, n, k)));
+                            Rcpp::Named("X1") = X1 - B * ((BBBH) * UZ.block(0, 0, n, k)));
   
 }
 
 // [[Rcpp::export]]
-double maternRcpp(const Eigen::VectorXd s1,
-                  const Eigen::VectorXd s2,
-                  double tau,
-                  double nu,
-                  double rho) {
-  /* Matern covariance function by L2-norm
+Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s,
+                          double tau,
+                          double nu,
+                          double rho) {
+  /* Matern covariance function by Euclidean norm
    * 
    * Parameters
-   *    s1, s2: position
+   *    s: location matrix 
+   *      - row: size
+   *      - column: location dim)
    *    tau, nu, rho: positive real number
    * Returns
-   *    double, covariance function(s1, s2)
+   *    covariance matrix (n x n)
    */
-  double ret;
-  if(s1 == s2) {
-    ret = pow(tau, 2);
-  }
-  else{
-    double l2_dist = (s1 - s2).norm();
-    double scalar = (pow(2 * nu, 0.5) / rho) * l2_dist;
-    double first = pow(tau, 2) * (pow(2, nu - 1) * std::tgamma(nu));
-    double second = pow(scalar, nu);
-    double third = boost::math::cyl_bessel_k(nu, scalar);
-    
-    ret = first * second * third;
+  int n(s.rows());
+  double l2_dist, scalar, first, second, third;
+  Eigen::MatrixXf cov(n, n);
+  
+  for (unsigned int i = 0; i < n; ++i) {
+    for (unsigned int j = 0; j <= i; ++j) {
+      if (i == j) {
+        cov(i, j) = pow(tau, 2);
+      }
+      else {
+        l2_dist = (s.row(i) - s.row(j)).norm();
+        scalar = (pow(2 * nu, 0.5) / rho) * l2_dist;
+        first = pow(tau, 2) * (pow(2, nu - 1) * std::tgamma(nu));
+        second = pow(scalar, nu);
+        third = boost::math::cyl_bessel_k(nu, scalar);
+        cov(i, j) = first * second * third; 
+      }
+      cov(j, i) = cov(i, j);
+    }
   }
   
-  return ret;
+  return cov;
 }
