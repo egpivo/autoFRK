@@ -44,57 +44,67 @@ void decomposeSymmetricMatrix(const Eigen::MatrixXd &M,
   gamma.noalias() = eigs.eigenvectors();
 }
 
-void createThinPlateMatrix(const MatrixXd P, MatrixXd &L) {
+double thinPlateSplines(const double dist, const int d) {
   /*
    * Parameters:
-   *  - P: position matrix (n x d)
+   *  - dist: distance
+   *  - d: dimension of positions (d <= 3)
+   * Returns:
+   *  - thin plate splines function of `dist`
    */
-  int n(P.rows()), d(P.cols());
+  double ret;
+  
+  if(d == 1)
+    ret = pow(dist, 3) / 12;
+  else if(d == 2) {
+    if(dist != 0)
+      ret = dist * dist * log(dist) / (8.0 * M_PI);
+    else
+      ret = 0;
+  }
+  else if(d == 3)
+    ret = - dist / 8;
+  else
+    Rcpp::stop("Invalid dimension\n");
+
+  return ret;
+}
+
+void createThinPlateMatrix(const MatrixXd s, MatrixXd &L) {
+  /*
+   * Parameters:
+   *  - s: position matrix (n x d)
+   *  - L: (return) resultant matrix (n x n)
+   */
+  int n(s.rows()), d(s.cols());
   double dist;
   // Update elements in the upper triangle 
   for(unsigned int i = 0; i < n; ++i) {
     for(unsigned int j = i + 1; j < n; ++j) {
-      dist = (P.row(i) - P.row(j)).norm();
-      if(d == 1)
-        L(i, j) = pow(dist, 3) / 12;
-      else if(d == 2) {
-        if(dist != 0)
-          L(i, j) = dist * dist * log(dist) / (8.0 * M_PI);
-        else
-          L(i, j) = 0;
-      }
-      else if(d == 3)
-        L(i, j) = - dist / 8;
+      dist = (s.row(i) - s.row(j)).norm();
+      L(i, j) = thinPlateSplines(dist, d);
     }
   }
   
   L += L.transpose().eval();
 }
 
-void predictThinPlateMatrix(const MatrixXd P_new,
-                            const MatrixXd P,
+void predictThinPlateMatrix(const MatrixXd s_new,
+                            const MatrixXd s,
                             MatrixXd &L) {
   /*
    * Parameters:
-   *  - P_new: predicted position matrix (n1 x d)
-   *  - P: reference position matrix (n2 x d)
+   *  - s_new: new position matrix (n1 x d)
+   *  - s: reference position matrix (n2 x d)
+   *  - L: (return) resultant matrix (n1 x n2)
    */
-  int n1(P_new.rows()), n2(P.rows()), d(P.cols());
+  int n1(s_new.rows()), n2(s.rows()), d(s.cols());
   double dist;
   
   for(unsigned int i = 0; i < n1; ++i) {
     for(unsigned int j = 0; j < n2; ++j) {
-      dist = (P_new.row(i) - P.row(j)).norm();
-      if(d == 1)
-        L(i, j) = pow(dist, 3) / 12;
-      else if(d == 2) {
-        if(dist != 0)
-          L(i, j) = dist * dist * log(dist) / (8.0 * M_PI);
-        else
-          L(i, j) = 0;
-      }
-      else if(d == 3)
-        L(i, j) = - dist / 8;
+      dist = (s_new.row(i) - s.row(j)).norm();
+      L(i, j) = thinPlateSplines(dist, d);
     }
   }
 }
@@ -248,7 +258,7 @@ Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s,
   /* Matern covariance function by Euclidean norm
    * 
    * Parameters
-   *    s: location matrix 
+   *    s: Position matrix 
    *      - row: size
    *      - column: location dim)
    *    tau, nu, rho: positive real number
@@ -261,9 +271,8 @@ Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s,
   
   for (unsigned int i = 0; i < n; ++i) {
     for (unsigned int j = 0; j <= i; ++j) {
-      if (i == j) {
+      if (i == j)
         cov(i, j) = pow(tau, 2);
-      }
       else {
         l2_dist = (s.row(i) - s.row(j)).norm();
         scalar = (pow(2 * nu, 0.5) / rho) * l2_dist;
