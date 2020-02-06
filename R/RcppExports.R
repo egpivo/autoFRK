@@ -5,12 +5,12 @@ mrtsRcpp <- function(Xu, xobs_diag, k) {
     .Call(`_autoFRK_mrtsRcpp`, Xu, xobs_diag, k)
 }
 
-predictMrtsRcpp <- function(Xu, xobs_diag, xnew, k) {
-    .Call(`_autoFRK_predictMrtsRcpp`, Xu, xobs_diag, xnew, k)
+predictMrtsRcpp <- function(Xu, xobs_diag, x_new, k) {
+    .Call(`_autoFRK_predictMrtsRcpp`, Xu, xobs_diag, x_new, k)
 }
 
-predictMrtsRcppWithBasis <- function(Xu, xobs_diag, xnew, BBBH, UZ, nconst, k) {
-    .Call(`_autoFRK_predictMrtsRcppWithBasis`, Xu, xobs_diag, xnew, BBBH, UZ, nconst, k)
+predictMrtsRcppWithBasis <- function(Xu, xobs_diag, x_new, BBBH, UZ, nconst, k) {
+    .Call(`_autoFRK_predictMrtsRcppWithBasis`, Xu, xobs_diag, x_new, BBBH, UZ, nconst, k)
 }
 
 maternCov <- function(s, tau, nu, rho) {

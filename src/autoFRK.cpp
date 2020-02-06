@@ -3,6 +3,7 @@
 #include <SymEigs.h>
 #include <iostream>
 #include <math.h>
+
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::depends(BH)]]
 #include <boost/math/special_functions/bessel.hpp>
@@ -18,14 +19,22 @@ using boost::math::cyl_bessel_k;
 typedef Map<MatrixXd> MapMatd;
 
 
-void decomposeSymmetricMatrix(const Eigen::MatrixXd & M,
+void decomposeSymmetricMatrix(const Eigen::MatrixXd &M,
                               const int ncv,
                               const int k,
                               Eigen::VectorXd &rho,
                               Eigen::MatrixXd &gamma) {
+  /*
+   * Parameters:
+   *  - M: decomposed symmetric matrix
+   *  - k:	Number of eigenvalues requested. 
+   *     - Should satisfy 1≤nev≤n−1, where n is the size of matrix.
+   *  - ncv: controls the convergence speed of the algorithm 
+   * 
+   */
   DenseSymMatProd<double> op(M);
   
-  // Construct eigen solver object, requesting the largest three eigenvalues
+  // Construct eigen solver object, requesting the largest k eigenvalues
   SymEigsSolver< double, LARGEST_ALGE, DenseSymMatProd<double>> eigs(&op, k, ncv);
   
   eigs.init();
@@ -35,113 +44,125 @@ void decomposeSymmetricMatrix(const Eigen::MatrixXd & M,
   gamma.noalias() = eigs.eigenvectors();
 }
 
-void createThinPlateMatrix(const MatrixXd P, MatrixXd& L, int p, int d) {
-  double r;
+void createThinPlateMatrix(const MatrixXd P, MatrixXd &L) {
+  /*
+   * Parameters:
+   *  - P: position matrix (n x d)
+   */
+  int n(P.rows()), d(P.cols());
+  double dist;
+  // Update elements in the upper triangle 
+  for(unsigned int i = 0; i < n; ++i) {
+    for(unsigned int j = i + 1; j < n; ++j) {
+      dist = (P.row(i) - P.row(j)).norm();
+      if(d == 1)
+        L(i, j) = pow(dist, 3) / 12;
+      else if(d == 2) {
+        if(dist != 0)
+          L(i, j) = dist * dist * log(dist) / (8.0 * M_PI);
+        else
+          L(i, j) = 0;
+      }
+      else if(d == 3)
+        L(i, j) = - dist / 8;
+    }
+  }
   
-  if(d == 1) {
-    for(unsigned int i = 0; i < p; ++i) {
-      for(unsigned int j = i + 1; j < p; ++j) {
-        r  = abs(P(i, 0) - P(j, 0));
-        L(i,j) = pow(r, 3) / 12;
+  L += L.transpose().eval();
+}
+
+void predictThinPlateMatrix(const MatrixXd P_new,
+                            const MatrixXd P,
+                            MatrixXd &L) {
+  /*
+   * Parameters:
+   *  - P_new: predicted position matrix (n1 x d)
+   *  - P: reference position matrix (n2 x d)
+   */
+  int n1(P_new.rows()), n2(P.rows()), d(P.cols());
+  double dist;
+  
+  for(unsigned int i = 0; i < n1; ++i) {
+    for(unsigned int j = 0; j < n2; ++j) {
+      dist = (P_new.row(i) - P.row(j)).norm();
+      if(d == 1)
+        L(i, j) = pow(dist, 3) / 12;
+      else if(d == 2) {
+        if(dist != 0)
+          L(i, j) = dist * dist * log(dist) / (8.0 * M_PI);
+        else
+          L(i, j) = 0;
       }
-    }
-  }
-  else if(d == 2) {
-    for(unsigned int i = 0; i < p; ++i) {
-      for(unsigned int j = i + 1; j < p; ++j) {
-        r  = sqrt(pow(P(i, 0) - P(j, 0), 2) +
-          (pow(P(i, 1) - P(j, 1), 2)));
-        if(r != 0)
-          L(i, j) = r * r * log(r) / (8.0 * M_PI);
-      }
-    }
-  }
-  else if(d == 3) {
-    for(unsigned int i = 0; i < p; ++i) {
-      for(unsigned int j = i + 1; j < p; ++j) {
-        r = sqrt(pow(P(i, 0) - P(j, 0), 2) +
-          pow(P(i, 1) - P(j, 1), 2) +
-          pow(P(i, 2) - P(j, 2), 2));
-        L(i, j) = -r/8;
-      }
+      else if(d == 3)
+        L(i, j) = - dist / 8;
     }
   }
 }
 
-void predictThinPlateMatrix(const MatrixXd P_new, const MatrixXd P, MatrixXd& L, int d){
-  double r;
-  int p1 = P_new.rows();
-  int p2 = P.rows();
-  
-  if(d == 1) {
-    for(unsigned int i = 0; i < p1; ++i) {
-      for(unsigned int j = 0; j < p2; ++j) {
-        r  = abs(P_new(i, 0) - P(j, 0));
-        L(i, j) = pow(r, 3) / 12;
-      }
-    }
-  }
-  else if(d == 2) {
-    for(unsigned int i = 0; i < p1; ++i) {
-      for(unsigned int j = 0; j < p2; ++j) {
-        r  = sqrt(pow(P_new(i, 0) - P(j, 0), 2) +
-          (pow(P_new(i, 1) - P(j, 1), 2)));
-        if(r != 0)
-          L(i, j) = r * r * log(r) / (8.0 * M_PI);
-      }
-    }
-  }
-  else if(d == 3) {
-    for(unsigned int i = 0; i < p1; ++i) {
-      for(unsigned int j = 0; j < p2; ++j) {
-        r = sqrt(pow(P_new(i, 0) - P(j, 0), 2) +
-          pow(P_new(i, 1) - P(j, 1), 2) +
-          pow(P_new(i, 2) - P(j, 2), 2));
-        L(i, j) = -r / 8;
-      }
-    }
-  }
-}
-
-void mrtsCore(const Eigen::MatrixXd &Xu,
-              const Eigen::MatrixXd &xobs_diag,
-              const int k,
-              const int n,
-              const int d,
-              Eigen::MatrixXd &H,
-              Eigen::MatrixXd &X,
-              Eigen::MatrixXd &UZ,
-              Eigen::MatrixXd &BBB,
-              Eigen::VectorXd &nconst) {
-  double root = sqrt(n);
-  Eigen::MatrixXd B, gammas, X2_temp, gamma;
-  Eigen::VectorXd rho;
-  
-  H = MatrixXd::Zero(n, n);
+void mrtsBasis(const Eigen::MatrixXd Xu,
+               const int k,
+               Eigen::MatrixXd &Phi,
+               Eigen::MatrixXd &B,
+               Eigen::MatrixXd &BBB,
+               Eigen::VectorXd &rho,
+               Eigen::MatrixXd &gamma) {
+  /* MRTS: eigendecompose (I-B(B'B)^{-1}B')\Phi(I-B(B'B)^{-1}B')
+   *    - Phi: thin plate splines
+   *    - B := (1, Xu)
+   *    
+   * Parameters:
+   *  - Xu: position matrix (n x d)
+   *  - k:	Number of eigenvalues requested. 
+   *     - Should satisfy 1≤nev≤n−1, where n is the size of matrix.
+   * 
+   */
+  int n(Xu.rows()), d(Xu.cols());
   B = MatrixXd::Ones(n, d + 1);
-  X =  MatrixXd::Ones(n, k + d + 1);
+  Phi = MatrixXd::Zero(n, n);
   
-  createThinPlateMatrix(Xu, H, n, d);
+  // Create thin plate splines Phi
+  createThinPlateMatrix(Xu, Phi);
   
-  H += H.transpose().eval();
   B.rightCols(d) = Xu;
   const Eigen::MatrixXd Bt = B.transpose();
   Eigen::MatrixXd BtB(MatrixXd(d + 1, d + 1).setZero().
                         selfadjointView<Lower>().rankUpdate(Bt));
   
   const Eigen::LLT<MatrixXd> llt(BtB);
+  // BBB := B(B'B)^{-1}B'
   BBB = llt.solve(Bt);
-  const Eigen::MatrixXd AH = H - (H * B) * BBB;
-  const Eigen::MatrixXd AHA = AH - BBB.transpose() * (Bt * AH);
-  int ncv = min(n, max(2 * k + 1, 20));
+  // Phi_proj := \Phi((I-B(B'B)^{-1}B')
+  const Eigen::MatrixXd Phi_proj = Phi - (Phi * B) * BBB;
+  // quadratic := ((I-B(B'B)^{-1}B')\Phi((I-B(B'B)^{-1}B')
+  const Eigen::MatrixXd quadratic = Phi_proj - BBB.transpose() * (Bt * Phi_proj);
   
-  decomposeSymmetricMatrix(AHA, ncv, k, rho, gamma);
+  // rho: eigenvalues; gamma: eigenvectors
+  int ncv = min(n, max(2 * k + 1, 20));
+  decomposeSymmetricMatrix(quadratic, ncv, k, rho, gamma);
+}
+
+void mrtsCore(const Eigen::MatrixXd Xu,
+              const Eigen::MatrixXd xobs_diag,
+              const Eigen::MatrixXd Phi,
+              const Eigen::MatrixXd B,
+              const Eigen::MatrixXd BBB,
+              const Eigen::VectorXd rho,
+              const Eigen::MatrixXd gamma,
+              int k,
+              Eigen::MatrixXd &X,
+              Eigen::MatrixXd &UZ,
+              Eigen::VectorXd &nconst) {
+  
+  int n(Xu.rows()), d(Xu.cols());
+  double root = sqrt(n);
+  Eigen::MatrixXd gammas;
+  X = MatrixXd::Ones(n, k + d + 1);
   
   gammas = (gamma - B * (BBB * gamma)).array().rowwise() / rho.transpose().array() * root;
-  Eigen::MatrixXd X_temp = Xu.rowwise() - Xu.colwise().mean();
-  nconst = X_temp.colwise().norm();
+  Eigen::MatrixXd X_center = Xu.rowwise() - Xu.colwise().mean();
+  nconst = X_center.colwise().norm();
   
-  X.block(0, 1, n, d) = X_temp.array().rowwise() * (root / nconst.transpose().array());
+  X.block(0, 1, n, d) = X_center.array().rowwise() * (root / nconst.transpose().array());
   X.block(0, d + 1, n, k) = gamma * root;
   
   UZ = MatrixXd::Zero(n + d + 1, k + d + 1);
@@ -155,59 +176,61 @@ void mrtsCore(const Eigen::MatrixXd &Xu,
 Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,
                     const int k) {
-  int n(Xu.rows()), d(Xu.cols());
-  Eigen::MatrixXd  H, X, UZ, BBB;
-  Eigen::VectorXd nconst;
+  Eigen::MatrixXd Phi, X, UZ, B, BBB, gamma;
+  Eigen::VectorXd rho, nconst;
   
-  mrtsCore(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
+  mrtsBasis(Xu, k, Phi, B, BBB, rho, gamma);
+  mrtsCore(Xu, xobs_diag, Phi, B, BBB, rho, gamma, k, X, UZ, nconst);
   
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
-                            Rcpp::Named("BBBH") = BBB * H,
+                            Rcpp::Named("BBBH") = BBB * Phi,
                             Rcpp::Named("nconst") = nconst);
 }
 
 // [[Rcpp::export]]
 Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                            const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                           const Eigen::Map<Eigen::MatrixXd> xnew,
+                           const Eigen::Map<Eigen::MatrixXd> x_new,
                            const int k) {
-  int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
-  Eigen::MatrixXd H, X, UZ, BBB, Hnew;
-  Eigen::VectorXd nconst;
+  int n(Xu.rows()), d(Xu.cols()), n2(x_new.rows());
+  Eigen::MatrixXd Phi, X, UZ, B, BBB, gamma, Phi_new;
+  Eigen::VectorXd rho, nconst;
   
-  mrtsCore(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
-  Hnew = MatrixXd::Zero(n2, n);
-  predictThinPlateMatrix(xnew, Xu, Hnew, d);
+  mrtsBasis(Xu, k, Phi, B, BBB, rho, gamma);
+  mrtsCore(Xu, xobs_diag, Phi, B, BBB, rho, gamma, k, X, UZ, nconst);
   
-  Eigen::MatrixXd X1 = Hnew * UZ.block(0, 0, n, k);
-  Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
-  B.rightCols(d) = xnew;
+  Phi_new = MatrixXd::Zero(n2, n);
+  predictThinPlateMatrix(x_new, Xu, Phi_new);
+  
+  Eigen::MatrixXd X1 = Phi_new * UZ.block(0, 0, n, k);
+  Eigen::MatrixXd B_new = MatrixXd::Ones(n2, d + 1);
+  B_new.rightCols(d) = x_new;
   
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
-                            Rcpp::Named("BBBH") = BBB * H,
+                            Rcpp::Named("BBBH") = BBB * Phi,
                             Rcpp::Named("nconst") = nconst,
-                            Rcpp::Named("X1") = X1 - B * ((BBB * H) * UZ.block(0, 0, n, k)));
+                            Rcpp::Named("X1") = X1 - B_new * ((BBB * Phi) * UZ.block(0, 0, n, k)));
   
 }
 
 // [[Rcpp::export]]
 Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu,
                                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                                    const Eigen::Map<Eigen::MatrixXd> xnew,
+                                    const Eigen::Map<Eigen::MatrixXd> x_new,
                                     const Eigen::Map<Eigen::MatrixXd> BBBH,
                                     const Eigen::Map<Eigen::MatrixXd> UZ,
                                     const Eigen::Map<Eigen::VectorXd> nconst,
                                     const int k) {
-  int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
-  Eigen::MatrixXd Hnew = MatrixXd::Zero(n2, n);
-  //Predict Tinn Plate Matrix with `Hnew` by `xnew`
-  predictThinPlateMatrix(xnew, Xu, Hnew, d);
+  int n(Xu.rows()), d(Xu.cols()), n2(x_new.rows());
+  Eigen::MatrixXd Phi_new = MatrixXd::Zero(n2, n);
+  //Predict Tinn Plate Matrix by `x_new`
+  predictThinPlateMatrix(x_new, Xu, Phi_new);
   
-  Eigen::MatrixXd X1 = Hnew * UZ.block(0, 0, n, k);
+  Eigen::MatrixXd X1 = Phi_new * UZ.block(0, 0, n, k);
   Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
-  B.rightCols(d) = xnew;
+  B.rightCols(d) = x_new;
   
   return Rcpp::List::create(Rcpp::Named("X") = Xu,
                             Rcpp::Named("UZ") = UZ,
