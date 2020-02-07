@@ -7,60 +7,61 @@
 using namespace Rcpp;
 
 // mrtsRcpp
-Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu, const Eigen::Map<Eigen::MatrixXd> xobs_diag, const int k);
-RcppExport SEXP _autoFRK_mrtsRcpp(SEXP XuSEXP, SEXP xobs_diagSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Xu(XuSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type xobs_diag(xobs_diagSEXP);
-    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(mrtsRcpp(Xu, xobs_diag, k));
-    return rcpp_result_gen;
-END_RCPP
-}
-// predictMrtsRcpp
-Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu, const Eigen::Map<Eigen::MatrixXd> xobs_diag, const Eigen::Map<Eigen::MatrixXd> x_new, const int k);
-RcppExport SEXP _autoFRK_predictMrtsRcpp(SEXP XuSEXP, SEXP xobs_diagSEXP, SEXP x_newSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Xu(XuSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type xobs_diag(xobs_diagSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type x_new(x_newSEXP);
-    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(predictMrtsRcpp(Xu, xobs_diag, x_new, k));
-    return rcpp_result_gen;
-END_RCPP
-}
-// predictMrtsRcppWithBasis
-Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu, const Eigen::Map<Eigen::MatrixXd> xobs_diag, const Eigen::Map<Eigen::MatrixXd> x_new, const Eigen::Map<Eigen::MatrixXd> BBBH, const Eigen::Map<Eigen::MatrixXd> UZ, const Eigen::Map<Eigen::VectorXd> nconst, const int k);
-RcppExport SEXP _autoFRK_predictMrtsRcppWithBasis(SEXP XuSEXP, SEXP xobs_diagSEXP, SEXP x_newSEXP, SEXP BBBHSEXP, SEXP UZSEXP, SEXP nconstSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Xu(XuSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type xobs_diag(xobs_diagSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type x_new(x_newSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type BBBH(BBBHSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type UZ(UZSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd> >::type nconst(nconstSEXP);
-    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(predictMrtsRcppWithBasis(Xu, xobs_diag, x_new, BBBH, UZ, nconst, k));
-    return rcpp_result_gen;
-END_RCPP
-}
-// maternCov
-Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s, double tau, double nu, double rho);
-RcppExport SEXP _autoFRK_maternCov(SEXP sSEXP, SEXP tauSEXP, SEXP nuSEXP, SEXP rhoSEXP) {
+Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s, const Eigen::Map<Eigen::MatrixXd> xobs_diag, const int k);
+RcppExport SEXP _autoFRK_mrtsRcpp(SEXP sSEXP, SEXP xobs_diagSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s(sSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(maternCov(s, tau, nu, rho));
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type xobs_diag(xobs_diagSEXP);
+    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(mrtsRcpp(s, xobs_diag, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// predictMrtsRcpp
+Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s, const Eigen::Map<Eigen::MatrixXd> xobs_diag, const Eigen::Map<Eigen::MatrixXd> s_new, const int k);
+RcppExport SEXP _autoFRK_predictMrtsRcpp(SEXP sSEXP, SEXP xobs_diagSEXP, SEXP s_newSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type xobs_diag(xobs_diagSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s_new(s_newSEXP);
+    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(predictMrtsRcpp(s, xobs_diag, s_new, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// predictMrtsRcppWithBasis
+Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> s, const Eigen::Map<Eigen::MatrixXd> xobs_diag, const Eigen::Map<Eigen::MatrixXd> s_new, const Eigen::Map<Eigen::MatrixXd> BBBH, const Eigen::Map<Eigen::MatrixXd> UZ, const Eigen::Map<Eigen::VectorXd> nconst, const int k);
+RcppExport SEXP _autoFRK_predictMrtsRcppWithBasis(SEXP sSEXP, SEXP xobs_diagSEXP, SEXP s_newSEXP, SEXP BBBHSEXP, SEXP UZSEXP, SEXP nconstSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type xobs_diag(xobs_diagSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s_new(s_newSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type BBBH(BBBHSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type UZ(UZSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd> >::type nconst(nconstSEXP);
+    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(predictMrtsRcppWithBasis(s, xobs_diag, s_new, BBBH, UZ, nconst, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// inverseR
+Eigen::MatrixXf inverseR(const Eigen::Map<Eigen::MatrixXd> s, const double tau, const double nu, const double rho, const double sigma2);
+RcppExport SEXP _autoFRK_inverseR(SEXP sSEXP, SEXP tauSEXP, SEXP nuSEXP, SEXP rhoSEXP, SEXP sigma2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< const double >::type sigma2(sigma2SEXP);
+    rcpp_result_gen = Rcpp::wrap(inverseR(s, tau, nu, rho, sigma2));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -69,7 +70,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_autoFRK_mrtsRcpp", (DL_FUNC) &_autoFRK_mrtsRcpp, 3},
     {"_autoFRK_predictMrtsRcpp", (DL_FUNC) &_autoFRK_predictMrtsRcpp, 4},
     {"_autoFRK_predictMrtsRcppWithBasis", (DL_FUNC) &_autoFRK_predictMrtsRcppWithBasis, 7},
-    {"_autoFRK_maternCov", (DL_FUNC) &_autoFRK_maternCov, 4},
+    {"_autoFRK_inverseR", (DL_FUNC) &_autoFRK_inverseR, 5},
     {NULL, NULL, 0}
 };
 

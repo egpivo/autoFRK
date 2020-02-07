@@ -22,7 +22,7 @@ typedef Map<MatrixXd> MapMatd;
 void decomposeSymmetricMatrix(const Eigen::MatrixXd &M,
                               const int ncv,
                               const int k,
-                              Eigen::VectorXd &rho,
+                              Eigen::VectorXd &lambda,
                               Eigen::MatrixXd &gamma) {
   /*
    * Parameters:
@@ -40,7 +40,7 @@ void decomposeSymmetricMatrix(const Eigen::MatrixXd &M,
   eigs.init();
   eigs.compute(1000, 1e-10);
   
-  rho = eigs.eigenvalues();
+  lambda = eigs.eigenvalues();
   gamma.noalias() = eigs.eigenvectors();
 }
 
@@ -66,7 +66,7 @@ double thinPlateSplines(const double dist, const int d) {
     ret = - dist / 8;
   else
     Rcpp::stop("Invalid dimension\n");
-
+  
   return ret;
 }
 
@@ -109,31 +109,31 @@ void predictThinPlateMatrix(const MatrixXd s_new,
   }
 }
 
-void mrtsBasis(const Eigen::MatrixXd Xu,
+void mrtsBasis(const Eigen::MatrixXd s,
                const int k,
                Eigen::MatrixXd &Phi,
                Eigen::MatrixXd &B,
                Eigen::MatrixXd &BBB,
-               Eigen::VectorXd &rho,
+               Eigen::VectorXd &lambda,
                Eigen::MatrixXd &gamma) {
   /* MRTS: eigendecompose (I-B(B'B)^{-1}B')\Phi(I-B(B'B)^{-1}B')
    *    - Phi: thin plate splines
-   *    - B := (1, Xu)
+   *    - B := (1, s)
    *    
    * Parameters:
-   *  - Xu: position matrix (n x d)
+   *  - s: position matrix (n x d)
    *  - k:	Number of eigenvalues requested. 
    *     - Should satisfy 1≤nev≤n−1, where n is the size of matrix.
    * 
    */
-  int n(Xu.rows()), d(Xu.cols());
+  int n(s.rows()), d(s.cols());
   B = MatrixXd::Ones(n, d + 1);
   Phi = MatrixXd::Zero(n, n);
   
   // Create thin plate splines Phi
-  createThinPlateMatrix(Xu, Phi);
+  createThinPlateMatrix(s, Phi);
   
-  B.rightCols(d) = Xu;
+  B.rightCols(d) = s;
   const Eigen::MatrixXd Bt = B.transpose();
   Eigen::MatrixXd BtB(MatrixXd(d + 1, d + 1).setZero().
                         selfadjointView<Lower>().rankUpdate(Bt));
@@ -145,31 +145,32 @@ void mrtsBasis(const Eigen::MatrixXd Xu,
   const Eigen::MatrixXd Phi_proj = Phi - (Phi * B) * BBB;
   // quadratic := ((I-B(B'B)^{-1}B')\Phi((I-B(B'B)^{-1}B')
   const Eigen::MatrixXd quadratic = Phi_proj - BBB.transpose() * (Bt * Phi_proj);
-  
-  // rho: eigenvalues; gamma: eigenvectors
+
+  // Set a convergence threshold for eigen-decomposition
   int ncv = min(n, max(2 * k + 1, 20));
-  decomposeSymmetricMatrix(quadratic, ncv, k, rho, gamma);
+  // Update lambda and gamma
+  decomposeSymmetricMatrix(quadratic, ncv, k, lambda, gamma);
 }
 
-void mrtsCore(const Eigen::MatrixXd Xu,
+void mrtsCore(const Eigen::MatrixXd s,
               const Eigen::MatrixXd xobs_diag,
               const Eigen::MatrixXd Phi,
               const Eigen::MatrixXd B,
               const Eigen::MatrixXd BBB,
-              const Eigen::VectorXd rho,
+              const Eigen::VectorXd lambda,
               const Eigen::MatrixXd gamma,
               int k,
               Eigen::MatrixXd &X,
               Eigen::MatrixXd &UZ,
               Eigen::VectorXd &nconst) {
   
-  int n(Xu.rows()), d(Xu.cols());
+  int n(s.rows()), d(s.cols());
   double root = sqrt(n);
   Eigen::MatrixXd gammas;
   X = MatrixXd::Ones(n, k + d + 1);
   
-  gammas = (gamma - B * (BBB * gamma)).array().rowwise() / rho.transpose().array() * root;
-  Eigen::MatrixXd X_center = Xu.rowwise() - Xu.colwise().mean();
+  gammas = (gamma - B * (BBB * gamma)).array().rowwise() / lambda.transpose().array() * root;
+  Eigen::MatrixXd X_center = s.rowwise() - s.colwise().mean();
   nconst = X_center.colwise().norm();
   
   X.block(0, 1, n, d) = X_center.array().rowwise() * (root / nconst.transpose().array());
@@ -183,14 +184,16 @@ void mrtsCore(const Eigen::MatrixXd Xu,
 }
 
 // [[Rcpp::export]]
-Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
+Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,
                     const int k) {
   Eigen::MatrixXd Phi, X, UZ, B, BBB, gamma;
-  Eigen::VectorXd rho, nconst;
+  Eigen::VectorXd lambda, nconst;
   
-  mrtsBasis(Xu, k, Phi, B, BBB, rho, gamma);
-  mrtsCore(Xu, xobs_diag, Phi, B, BBB, rho, gamma, k, X, UZ, nconst);
+  // Update B, BBB, lambda, gamma
+  mrtsBasis(s, k, Phi, B, BBB, lambda, gamma);
+  // Update X, UZ, nconst
+  mrtsCore(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, X, UZ, nconst);
   
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
@@ -199,23 +202,26 @@ Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
 }
 
 // [[Rcpp::export]]
-Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
+Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
                            const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                           const Eigen::Map<Eigen::MatrixXd> x_new,
+                           const Eigen::Map<Eigen::MatrixXd> s_new,
                            const int k) {
-  int n(Xu.rows()), d(Xu.cols()), n2(x_new.rows());
+  int n(s.rows()), d(s.cols()), n2(s_new.rows());
   Eigen::MatrixXd Phi, X, UZ, B, BBB, gamma, Phi_new;
-  Eigen::VectorXd rho, nconst;
+  Eigen::VectorXd lambda, nconst;
   
-  mrtsBasis(Xu, k, Phi, B, BBB, rho, gamma);
-  mrtsCore(Xu, xobs_diag, Phi, B, BBB, rho, gamma, k, X, UZ, nconst);
+  // Update B, BBB, lambda, gamma
+  mrtsBasis(s, k, Phi, B, BBB, lambda, gamma);
+  // Update X, UZ, nconst
+  mrtsCore(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, X, UZ, nconst);
   
   Phi_new = MatrixXd::Zero(n2, n);
-  predictThinPlateMatrix(x_new, Xu, Phi_new);
+  //Create thin plate splines, Phi_new by new positions `s_new`
+  predictThinPlateMatrix(s_new, s, Phi_new);
   
   Eigen::MatrixXd X1 = Phi_new * UZ.block(0, 0, n, k);
   Eigen::MatrixXd B_new = MatrixXd::Ones(n2, d + 1);
-  B_new.rightCols(d) = x_new;
+  B_new.rightCols(d) = s_new;
   
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
@@ -226,23 +232,23 @@ Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
 }
 
 // [[Rcpp::export]]
-Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu,
+Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> s,
                                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                                    const Eigen::Map<Eigen::MatrixXd> x_new,
+                                    const Eigen::Map<Eigen::MatrixXd> s_new,
                                     const Eigen::Map<Eigen::MatrixXd> BBBH,
                                     const Eigen::Map<Eigen::MatrixXd> UZ,
                                     const Eigen::Map<Eigen::VectorXd> nconst,
                                     const int k) {
-  int n(Xu.rows()), d(Xu.cols()), n2(x_new.rows());
+  int n(s.rows()), d(s.cols()), n2(s_new.rows());
   Eigen::MatrixXd Phi_new = MatrixXd::Zero(n2, n);
-  //Predict Tinn Plate Matrix by `x_new`
-  predictThinPlateMatrix(x_new, Xu, Phi_new);
+  //Create thin plate splines, Phi_new by new positions `s_new`
+  predictThinPlateMatrix(s_new, s, Phi_new);
   
   Eigen::MatrixXd X1 = Phi_new * UZ.block(0, 0, n, k);
   Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
-  B.rightCols(d) = x_new;
+  B.rightCols(d) = s_new;
   
-  return Rcpp::List::create(Rcpp::Named("X") = Xu,
+  return Rcpp::List::create(Rcpp::Named("X") = s,
                             Rcpp::Named("UZ") = UZ,
                             Rcpp::Named("BBBH") = BBBH,
                             Rcpp::Named("nconst") = nconst,
@@ -250,7 +256,6 @@ Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> Xu,
   
 }
 
-// [[Rcpp::export]]
 Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s,
                           double tau,
                           double nu,
@@ -258,15 +263,18 @@ Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s,
   /* Matern covariance function by Euclidean norm
    * 
    * Parameters
-   *    s: Position matrix 
+   *    - s: position matrix 
    *      - row: size
    *      - column: location dim)
-   *    tau, nu, rho: positive real number
+   *    - tau: marginal variance (> 0)
+   *    - nu: smoothness parameter (> 0)
+   *    - rho: scale parameter (> 0)
+   *
    * Returns
    *    covariance matrix (n x n)
    */
   int n(s.rows());
-  double l2_dist, scalar, first, second, third;
+  double dist, scaled_dist, scalar, scaled_dist_nu, bessel;
   Eigen::MatrixXf cov(n, n);
   
   for (unsigned int i = 0; i < n; ++i) {
@@ -274,16 +282,46 @@ Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s,
       if (i == j)
         cov(i, j) = pow(tau, 2);
       else {
-        l2_dist = (s.row(i) - s.row(j)).norm();
-        scalar = (pow(2 * nu, 0.5) / rho) * l2_dist;
-        first = pow(tau, 2) * (pow(2, nu - 1) * std::tgamma(nu));
-        second = pow(scalar, nu);
-        third = boost::math::cyl_bessel_k(nu, scalar);
-        cov(i, j) = first * second * third; 
+        dist = (s.row(i) - s.row(j)).norm();
+        scaled_dist = (pow(2 * nu, 0.5) / rho) * dist;
+        // Matern = scalar * (scaled_dist)^nu * bessel(scaled_dist)
+        scalar = pow(tau, 2) * (pow(2, nu - 1) * std::tgamma(nu));
+        scaled_dist_nu = pow(scaled_dist, nu);
+        bessel = boost::math::cyl_bessel_k(nu, scaled_dist);
+        cov(i, j) = scalar * scaled_dist_nu * bessel; 
       }
       cov(j, i) = cov(i, j);
     }
   }
   
   return cov;
+}
+
+// [[Rcpp::export]]
+Eigen::MatrixXf inverseR(const Eigen::Map<Eigen::MatrixXd> s,
+                         const double tau,
+                         const double nu,
+                         const double rho,
+                         const double sigma2) {
+  /* Inverse covariance matrix 
+   *     - R = SNR * cov_matern + identity matrix
+   *        - SNR: signal-to-noise ratio = rho^2 /sigma^2
+   * Parameters
+   *    - s: position matrix (n x d)
+   *    - tau: marginal variance (> 0)
+   *    - nu: smoothness parameter (> 0)
+   *    - rho: scale parameter (> 0)
+   *    - sigma2: noise variance (> 0)
+   * Returns
+   *    inverse covariance matrix (n x n)
+   */
+  int n(s.rows());
+  Eigen::MatrixXf identity, R, R_inv, matern;
+  identity = MatrixXf::Identity(n, n);
+  
+  matern = maternCov(s, tau, nu, rho);
+  R = (pow(rho, 2) / sigma2) * matern + identity;
+  R_inv = R.llt().solve(identity);
+  
+  return R_inv;
 }
