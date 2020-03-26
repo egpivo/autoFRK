@@ -152,8 +152,7 @@ void mrtsBasis(const Eigen::MatrixXd s,
   decomposeSymmetricMatrix(quadratic, ncv, k, lambda, gamma);
 }
 
-void mrtsCore(const Eigen::MatrixXd s,
-              const Eigen::MatrixXd xobs_diag,
+void mrtsCoreX(const Eigen::MatrixXd s,
               const Eigen::MatrixXd Phi,
               const Eigen::MatrixXd B,
               const Eigen::MatrixXd BBB,
@@ -161,27 +160,44 @@ void mrtsCore(const Eigen::MatrixXd s,
               const Eigen::MatrixXd gamma,
               int k,
               Eigen::MatrixXd &X,
-              Eigen::MatrixXd &UZ,
               Eigen::VectorXd &nconst) {
   
   int n(s.rows()), d(s.cols());
   double root = sqrt(n);
-  Eigen::MatrixXd gammas;
   X = MatrixXd::Ones(n, k + d + 1);
   
-  gammas = (gamma - B * (BBB * gamma)).array().rowwise() / lambda.transpose().array() * root;
   Eigen::MatrixXd X_center = s.rowwise() - s.colwise().mean();
   nconst = X_center.colwise().norm();
   
   X.block(0, 1, n, d) = X_center.array().rowwise() * (root / nconst.transpose().array());
   X.block(0, d + 1, n, k) = gamma * root;
+
+  nconst /= root;
+}
+
+void mrtsCoreUZ(const Eigen::MatrixXd s,
+              const Eigen::MatrixXd xobs_diag,
+              const Eigen::MatrixXd Phi,
+              const Eigen::MatrixXd B,
+              const Eigen::MatrixXd BBB,
+              const Eigen::VectorXd lambda,
+              const Eigen::MatrixXd gamma,
+              int k,
+              Eigen::VectorXd &nconst) {
+  
+  int n(s.rows()), d(s.cols());
+  double root = sqrt(n);
+  Eigen::MatrixXd gammas;
+  
+  gammas = (gamma - B * (BBB * gamma)).array().rowwise() / lambda.transpose().array() * root;
   
   UZ = MatrixXd::Zero(n + d + 1, k + d + 1);
   UZ.block(0, 0, n, k) = gammas;
   UZ(n , k) = 1;
   UZ.block(n + 1, k + 1, d, d) = xobs_diag;
-  nconst /= root;
 }
+
+
 
 // [[Rcpp::export]]
 Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
@@ -193,7 +209,8 @@ Rcpp::List mrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
   // Update B, BBB, lambda, gamma
   mrtsBasis(s, k, Phi, B, BBB, lambda, gamma);
   // Update X, UZ, nconst
-  mrtsCore(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, X, UZ, nconst);
+  mrtsCoreX(s, Phi, B, BBB, lambda, gamma, k, X, nconst);
+  mrtsCoreUZ(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, UZ);
   
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
@@ -213,7 +230,8 @@ Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
   // Update B, BBB, lambda, gamma
   mrtsBasis(s, k, Phi, B, BBB, lambda, gamma);
   // Update X, UZ, nconst
-  mrtsCore(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, X, UZ, nconst);
+  mrtsCoreX(s, Phi, B, BBB, lambda, gamma, k, X, nconst);
+  mrtsCoreUZ(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, UZ);
   
   Phi_new = MatrixXd::Zero(n2, n);
   //Create thin plate splines, Phi_new by new positions `s_new`
@@ -324,4 +342,24 @@ Eigen::MatrixXf inverseR(const Eigen::Map<Eigen::MatrixXd> s,
   R_inv = R.llt().solve(identity);
   
   return R_inv;
+}
+
+
+// [[Rcpp::export]]
+double negLogLikelihood(const Eigen::Map<Eigen::MatrixXd> s,
+                        double tau,
+                        double nu,
+                        double rho) {
+
+  int n(s.rows()), d(s.cols());
+  Eigen::MatrixXd Phi, F, UZ, B, BBB, gamma, Phi_new, R_inverse;
+  Eigen::VectorXd lambda, nconst;
+  
+  // Update B, BBB, lambda, gamma
+  mrtsBasis(s, k, Phi, B, BBB, lambda, gamma);
+  // Fetch basis functions
+  mrtsCoreX(s, Phi, B, BBB, lambda, gamma, k, F, nconst);
+  // Fetch inverse of R
+  R_inverse = inverseR(s, tau, nu, rho, sigma2);
+  
 }

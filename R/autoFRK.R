@@ -849,23 +849,23 @@ mrts <- function(knot, k, x = NULL) {
     attr(obj, "BBBH") <- result$BBBH
     attr(obj, "class") <- c("matrix", "mrts")
     class(obj) <- "mrts"
-    if (is.null(x)) 
-        return(obj)
-    else {
+    if (!is.null(x)) {
         shift <- colMeans(attr(obj, "Xu"))
         X2 <- sweep(cbind(x), 2, shift, "-")
         X2 <- cbind(1, sweep(X2, 2, attr(obj, "nconst"), "/"))
         if (k - ndims - 1 > 0)
-            obj0 <- as.matrix(cbind(X2, result$X1))
+            ret <- as.matrix(cbind(X2, result$X1))
         else
-            obj0 <- as.matrix(X2)
+            ret <- as.matrix(X2)
         dimnames(obj) <- NULL
         aname <- names(attributes(obj))
-        attributes(obj0) <- c(attributes(obj0),
+        attributes(ret) <- c(attributes(ret),
                               attributes(obj)[setdiff(aname, c("dim", "dimnames"))])
-        
-        return(obj0)
     }
+    else
+        ret <- obj
+    
+    return(ret)
 }
 
 predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0, 
