@@ -13,7 +13,7 @@ predictMrtsRcppWithBasis <- function(s, xobs_diag, s_new, BBBH, UZ, nconst, k) {
     .Call(`_autoFRK_predictMrtsRcppWithBasis`, s, xobs_diag, s_new, BBBH, UZ, nconst, k)
 }
 
-inverseR <- function(s, tau, nu, rho, sigma2) {
-    .Call(`_autoFRK_inverseR`, s, tau, nu, rho, sigma2)
+negLogLikelihood <- function(s, tau, nu, rho, sigma2, k) {
+    .Call(`_autoFRK_negLogLikelihood`, s, tau, nu, rho, sigma2, k)
 }
 

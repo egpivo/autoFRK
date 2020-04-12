@@ -176,14 +176,14 @@ void mrtsCoreX(const Eigen::MatrixXd s,
 }
 
 void mrtsCoreUZ(const Eigen::MatrixXd s,
-              const Eigen::MatrixXd xobs_diag,
-              const Eigen::MatrixXd Phi,
-              const Eigen::MatrixXd B,
-              const Eigen::MatrixXd BBB,
-              const Eigen::VectorXd lambda,
-              const Eigen::MatrixXd gamma,
-              int k,
-              Eigen::VectorXd &nconst) {
+                const Eigen::MatrixXd xobs_diag,
+                const Eigen::MatrixXd Phi,
+                const Eigen::MatrixXd B,
+                const Eigen::MatrixXd BBB,
+                const Eigen::VectorXd lambda,
+                const Eigen::MatrixXd gamma,
+                int k,
+                Eigen::MatrixXd &UZ) {
   
   int n(s.rows()), d(s.cols());
   double root = sqrt(n);
@@ -315,7 +315,6 @@ Eigen::MatrixXf maternCov(const Eigen::Map<Eigen::MatrixXd> s,
   return cov;
 }
 
-// [[Rcpp::export]]
 Eigen::MatrixXf inverseR(const Eigen::Map<Eigen::MatrixXd> s,
                          const double tau,
                          const double nu,
@@ -344,22 +343,26 @@ Eigen::MatrixXf inverseR(const Eigen::Map<Eigen::MatrixXd> s,
   return R_inv;
 }
 
-
 // [[Rcpp::export]]
 double negLogLikelihood(const Eigen::Map<Eigen::MatrixXd> s,
                         double tau,
                         double nu,
-                        double rho) {
-
+                        double rho,
+                        double sigma2,
+                        int k) {
+  
   int n(s.rows()), d(s.cols());
+  double result = 0.0;
   Eigen::MatrixXd Phi, F, UZ, B, BBB, gamma, Phi_new, R_inverse;
   Eigen::VectorXd lambda, nconst;
+  
   
   // Update B, BBB, lambda, gamma
   mrtsBasis(s, k, Phi, B, BBB, lambda, gamma);
   // Fetch basis functions
   mrtsCoreX(s, Phi, B, BBB, lambda, gamma, k, F, nconst);
   // Fetch inverse of R
-  R_inverse = inverseR(s, tau, nu, rho, sigma2);
+  R_inverse = inverseR(s, tau, nu, rho, sigma2).cast<double>();
   
+  return result;
 }

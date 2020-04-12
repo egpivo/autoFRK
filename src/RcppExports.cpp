@@ -50,18 +50,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// inverseR
-Eigen::MatrixXf inverseR(const Eigen::Map<Eigen::MatrixXd> s, const double tau, const double nu, const double rho, const double sigma2);
-RcppExport SEXP _autoFRK_inverseR(SEXP sSEXP, SEXP tauSEXP, SEXP nuSEXP, SEXP rhoSEXP, SEXP sigma2SEXP) {
+// negLogLikelihood
+double negLogLikelihood(const Eigen::Map<Eigen::MatrixXd> s, double tau, double nu, double rho, double sigma2, int k);
+RcppExport SEXP _autoFRK_negLogLikelihood(SEXP sSEXP, SEXP tauSEXP, SEXP nuSEXP, SEXP rhoSEXP, SEXP sigma2SEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type s(sSEXP);
-    Rcpp::traits::input_parameter< const double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< const double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< const double >::type rho(rhoSEXP);
-    Rcpp::traits::input_parameter< const double >::type sigma2(sigma2SEXP);
-    rcpp_result_gen = Rcpp::wrap(inverseR(s, tau, nu, rho, sigma2));
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma2(sigma2SEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(negLogLikelihood(s, tau, nu, rho, sigma2, k));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -70,7 +71,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_autoFRK_mrtsRcpp", (DL_FUNC) &_autoFRK_mrtsRcpp, 3},
     {"_autoFRK_predictMrtsRcpp", (DL_FUNC) &_autoFRK_predictMrtsRcpp, 4},
     {"_autoFRK_predictMrtsRcppWithBasis", (DL_FUNC) &_autoFRK_predictMrtsRcppWithBasis, 7},
-    {"_autoFRK_inverseR", (DL_FUNC) &_autoFRK_inverseR, 5},
+    {"_autoFRK_negLogLikelihood", (DL_FUNC) &_autoFRK_negLogLikelihood, 6},
     {NULL, NULL, 0}
 };
 
