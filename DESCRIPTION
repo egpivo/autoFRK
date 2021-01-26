@@ -28,3 +28,5 @@ NeedsCompilation: yes
 Date/Publication: 2019-03-29 22:20:03 UTC
 Packaged: 2019-03-29 14:10:24 UTC; h0h1
 Repository: CRAN
+Suggests: 
+    covr
