@@ -2,7 +2,7 @@
   [![R build status](https://github.com/egpivo/autoFRK/workflows/R-CMD-check/badge.svg)](https://github.com/egpivo/autoFRK/actions)
 
 ### Remark
-- This repo is differnt [CRAN-version](https://cran.rstudio.com/web/packages/autoFRK/index.html).
+- This repo is slightly differnt from [CRAN-version](https://cran.rstudio.com/web/packages/autoFRK/index.html).
   - Improve code readablity
   - Enhance R/Rcpp code performance 
 
