@@ -1,6 +1,6 @@
 ## autoFRK Package
   [![R build status](https://github.com/egpivo/autoFRK/workflows/R-CMD-check/badge.svg)](https://github.com/egpivo/autoFRK/actions)
-
+  [![Coverage Status](https://img.shields.io/codecov/c/github/egpivo/autoFRK/master.svg)](https://codecov.io/github/egpivo/autoFRK?branch=master)
 ### Remark
 - This repo is slightly differnt from [CRAN-version](https://cran.rstudio.com/web/packages/autoFRK/index.html).
   - Improve code readablity
