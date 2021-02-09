@@ -137,7 +137,7 @@ selected by  Akaike's information criterion.</p>
     </div>
 
     <pre class="usage"><span class='fu'>autoFRK</span><span class='op'>(</span><span class='va'>Data</span>, <span class='va'>loc</span>, mu <span class='op'>=</span> <span class='fl'>0</span>, D <span class='op'>=</span> <span class='fu'><a href='diag.spam.html'>diag.spam</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/nrow.html'>NROW</a></span><span class='op'>(</span><span class='va'>Data</span><span class='op'>)</span><span class='op'>)</span>,
-  G <span class='op'>=</span> <span class='cn'>NULL</span>, finescale <span class='op'>=</span> <span class='cn'>FALSE</span>, maxit <span class='op'>=</span> <span class='fl'>50</span>, tolerance <span class='op'>=</span> <span class='fl'>0.1</span><span class='op'>^</span><span class='fl'>6</span>,
+  G <span class='op'>=</span> <span class='cn'>NULL</span>, isFineScale <span class='op'>=</span> <span class='cn'>FALSE</span>, maxit <span class='op'>=</span> <span class='fl'>50</span>, tolerance <span class='op'>=</span> <span class='fl'>1e-06</span>,
   maxK <span class='op'>=</span> <span class='cn'>NULL</span>, Kseq <span class='op'>=</span> <span class='cn'>NULL</span>, method <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"fast"</span>, <span class='st'>"EM"</span><span class='op'>)</span>, n.neighbor <span class='op'>=</span> <span class='fl'>3</span>,
   maxknot <span class='op'>=</span> <span class='fl'>5000</span><span class='op'>)</span></pre>
 
@@ -168,7 +168,7 @@ Default is an identity matrix.</p></td>
 Default is NULL, which is automatic determined.</p></td>
     </tr>
     <tr>
-      <th>finescale</th>
+      <th>isFineScale</th>
       <td><p>logical; if <code>TRUE</code> then a (approximate) stationary finer scale process \(\eta[t]\) will be included
 based on <code>LatticeKrig</code> pacakge. 
 In such a case, only the diagonals of \(D\) would be taken into account. Default is <code>FALSE</code>.</p></td>
