@@ -5,7 +5,7 @@
 \title{Automatic Fixed Rank Kriging}
 \usage{
 autoFRK(Data, loc, mu = 0, D = diag.spam(NROW(Data)),
-  G = NULL, finescale = FALSE, maxit = 50, tolerance = 0.1^6,
+  G = NULL, isFineScale = FALSE, maxit = 50, tolerance = 1e-06,
   maxK = NULL, Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3,
   maxknot = 5000)
 }
@@ -23,7 +23,7 @@ Default is an identity matrix.}
 \item{G}{\emph{n} by \emph{K} matrix of basis function values with each column being a basis function taken values at \code{loc}. 
 Default is NULL, which is automatic determined.}
 
-\item{finescale}{logical; if \code{TRUE} then a (approximate) stationary finer scale process \eqn{\eta[t]} will be included
+\item{isFineScale}{logical; if \code{TRUE} then a (approximate) stationary finer scale process \eqn{\eta[t]} will be included
 based on \code{LatticeKrig} pacakge. 
 In such a case, only the diagonals of \eqn{D} would be taken into account. Default is \code{FALSE}.}
 
