@@ -4,11 +4,13 @@ to_Bytes <- function(value) {
   num <- as.numeric(value[1])
   # Avoid case-sensitive
   units <- tolower(value[2])
-  lookup <- list("kb" = "kilobytes",
-                 "mb" = "megabytes",
-                 "gb" = "gigabytes",
-                 "tb" = "terabytes")
-  
+  lookup <- list(
+    "kb" = "kilobytes",
+    "mb" = "megabytes",
+    "gb" = "gigabytes",
+    "tb" = "terabytes"
+  )
+
   if (units %in% lookup) {
     power <- which(units == lookup)
     result <- num * 1024^power
@@ -17,28 +19,30 @@ to_Bytes <- function(value) {
     power <- which(units == names(lookup))
     result <- num * 1024^power
   }
-  else
+  else {
     result <- num
-  
+  }
+
   return(result)
 }
 
 system_ram <- function(os) {
   if (length(grep("^linux", os))) {
     cmd <- "awk '/MemTotal/ {print $2}' /proc/meminfo"
-    ram <- system(cmd, intern = TRUE, ignore.stderr=TRUE)
+    ram <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
     ram <- as.numeric(ram) * 1024
   }
   else if (length(grep("^darwin", os))) {
-    ram <- system("system_profiler -detailLevel mini | grep \"  Memory:\"", 
-                  intern = TRUE,
-                  ignore.stderr=TRUE)[1]
+    ram <- system("system_profiler -detailLevel mini | grep \"  Memory:\"",
+      intern = TRUE,
+      ignore.stderr = TRUE
+    )[1]
     ram <- remove_white(ram)
     ram <- to_Bytes(unlist(strsplit(ram, " "))[2:3])
   }
   else if (length(grep("^solaris", os))) {
     cmd <- "prtconf | grep Memory"
-    ram <- system(cmd, intern = TRUE, ignore.stderr=TRUE)
+    ram <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
     ram <- remove_white(ram)
     ram <- to_Bytes(unlist(strsplit(ram, " "))[3:4])
   }
@@ -54,9 +58,10 @@ system_ram <- function(os) {
 ramSize <- function() {
   os <- R.version$os
   ram <- try(system_ram(os), silent = TRUE)
-  if (class(ram) == "try-error") 
-    ram = 2048 * 1024 * 1024
-  
+  if (class(ram) == "try-error") {
+    ram <- 2048 * 1024 * 1024
+  }
+
   return(ram[1])
 }
 

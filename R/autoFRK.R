@@ -105,9 +105,9 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL, isFi
 }
 
 checkDiag <- function(X) {
-  if (class(X) == "numeric") {
+  if ("numeric" %in% class(X)) {
     status <- TRUE
-  } else if (class(X) == "matrix") {
+  } else if ("matrix" %in% class(X)) {
     status <- ifelse(sum(abs(diag(diag(X)) - X)) < .Machine$double.eps, TRUE, FALSE)
   } else {
     status <- identical(diag.spam(diag.of.spam(X), NROW(X)), X)
@@ -378,7 +378,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   saveOLD(external)
   inv <- MASS::ginv
 
-  while ((dif > (avgtol * (100 * K^2))) && (cnt < maxit)) {
+  while ((dif > (avgtol * (100 * K^2))) & (cnt < maxit)) {
     etatt <- matrix(0, K, TT)
     sumPtt <- 0
     s1 <- rep(0, TT)
@@ -536,18 +536,18 @@ imputeByKnn <- function(data, loc, k) {
 indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 1e-6,
                     wSave = FALSE, DfromLK = NULL, vfixed = NULL, num.report = TRUE) {
   isWithNA <- sum(is.na(Data)) > 0
-  if (class(Data) == "numeric") Data <- as.matrix(Data)
+  if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
   TT <- NCOL(Data)
   empty <- apply(!is.na(Data), 2, sum) == 0
   notempty <- which(!empty)
   if (sum(empty) > 0) Data <- as.matrix(Data[, notempty])
-  if (class(Data) == "numeric") Data <- as.matrix(Data)
+  if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
 
   del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
   pick <- 1:NROW(Data)
   if (!checkDiag(D)) D0 <- toSpMat(D) else D0 <- diag.spam(diag(D), NROW(Data))
 
-  if (isWithNA && (length(del) > 0)) {
+  if (isWithNA & (length(del) > 0)) {
     pick <- pick[-del]
     Data <- Data[-del, ]
     Fk <- Fk[-del, ]
@@ -666,10 +666,10 @@ LKextract <- function(obj, loc = NULL, w = NULL, pick = NULL) {
 }
 
 LKnFRKini <- function(Data, loc, nlevel = 3, weights = NULL, n.neighbor = 3, nu = 1) {
-  if (class(Data) == "numeric") Data <- as.matrix(Data)
+  if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
   empty <- apply(!is.na(Data), 2, sum) == 0
   if (sum(empty) > 0) Data <- Data[, which(!empty)]
-  if (class(Data) == "numeric") Data <- as.matrix(Data)
+  if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
 
   loc <- as.matrix(loc)
   N <- NROW(Data)
@@ -1260,14 +1260,14 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
                         maxknot = 5000, DfromLK = NULL, Fk = NULL) {
 
   # Remove columnwise and rowwise NAs of Data in order
-  if (class(Data) == "numeric") {
+  if ("numeric" %in% class(Data)) {
     Data <- Data[which(!is.na(Data))]
-  } else if (class(Data) == "matrix") {
+  } else if ("matrix" %in% class(Data)) {
     Data <- Data[, colSums(is.na(Data)) != nrow(Data)]
   } else {
     stop("Please enter a valid class of Data")
   }
-  if (class(Data) == "numeric") Data <- as.matrix(Data)
+  if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
   #
   # Assume all elements of Data are not NAs
   # TODO: Add protection in `autoFRK ` for detection `length(pick) > 0`
@@ -1280,7 +1280,7 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
   if (N == 1) Data <- as.matrix(Data[pick, ]) else Data <- Data[pick, ]
 
   klim <- min(N, round(10 * sqrt(N)))
-  if (class(loc) != "matrix") loc <- as.matrix(loc)
+  if (!"matrix" %in% class(loc)) loc <- as.matrix(loc)
 
   if (N < maxknot) {
     knot <- loc[pick, ]
@@ -1450,11 +1450,11 @@ subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
 }
 
 toSpMat <- function(mat, MAX_LIMIT = 1e8) {
-  if (class(mat) == "data.frame") {
+  if ("data.frame" %in% class(mat)) {
     mat <- as.matrix(mat)
   }
 
-  if (class(mat) == "matrix") {
+  if ("matrix" %in% class(mat)) {
     if (length(mat) > MAX_LIMIT) {
       warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
 
