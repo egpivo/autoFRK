@@ -69,6 +69,7 @@ as.matrix.mrts <-
 #' Tzeng, S., & Huang, H.-C. (2017). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
 #' @examples
 #' #### generating data from two eigenfunctions
+#' originalPar <- par(no.readonly = TRUE)
 #' set.seed(0)
 #' n <- 150
 #' s <- 5
@@ -104,7 +105,7 @@ as.matrix.mrts <-
 #' image.plot(matrix(yhat2$pred.value, 30, 30), main = "Predicted (method 2)")
 #' points(X, cex = 0.5, col = "grey")
 #' plot(yhat$pred.value, yhat2$pred.value, mgp = c(2, 0.5, 0))
-#'
+#' par(originalPar)
 #' #### end of single realization simulation example
 #'
 #' #### independent multi-realization simulation example
@@ -127,7 +128,7 @@ as.matrix.mrts <-
 #' image.plot(matrix(fn[, 2], 30, 30), main = "True Eigenfn 2")
 #' image.plot(matrix(fhat[, 1], 30, 30), main = "Estimated Eigenfn 1")
 #' image.plot(matrix(fhat[, 2], 30, 30), main = "Estimated Eigenfn 2")
-#'
+#' par(originalPar)
 #' #### end of independent multi-realization simulation example
 #' @author ShengLi Tzeng and Hsin-Cheng Huang.
 autoFRK <-
@@ -1154,6 +1155,7 @@ mkpd <-
 #' @export
 #' @seealso \code{\link{predict.mrts}}
 #' @examples
+#' originalPar <- par(no.readonly = TRUE)
 #' knot <- seq(0, 1, l = 30)
 #' b <- mrts(knot, 30)
 #' x0 <- seq(0, 1, l = 200)
@@ -1163,10 +1165,11 @@ mkpd <-
 #'   plot(bx[, i], type = "l", axes = FALSE)
 #'   box()
 #' }
+#' par(originalPar)
 #' @references
 #' Tzeng, S., & Huang, H. C. (2017). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
-# Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models
-# for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
+#' Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models
+#' for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
 #' @author ShengLi Tzeng and Hsin-Cheng Huang.
 #
 mrts <-
@@ -1284,8 +1287,8 @@ mrts <-
 #' @export
 #' @seealso \code{\link{autoFRK}}
 #' @author ShengLi Tzeng and Hsin-Cheng Huang.
-#' @return  A list with the components described below.
-#'  \item{pred.value}{a matrix with the \emph{(i,t)} element being the predicted value at \emph{i}-th location and time \emph{t}.}
+#' @return A list with the components described below.
+#' \item{pred.value}{a matrix with the \emph{(i,t)} element being the predicted value at \emph{i}-th location and time \emph{t}.}
 #' \item{se}{a vector with the \emph{i}-th element being the standard error of the predicted value at the \emph{i}-th location.}
 #
 predict.FRK <-

@@ -18,7 +18,7 @@ Description: Automatic fixed rank kriging for (irregularly located)
 License: GPL (>= 2)
 Version: 1.4.0
 Date: 2021-03-04
-Depends: R (>= 3.1), spam
+Depends: R (>= 3.5.0), spam
 Imports: fields (>= 6.9.1), filehashSQLite, filehash, MASS, mgcv, LatticeKrig
         (>= 5.4), FNN, filematrix, Rcpp,  methods
 LinkingTo: Rcpp, RSpectra, RcppEigen, RcppParallel
