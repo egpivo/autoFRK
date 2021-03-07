@@ -4,7 +4,7 @@
 \alias{mrts}
 \title{Multi-Resolution Thin-plate Spline Basis Functions}
 \usage{
-mrts(knot, k, x = NULL)
+mrts(knot, k, x = NULL, maxknot = 5000)
 }
 \arguments{
 \item{knot}{\emph{m} by \emph{d} matrix (\emph{d<=3}) for \emph{m} locations of \emph{d}-dimensional knots as in ordinary splines.
@@ -14,6 +14,8 @@ Missing values are not allowed.}
 
 \item{x}{\emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations where the values of basis functions to be evaluated.
 Default is \code{NULL}, which uses the \emph{m} by \emph{d} matrix in \code{knot}.}
+
+\item{maxknot}{ maximum number of knots to be used in generating basis functions. If  \code{maxknot} < \emph{m}, a deterministic subset selection of knots will be used.  For using all knots, set \code{maxknot}>=\emph{m}. }
 }
 \value{
 An \code{mrts} object is generated. If \code{x=NULL} (default) it returns
