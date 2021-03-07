@@ -18,7 +18,7 @@ an \emph{n} by \emph{k} matrix of the \emph{k} basis function in \code{object} t
 }
 \description{
 Evaluate multi-resolution thin-plate spline basis  functions at given locations.
-This function provides a generic prediction method for \code{mrts} objects, 
+This function provides a generic prediction method for \code{mrts} objects,
 in a similar way as \code{predict.ns} and \code{predict.bs} in \code{splines} package.
 }
 \seealso{

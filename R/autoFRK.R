@@ -896,8 +896,7 @@ LKextract <- function(obj, loc = NULL, w = NULL, pick = NULL) {
   out
 }
 
-LKnFRKini <- function(Data, loc, nlevel = 3, weights = NULL, n.neighbor = 3,
-                      nu = 1) {
+LKnFRKini <- function(Data, loc, nlevel = 3, weights = NULL, n.neighbor = 3, nu = 1) {
   if (is(Data, "vector")) {
     Data <- as.matrix(Data)
   }
@@ -1035,6 +1034,7 @@ LKnFRKopt <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL) {
     )
   ))
 }
+
 mkpd <- function(M) {
   v <- try(min(eigen(M, only.values = T)$value), silent = TRUE)
   if (is(v, "try-error")) {
@@ -1046,6 +1046,15 @@ mkpd <- function(M) {
   }
   return(M)
 }
+
+#' Multi-Resolution Thin-plate Spline Basis Functions
+#' 
+#' This function generates multi-resolution thin-plate spline basis functions. 
+#' The basis functions are (descendingly) ordered 
+#' in terms of their degrees of smoothness with a higher-order function corresponding 
+#' to larger-scale features and a lower-order one corresponding to smaller-scale details.
+#' They are useful in the spatio-temporal random effects model.
+#' 
 #' @param x  \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations where the values of basis functions to be evaluated.
 #' Default is \code{NULL}, which uses the \emph{m} by \emph{d} matrix in \code{knot}.
 #' @param maxknot maximum number of knots to be used in generating basis functions. If  \code{maxknot} < \emph{m}, a deterministic subset selection of knots will be used.  For using all knots, set \code{maxknot}>=\emph{m}.

@@ -4,24 +4,33 @@
 \alias{predict.FRK}
 \title{Predict method for Fixed Rank Kriging}
 \usage{
-\method{predict}{FRK}(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
-  newloc = obsloc, basis = NULL, mu.new = 0, se.report = FALSE, ...)
+\method{predict}{FRK}(
+  object,
+  obsData = NULL,
+  obsloc = NULL,
+  mu.obs = 0,
+  newloc = obsloc,
+  basis = NULL,
+  mu.new = 0,
+  se.report = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{a model object obtained from "\code{autoFRK}".}
 
-\item{obsData}{a vector with observed data used for prediction. 
+\item{obsData}{a vector with observed data used for prediction.
 Default is \code{NULL}, which uses the \code{Data} input from \code{object}.}
 
 \item{obsloc}{a matrix with rows being coordinates of observation locations for \code{obsData}.
-Only \code{object} using \code{mrts} basis functions can have 
-\code{obsloc} different from the \code{loc} input of \code{object}; 
-not applicable for user-specified basis functions.  
+Only \code{object} using \code{mrts} basis functions can have
+\code{obsloc} different from the \code{loc} input of \code{object};
+not applicable for user-specified basis functions.
 Default is \code{NULL}, which uses the \code{loc} input of \code{object}.}
 
 \item{mu.obs}{a vector or scalar for the deterministic mean values at \code{obsloc}. Default is 0.}
 
-\item{newloc}{a matrix with rows being coordinates of new locations for prediction. 
+\item{newloc}{a matrix with rows being coordinates of new locations for prediction.
 Default is \code{NULL}, which gives prediction at the locations of the observed data.}
 
 \item{basis}{a matrix with each column being a basis function taken values at \code{newloc}.
@@ -35,7 +44,7 @@ It can be omitted if \code{object} was fitted using  default \code{mrts} basis f
 }
 \value{
 A list with the components described below.
- \item{pred.value}{a matrix with the \emph{(i,t)} element being the predicted value at \emph{i}-th location and time \emph{t}.} 
+\item{pred.value}{a matrix with the \emph{(i,t)} element being the predicted value at \emph{i}-th location and time \emph{t}.}
 \item{se}{a vector with the \emph{i}-th element being the standard error of the predicted value at the \emph{i}-th location.}
 }
 \description{

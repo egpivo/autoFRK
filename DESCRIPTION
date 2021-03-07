@@ -17,7 +17,7 @@ Description: Automatic fixed rank kriging for (irregularly located)
     'LatticeKrig' package.
 License: GPL (>= 2)
 Version: 1.4.0
-Date: 2021-03-04
+Date: 2021-03-07
 Depends: R (>= 3.5.0), spam
 Imports: fields (>= 6.9.1), filehashSQLite, filehash, MASS, mgcv, LatticeKrig
         (>= 5.4), FNN, filematrix, Rcpp,  methods
@@ -28,3 +28,4 @@ NeedsCompilation: yes
 Date/Publication: 2021-03-04 20:00:00 UTC
 Packaged: 2021-03-04 16:10:12 UTC
 Repository: CRAN
+RoxygenNote: 7.1.1
