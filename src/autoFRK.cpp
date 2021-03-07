@@ -10,7 +10,7 @@ using Eigen::MatrixXd;
 using Eigen::Lower;
 typedef Map<MatrixXd> MapMatd;
 using Eigen::VectorXd;                  
-using Eigen::SelfAdjointEigenSolver;   
+using Eigen::SelfAdjointEigenSolver;
 
 using namespace Eigen;
 Eigen::VectorXd getASCeigenValues(const Eigen::Map<Eigen::MatrixXd> A) {
