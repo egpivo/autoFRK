@@ -4,8 +4,3 @@ In this release, we
   - reformatted code base by `styler`;
   - corrected the example block by adding environment recovery variable;
   - modify the dependency of R version
-  
-
-
-
-
