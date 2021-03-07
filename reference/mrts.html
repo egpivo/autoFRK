@@ -76,7 +76,7 @@ They are useful in the spatio-temporal random effects model." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.0</span>
       </span>
     </div>
 
@@ -120,7 +120,7 @@ to larger-scale features and a lower-order one corresponding to smaller-scale de
 They are useful in the spatio-temporal random effects model.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>mrts</span><span class='op'>(</span><span class='va'>knot</span>, <span class='va'>k</span>, x <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>mrts</span><span class='op'>(</span><span class='va'>knot</span>, <span class='va'>k</span>, x <span class='op'>=</span> <span class='cn'>NULL</span>, maxknot <span class='op'>=</span> <span class='fl'>5000</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -138,6 +138,10 @@ Missing values are not allowed.</p></td>
       <th>x</th>
       <td><p><em>n</em> by <em>d</em> matrix of coordinates corresponding to <em>n</em> locations where the values of basis functions to be evaluated.
 Default is <code>NULL</code>, which uses the <em>m</em> by <em>d</em> matrix in <code>knot</code>.</p></td>
+    </tr>
+    <tr>
+      <th>maxknot</th>
+      <td><p>maximum number of knots to be used in generating basis functions. If  <code>maxknot</code> &lt; <em>m</em>, a deterministic subset selection of knots will be used.  For using all knots, set <code>maxknot</code>&gt;=<em>m</em>.</p></td>
     </tr>
     </table>
 
