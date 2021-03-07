@@ -126,6 +126,15 @@ They are useful in the spatio-temporal random effects model.</p>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
+      <th>knot</th>
+      <td><p><em>m</em> by <em>d</em> matrix (<em>d&lt;=3</em>) for <em>m</em> locations of <em>d</em>-dimensional knots as in ordinary splines. 
+Missing values are not allowed.</p></td>
+    </tr>
+    <tr>
+      <th>k</th>
+      <td><p>the number (<em>&lt;=m</em>) of basis functions.</p></td>
+    </tr>
+    <tr>
       <th>x</th>
       <td><p><em>n</em> by <em>d</em> matrix of coordinates corresponding to <em>n</em> locations where the values of basis functions to be evaluated.
 Default is <code>NULL</code>, which uses the <em>m</em> by <em>d</em> matrix in <code>knot</code>.</p></td>
