@@ -7,6 +7,11 @@
 mrts(knot, k, x = NULL, maxknot = 5000)
 }
 \arguments{
+\item{knot}{\emph{m} by \emph{d} matrix (\emph{d<=3}) for \emph{m} locations of \emph{d}-dimensional knots as in ordinary splines. 
+Missing values are not allowed.}
+
+\item{k}{the number (\emph{<=m}) of basis functions.}
+
 \item{x}{\emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations where the values of basis functions to be evaluated.
 Default is \code{NULL}, which uses the \emph{m} by \emph{d} matrix in \code{knot}.}
 
