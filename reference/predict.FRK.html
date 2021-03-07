@@ -113,8 +113,17 @@
     </div>
 
     <pre class="usage"><span class='co'># S3 method for FRK</span>
-<span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span><span class='op'>(</span><span class='va'>object</span>, obsData <span class='op'>=</span> <span class='cn'>NULL</span>, obsloc <span class='op'>=</span> <span class='cn'>NULL</span>, mu.obs <span class='op'>=</span> <span class='fl'>0</span>,
-  newloc <span class='op'>=</span> <span class='va'>obsloc</span>, basis <span class='op'>=</span> <span class='cn'>NULL</span>, mu.new <span class='op'>=</span> <span class='fl'>0</span>, se.report <span class='op'>=</span> <span class='cn'>FALSE</span>, <span class='va'>...</span><span class='op'>)</span></pre>
+<span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span><span class='op'>(</span>
+  <span class='va'>object</span>,
+  obsData <span class='op'>=</span> <span class='cn'>NULL</span>,
+  obsloc <span class='op'>=</span> <span class='cn'>NULL</span>,
+  mu.obs <span class='op'>=</span> <span class='fl'>0</span>,
+  newloc <span class='op'>=</span> <span class='va'>obsloc</span>,
+  basis <span class='op'>=</span> <span class='cn'>NULL</span>,
+  mu.new <span class='op'>=</span> <span class='fl'>0</span>,
+  se.report <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -125,15 +134,15 @@
     </tr>
     <tr>
       <th>obsData</th>
-      <td><p>a vector with observed data used for prediction. 
+      <td><p>a vector with observed data used for prediction.
 Default is <code>NULL</code>, which uses the <code>Data</code> input from <code>object</code>.</p></td>
     </tr>
     <tr>
       <th>obsloc</th>
       <td><p>a matrix with rows being coordinates of observation locations for <code>obsData</code>.
-Only <code>object</code> using <code>mrts</code> basis functions can have 
-<code>obsloc</code> different from the <code>loc</code> input of <code>object</code>; 
-not applicable for user-specified basis functions.  
+Only <code>object</code> using <code>mrts</code> basis functions can have
+<code>obsloc</code> different from the <code>loc</code> input of <code>object</code>;
+not applicable for user-specified basis functions.
 Default is <code>NULL</code>, which uses the <code>loc</code> input of <code>object</code>.</p></td>
     </tr>
     <tr>
@@ -142,7 +151,7 @@ Default is <code>NULL</code>, which uses the <code>loc</code> input of <code>obj
     </tr>
     <tr>
       <th>newloc</th>
-      <td><p>a matrix with rows being coordinates of new locations for prediction. 
+      <td><p>a matrix with rows being coordinates of new locations for prediction.
 Default is <code>NULL</code>, which gives prediction at the locations of the observed data.</p></td>
     </tr>
     <tr>
@@ -167,7 +176,7 @@ It can be omitted if <code>object</code> was fitted using  default <code>mrts</c
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>A list with the components described below.</p>
-<dt>pred.value</dt><dd><p>a matrix with the <em>(i,t)</em> element being the predicted value at <em>i</em>-th location and time <em>t</em>.</p></dd> 
+<dt>pred.value</dt><dd><p>a matrix with the <em>(i,t)</em> element being the predicted value at <em>i</em>-th location and time <em>t</em>.</p></dd>
 <dt>se</dt><dd><p>a vector with the <em>i</em>-th element being the standard error of the predicted value at the <em>i</em>-th location.</p></dd>
 
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
