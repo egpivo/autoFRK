@@ -1055,6 +1055,9 @@ mkpd <- function(M) {
 #' to larger-scale features and a lower-order one corresponding to smaller-scale details.
 #' They are useful in the spatio-temporal random effects model.
 #' 
+#' @param knot \emph{m} by \emph{d} matrix (\emph{d<=3}) for \emph{m} locations of \emph{d}-dimensional knots as in ordinary splines. 
+#'          Missing values are not allowed.
+#' @param k the number (\emph{<=m}) of basis functions.
 #' @param x  \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations where the values of basis functions to be evaluated.
 #' Default is \code{NULL}, which uses the \emph{m} by \emph{d} matrix in \code{knot}.
 #' @param maxknot maximum number of knots to be used in generating basis functions. If  \code{maxknot} < \emph{m}, a deterministic subset selection of knots will be used.  For using all knots, set \code{maxknot}>=\emph{m}.
