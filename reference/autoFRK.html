@@ -84,7 +84,7 @@ selected by  Akaike's information criterion." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.1</span>
       </span>
     </div>
 
@@ -223,15 +223,14 @@ generating basis functions. Default is 5000.</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>an object of class <code>FRK</code> is returned, which is a list of the following
-  components:</p>
+    <p>an object of class <code>FRK</code> is returned, which is a list of the following components:</p>
 <dt>M</dt><dd><p>ML estimate of \(M\).</p></dd>
-	 <dt>s</dt><dd><p>estimate for the scale parameter of measurement errors.</p></dd>
-  <dt>negloglik</dt><dd><p>negative  log-likelihood.</p></dd>
-  <dt>w</dt><dd><p><em>K</em> by <em>T</em> matrix with \(w[t]\) as the <em>t</em>-th column.</p></dd>
- <dt>V</dt><dd><p><em>K</em> by <em>K</em> matrix of the prediction error covariance matrix of \(w[t]\).</p></dd>
- <dt>G</dt><dd><p>user specified basis function matrix or an automatically generated <code>mrts</code> object.</p></dd>
- <dt>LKobj</dt><dd><p>a list from calling <code>LKrig.MLE</code> in <code>LatticeKrig</code> package if <code>useLK=TRUE</code>;
+<dt>s</dt><dd><p>estimate for the scale parameter of measurement errors.</p></dd>
+<dt>negloglik</dt><dd><p>negative  log-likelihood.</p></dd>
+<dt>w</dt><dd><p><em>K</em> by <em>T</em> matrix with \(w[t]\) as the <em>t</em>-th column.</p></dd>
+<dt>V</dt><dd><p><em>K</em> by <em>K</em> matrix of the prediction error covariance matrix of \(w[t]\).</p></dd>
+<dt>G</dt><dd><p>user specified basis function matrix or an automatically generated <code>mrts</code> object.</p></dd>
+<dt>LKobj</dt><dd><p>a list from calling <code>LKrig.MLE</code> in <code>LatticeKrig</code> package if <code>useLK=TRUE</code>;
  otherwise <code>NULL</code>. See that package for details.</p></dd>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
