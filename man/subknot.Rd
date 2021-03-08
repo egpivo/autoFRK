@@ -1,1 +1,1 @@
-\name{subknot} \alias{subknot} \title{ internal function } \description{ internal function } \keyword{internal}
+\name{subKnot} \alias{subKnot} \title{ internal function } \description{ internal function } \keyword{internal}
