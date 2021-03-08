@@ -1,5 +1,5 @@
-\name{extactLK}
-\alias{extactLK}
+\name{extractLK}
+\alias{extractLK}
 \title{internal function}
 \description{internal function}
 \keyword{internal}
