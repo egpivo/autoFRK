@@ -25,7 +25,7 @@ getHalf <- function(Fk, iDFk) {
     dec$vector %*% (sroot * t(dec$vector))
 }
 
-getlik <- function(Data, Fk, M, s, Depsilon) {
+getLikelihood <- function(Data, Fk, M, s, Depsilon) {
     logdet <- function(R, L, K) {
       spam::determinant(diag(1, K) + t(L) %*% solve(R) %*%
                           L, logarithm = TRUE)$modulus + spam::determinant(R,
@@ -57,7 +57,7 @@ getlik <- function(Data, Fk, M, s, Depsilon) {
     return(n2loglik)
   }
 
-IFelse <- function(cond, yes_out, no_out) {
+ifElse <- function(cond, yes_out, no_out) {
     if (cond) {
       return(yes_out)
     } else {
@@ -90,7 +90,7 @@ setNC <- function(z, loc, nlevel) {
     return(round(max(4, NCtest)))
 }
 
-subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
+subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     x <- as.matrix(x)
     xdim <- dim(x)
     if (xdim[2] > 1) {
@@ -160,14 +160,14 @@ subknot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     }
 }
 
-system_ram <- function(os) {
+systemRam <- function(os) {
     remove_white <- function(x) {
       gsub(
         "(^[[:space:]]+|[[:space:]]+$)",
         "", x
       )
     }
-    to_Bytes <- function(value) {
+    toBytes <- function(value) {
       num <- as.numeric(value[1])
       units <- value[2]
       power <- match(units, c("kB", "MB", "GB", "TB"))
@@ -193,13 +193,13 @@ system_ram <- function(os) {
                     intern = TRUE
       )[1]
       ram <- remove_white(ram)
-      ram <- to_Bytes(unlist(strsplit(ram, " "))[2:3])
+      ram <- toBytes(unlist(strsplit(ram, " "))[2:3])
     }
     else if (length(grep("^solaris", os))) {
       cmd <- "prtconf | grep Memory"
       ram <- system(cmd, intern = TRUE)
       ram <- remove_white(ram)
-      ram <- to_Bytes(unlist(strsplit(ram, " "))[3:4])
+      ram <- toBytes(unlist(strsplit(ram, " "))[3:4])
     }
     else {
       ram <- system("wmic MemoryChip get Capacity", intern = TRUE)[-1]
@@ -253,5 +253,66 @@ ZinvC <- function(R, L, z) {
     left <- ZiR %*% L %*% solve(diag(1, K) + t(L) %*% iR %*% L) %*%
       t(L)
     ZiR - left %*% iR
-  }
+}
 
+print.FRK <- function(x, ...) {
+    attr(x, "pinfo") <- NULL
+    if (!is.null(x$LKobj)) {
+      x$LKobj <- x$LKobj$summary
+    }
+    out <- paste("a ", NROW(x$G), " by ", NCOL(x$G), " mrts matrix",
+      sep = ""
+    )
+    print(out)
+}
+
+print.mrts <- function(x, ...) {
+    if (NCOL(x) == 1) {
+      out <- c(x)
+    } else {
+      out <- x[, 1:NCOL(x)]
+    }
+    print(out)
+}
+
+mkpd <- function(M) {
+  v <- try(min(eigen(M, only.values = T)$value), silent = TRUE)
+  if (is(v, "try-error")) {
+    M <- (M + t(M)) / 2
+    v <- min(eigen(M, only.values = T)$value)
+  }
+  if (v <= 0) {
+    M <- M + diag(max(0, -v) + 0.1^7.5, NROW(M))
+  }
+  return(M)
+}
+
+
+extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
+  out <- list()
+  if (is.null(loc)) {
+    loc <- ifElse(
+      is.null(obj$LKinfo.MLE$x), obj$LKinfo.MLE$call["x"][[1]],
+      obj$LKinfo.MLE$x
+    )
+  }
+  phi <- LKrig.basis(loc, obj$LKinfo)
+  Q <- LKrig.precision(obj$LKinfo)
+  out$Q <- Q
+  if (!is.null(w)) {
+    out$weights <- w
+  } else {
+    out$weights <- obj$LKinfo.MLE$weights
+  }
+  w <- diag.spam(sqrt(out$weights))
+  wX <- w %*% phi
+  out$wX <- wX
+  out$G <- t(wX) %*% wX + obj$lambda.MLE * Q
+  out$lambda <- obj$lambda.MLE
+  if (is.null(pick)) {
+    pick <- 1:NROW(loc)
+  }
+  out$pick <- pick
+
+  return(out)
+}

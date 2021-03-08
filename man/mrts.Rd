@@ -7,7 +7,7 @@
 mrts(knot, k, x = NULL, maxknot = 5000)
 }
 \arguments{
-\item{knot}{\emph{m} by \emph{d} matrix (\emph{d<=3}) for \emph{m} locations of \emph{d}-dimensional knots as in ordinary splines. 
+\item{knot}{\emph{m} by \emph{d} matrix (\emph{d<=3}) for \emph{m} locations of \emph{d}-dimensional knots as in ordinary splines.
 Missing values are not allowed.}
 
 \item{k}{the number (\emph{<=m}) of basis functions.}
@@ -23,9 +23,9 @@ an \emph{m} by \emph{k} matrix of \emph{k} basis function taken values at knots.
 With \code{x} given, it returns \emph{n} by \emph{k} matrix for basis functions taken values at \code{x}.
 }
 \description{
-This function generates multi-resolution thin-plate spline basis functions. 
-The basis functions are (descendingly) ordered 
-in terms of their degrees of smoothness with a higher-order function corresponding 
+This function generates multi-resolution thin-plate spline basis functions.
+The basis functions are (descendingly) ordered
+in terms of their degrees of smoothness with a higher-order function corresponding
 to larger-scale features and a lower-order one corresponding to smaller-scale details.
 They are useful in the spatio-temporal random effects model.
 }

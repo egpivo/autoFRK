@@ -1,1 +1,0 @@
-\name{LKnFRKini} \alias{LKnFRKini} \title{ internal function } \description{ internal function } \keyword{internal}

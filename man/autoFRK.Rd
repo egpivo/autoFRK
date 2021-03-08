@@ -57,15 +57,14 @@ if "EM" then the missing data are taken care by the EM algorithm. Default is "fa
 generating basis functions. Default is 5000.}
 }
 \value{
-an object of class \code{FRK} is returned, which is a list of the following
-  components:
-	 \item{M}{ML estimate of \eqn{M}.}
-	 \item{s}{estimate for the scale parameter of measurement errors.}
-  \item{negloglik}{ negative  log-likelihood.}
-  \item{w}{\emph{K} by \emph{T} matrix with \eqn{w[t]} as the \emph{t}-th column.}
- \item{V}{\emph{K} by \emph{K} matrix of the prediction error covariance matrix of \eqn{w[t]}.}
- \item{G}{user specified basis function matrix or an automatically generated \code{mrts} object.}
- \item{LKobj}{a list from calling \code{LKrig.MLE} in \code{LatticeKrig} package if \code{useLK=TRUE};
+an object of class \code{FRK} is returned, which is a list of the following components:
+\item{M}{ML estimate of \eqn{M}.}
+\item{s}{estimate for the scale parameter of measurement errors.}
+\item{negloglik}{ negative  log-likelihood.}
+\item{w}{\emph{K} by \emph{T} matrix with \eqn{w[t]} as the \emph{t}-th column.}
+\item{V}{\emph{K} by \emph{K} matrix of the prediction error covariance matrix of \eqn{w[t]}.}
+\item{G}{user specified basis function matrix or an automatically generated \code{mrts} object.}
+\item{LKobj}{a list from calling \code{LKrig.MLE} in \code{LatticeKrig} package if \code{useLK=TRUE};
  otherwise \code{NULL}. See that package for details.}
 }
 \description{
