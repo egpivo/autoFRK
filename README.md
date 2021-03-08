@@ -1,4 +1,6 @@
 ## autoFRK Package
+  [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/autoFRK)](https://CRAN.R-project.org/package=autoFRK)
+  [![Downloads](http://cranlogs.r-pkg.org/badges/grand-total/autoFRK)](https://CRAN.R-project.org/package=autoFRK)
   [![R build status](https://github.com/egpivo/autoFRK/workflows/R-CMD-check/badge.svg)](https://github.com/egpivo/autoFRK/actions)
   [![Coverage Status](https://img.shields.io/codecov/c/github/egpivo/autoFRK/master.svg)](https://codecov.io/github/egpivo/autoFRK?branch=master)
 ### Remark
