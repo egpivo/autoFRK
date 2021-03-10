@@ -46,14 +46,14 @@
 #' \item{G}{user specified basis function matrix or an automatically generated \code{mrts} object.}
 #' \item{LKobj}{a list from calling \code{LKrig.MLE} in \code{LatticeKrig} package if \code{useLK=TRUE};
 #'  otherwise \code{NULL}. See that package for details.}
-#' @details The function computes the ML estimate of M using the closed-form expression in Tzeng and Huang (2017).
+#' @details The function computes the ML estimate of M using the closed-form expression in Tzeng and Huang (2018).
 #' If the user would like to specify
 #' a \code{D} other than an identity matrix for a large \emph{n}, it is better to provided via \code{spam} function
 #' in \code{spam} package.
 #' @export
 #' @seealso \code{\link{predict.FRK}}
 #' @references
-#' Tzeng, S., & Huang, H.-C. (2017). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+#' Tzeng, S., & Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
 #' @examples
 #' #### generating data from two eigenfunctions
 #' originalPar <- par(no.readonly = TRUE)
@@ -1042,7 +1042,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
 #' }
 #' par(originalPar)
 #' @references
-#' Tzeng, S., & Huang, H. C. (2017). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+#' Tzeng, S., & Huang, H. C. (2018). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
 #' Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models
 #' for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
 #' @author ShengLi Tzeng and Hsin-Cheng Huang.

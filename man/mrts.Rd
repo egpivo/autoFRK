@@ -43,7 +43,7 @@ for (i in 1:30) {
 par(originalPar)
 }
 \references{
-Tzeng, S., & Huang, H. C. (2017). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+Tzeng, S., & Huang, H. C. (2018). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
 Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models
 for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
 }
