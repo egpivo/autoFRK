@@ -317,6 +317,19 @@ extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
   return(out)
 }
 
+#'
+#' Internal function: A wrapper for LatticeKrig::LKrigSetu
+#'
+#' @keywords internal
+#' @param x Spatial locations that define the spatial domain for prediction.
+#' @param nlevel Number of levels in multi-resolution.
+#' @param alpha A vector of length nlevel with the relative variances for the different multi- resolution levels.
+#' @param a.wght The correlation range in the SAR model.
+#' @param NC The maximum number of lattice grid points for a spatial coordinate and at the coarsest level of resolution.
+#' @param lambda A smoothing parameter.
+#' @param LKGeometry A text string that gives the names of the model geometry.
+#' @return list
+#'
 LKrigSetupWrapper <- function(x = NULL,
                        nlevel = NULL,
                        alpha = NA,
@@ -361,7 +374,7 @@ LKrigSetupWrapper <- function(x = NULL,
   LKinfo$basisInfo <- list(
     BasisType = "Radial",
     BasisFunction = "WendlandFunction",
-    overlap = o2.5,
+    overlap = 2.5,
     max.points = NULL,
     mean.neighbor = 50,
     V = NULL
@@ -380,11 +393,6 @@ LKrigSetupWrapper <- function(x = NULL,
 
   LKinfo$alpha <- LKrigSetupAlpha(LKinfo)
   LKinfo$a.wght <- LKrigSetupAwght(LKinfo)
-
-  if (is.na(lambda[1])) {
-    lambda <- sigma^2 / rho
-    LKinfo$lambda <- lambda
-  }
 
   LKinfo$call <- NULL
   LKinfoCheck(LKinfo)
