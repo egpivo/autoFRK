@@ -316,3 +316,78 @@ extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
 
   return(out)
 }
+
+LKrigSetupWrapper <- function(x = NULL,
+                       nlevel = NULL,
+                       alpha = NA,
+                       a.wght = NA,
+                       NC = NULL,
+                       lambda = NA,
+                       LKGeometry = "LKRectangle",
+                       ...) {
+
+  setupArgs <- list(...)
+  LKinfo <- list(
+    x = x,
+    nlevel = nlevel,
+    alpha = alpha,
+    alphaObject = NULL,
+    a.wght = a.wght,
+    a.wghtObject = NULL,
+    NC = NC,
+    NC.buffer = NULL,
+    nu = NULL,
+    normalize = TRUE,
+    lambda = lambda,
+    sigma = NA,
+    rho = NA,
+    rho.object = NULL,
+    LKGeometry = LKGeometry,
+    distance.type = "Euclidean",
+    BasisFunction = "WendlandFunction",
+    overlap = 2.5,
+    V = NULL,
+    BasisType = "Radial",
+    fixedFunction = "LKrigDefaultFixedFunction",
+    fixedFunctionArgs = list(m = 2),
+    collapseFixedEffect = FALSE,
+    max.points = NULL,
+    mean.neighbor = 50,
+    choleskyMemory = NULL,
+    setupArgs = setupArgs,
+    dense = FALSE
+  )
+
+  LKinfo$basisInfo <- list(
+    BasisType = "Radial",
+    BasisFunction = "WendlandFunction",
+    overlap = o2.5,
+    max.points = NULL,
+    mean.neighbor = 50,
+    V = NULL
+  )
+
+  class(LKinfo) <- c("LKinfo", LKGeometry)
+  LKinfo <- setDefaultsLKinfo(LKinfo)
+
+  LKinfo$latticeInfo <- do.call(
+    "LKrigSetupLattice",
+    c(
+      list(object = LKinfo, verbose = FALSE),
+      setupArgs
+    )
+  )
+
+  LKinfo$alpha <- LKrigSetupAlpha(LKinfo)
+  LKinfo$a.wght <- LKrigSetupAwght(LKinfo)
+
+  if (is.na(lambda[1])) {
+    lambda <- sigma^2 / rho
+    LKinfo$lambda <- lambda
+  }
+
+  LKinfo$call <- NULL
+  LKinfoCheck(LKinfo)
+
+  return(LKinfo)
+}

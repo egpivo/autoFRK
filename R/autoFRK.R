@@ -938,7 +938,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   if (is.null(nc)) nc <- setNC(z, x, nlevel)
   if (is.null(a.wght)) a.wght <- 2 * NCOL(x) + 0.01
 
-  info <- LKrigSetup(
+  info <- LKrigSetupWrapper(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
@@ -987,7 +987,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   lambda.MLE <- sol$minimum
   out <- iniLike(sol$minimum, z, full = TRUE)
   llike <- out$negloglik
-  info.MLE <- LKrigSetup(
+  info.MLE <- LKrigSetupWrapper(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
