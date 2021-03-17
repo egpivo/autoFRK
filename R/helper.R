@@ -391,7 +391,6 @@ LKrigSetupWrapper <- function(x = NULL,
     )
   )
 
-  LKinfo$alpha <- LKrigSetupAlpha(LKinfo)
   LKinfo$a.wght <- LKrigSetupAwght(LKinfo)
 
   LKinfo$call <- NULL
