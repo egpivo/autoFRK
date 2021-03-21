@@ -318,7 +318,7 @@ extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
 }
 
 #'
-#' Internal function: A wrapper for LatticeKrig::LKrigSetu
+#' Internal function: A wrapper for LatticeKrig::LKrigSetup
 #'
 #' @keywords internal
 #' @param x Spatial locations that define the spatial domain for prediction.
@@ -331,14 +331,13 @@ extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
 #' @return list
 #'
 LKrigSetupWrapper <- function(x = NULL,
-                       nlevel = NULL,
-                       alpha = NA,
-                       a.wght = NA,
-                       NC = NULL,
-                       lambda = NA,
-                       LKGeometry = "LKRectangle",
-                       ...) {
-
+                              nlevel = NULL,
+                              alpha = NA,
+                              a.wght = NA,
+                              NC = NULL,
+                              lambda = NA,
+                              LKGeometry = "LKRectangle",
+                              ...) {
   setupArgs <- list(...)
   LKinfo <- list(
     x = x,
@@ -391,10 +390,41 @@ LKrigSetupWrapper <- function(x = NULL,
     )
   )
 
-  LKinfo$a.wght <- LKrigSetupAwght(LKinfo)
+  LKinfo$a.wght <- setDefaultAwght(LKinfo)
 
   LKinfo$call <- NULL
   LKinfoCheck(LKinfo)
 
   return(LKinfo)
+}
+
+
+#'
+#' Internal function: A wrapper for LatticeKrig::LKrigSetupAwght
+#'
+#' @keywords internal
+#' @param LKinfo LKinfo object
+#' @return list
+#'
+setDefaultAwght <- function(LKinfo) {
+  a_wght <- LKinfo$a.wght
+  nlevel <- LKinfo$nlevel
+  isotropic <- length(a_wght) == 1
+  if (!is.list(a_wght)) {
+    if (nlevel == 1) {
+      a_wght <- list(a_wght)
+    }
+    else {
+      if (length(a_wght) == 1) {
+        a_wght <- rep(a_wght, nlevel)
+      }
+      a_wght <- as.list(c(a_wght))
+    }
+  }
+  if (length(a_wght) != nlevel) {
+    stop("length of a_wght list differs than of nlevel")
+  }
+  attr(a_wght, "fastNormalize") <- FALSE
+  attr(a_wght, "isotropic") <- isotropic
+  return(a_wght)
 }

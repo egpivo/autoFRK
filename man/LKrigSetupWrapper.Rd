@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{LKrigSetupWrapper}
 \alias{LKrigSetupWrapper}
-\title{Internal function: A wrapper for LatticeKrig::LKrigSetu}
+\title{Internal function: A wrapper for LatticeKrig::LKrigSetup}
 \usage{
 LKrigSetupWrapper(
   x = NULL,
@@ -34,6 +34,6 @@ LKrigSetupWrapper(
 list
 }
 \description{
-Internal function: A wrapper for LatticeKrig::LKrigSetu
+Internal function: A wrapper for LatticeKrig::LKrigSetup
 }
 \keyword{internal}
