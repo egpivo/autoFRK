@@ -398,7 +398,6 @@ LKrigSetupWrapper <- function(x = NULL,
   return(LKinfo)
 }
 
-
 #'
 #' Internal function: A wrapper for LatticeKrig::LKrigSetupAwght
 #'
