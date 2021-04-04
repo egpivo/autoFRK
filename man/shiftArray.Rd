@@ -11,9 +11,6 @@ shiftArray(array_object, shift_index)
 
 \item{shift_index}{one-dim array}
 }
-\value{
-A larray
-}
 \description{
 Internal function: A modifier of LatticeKrig::LKArrayShift
 }
