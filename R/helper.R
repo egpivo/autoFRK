@@ -489,22 +489,21 @@ calculateLatticeKrigBasis <- function(x1, LKinfo) {
 #' @return A matrix
 #'
 normalizeBasis <- function(LKinfo, level, PHI) {
-  
-  if (LKinfo$LKGeometry == "LKInterval"){
+  if (LKinfo$LKGeometry == "LKInterval") {
     tempB <- calculateSARForOneDimLocation(LKinfo, level)
-  } else if(LKinfo$LKGeometry == "LKRectangle") {
+  } else if (LKinfo$LKGeometry == "LKRectangle") {
     tempB <- calculateSARForTowDimLocation(LKinfo, level)
   } else {
     tempB <- calculateSARForThreeDimLocation(LKinfo, level)
   }
-  
+
   # tempB is in spind format
   tempB <- spam(tempB[c("ind", "ra")], nrow = tempB$da[1], ncol = tempB$da[2])
   # quadratic form involves applying inverse precision matrix to basis function evaluted at
   # locations for evaluation
   wght <- LKrig.quadraticform(t(tempB) %*% tempB,
-                              PHI = PHI,
-                              choleskyMemory = LKinfo$choleskyMemory
+    PHI = PHI,
+    choleskyMemory = LKinfo$choleskyMemory
   )
   return(wght)
 }
@@ -550,20 +549,19 @@ calculateSARForTowDimLocation <- function(LKinfo, level) {
     stop("a.wght must be constant")
   }
   da <- c(m, m)
-  
+
   ra <- c(rep(a.wght, m), rep(-1, m * 6))
   Bi <- c(rep(1:m, 7))
   Bindex <- array(1:m, LKinfo$latticeInfo$mx[level, ])
-  Bj <- c(1:m, c(LKArrayShift(Bindex, c(-1, 0, 0))), c(LKArrayShift(
-    Bindex,
-    c(1, 0, 0)
-  )), c(LKArrayShift(Bindex, c(0, -1, 0))), c(LKArrayShift(
-    Bindex,
-    c(0, 1, 0)
-  )), c(LKArrayShift(Bindex, c(0, 0, -1))), c(LKArrayShift(
-    Bindex,
-    c(0, 0, 1)
-  )))
+  Bj <- c(
+    1:m,
+    c(shiftArray(Bindex, c(-1, 0, 0))),
+    c(shiftArray(Bindex, c(1, 0, 0))),
+    c(shiftArray(Bindex, c(0, -1, 0))),
+    c(shiftArray(Bindex, c(0, 1, 0))),
+    c(shiftArray(Bindex, c(0, 0, -1))),
+    c(shiftArray(Bindex, c(0, 0, 1)))
+  )
   inRange <- !is.na(Bj)
   Bi <- Bi[inRange]
   Bj <- Bj[inRange]
@@ -584,7 +582,7 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
   mx2 <- LKinfo$latticeInfo$mx[level, 2]
   m <- mx1 * mx2
   a.wght <- (LKinfo$a.wght)[[level]]
-  
+
   stationary <- (attr(LKinfo$a.wght, "stationary"))[level]
   first.order <- attr(LKinfo$a.wght, "first.order")[level]
   isotropic <- attr(LKinfo$a.wght, "isotropic")[level]
@@ -594,7 +592,7 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
       stop("a.wght less than 4")
     }
   }
-  
+
   dim.a.wght <- dim(a.wght)
   index <- c(5, 4, 6, 2, 8, 3, 9, 1, 7)
   da <- as.integer(c(m, m))
@@ -614,7 +612,7 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
       }
     }
   }
-  
+
   Bi <- rep(1:m, 5)
   i.c <- matrix(1:m, nrow = mx1, ncol = mx2)
   Bj <- c(
@@ -634,12 +632,12 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
       LKrig.shift.matrix(i.c, -1, -1)
     )
   }
-  
+
   good <- !is.na(Bj)
   Bi <- as.integer(Bi[good])
   Bj <- as.integer(Bj[good])
   ra <- c(ra)[good]
-  
+
   if (!is.null(LKinfo$setupArgs$BCHook)) {
     M <- da[1]
     for (i in 1:M) {
@@ -651,4 +649,32 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
   return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
 }
 
+#'
+#' Internal function: A modifier of LatticeKrig::LKArrayShift
+#'
+#' @keywords internal
+#' @param array_object array
+#' @param shift_index one-dim array
+#' @return A larray
+#'
+shiftArray <- function(array_object, shift_index) {
+  shape <- dim(array_object)
+  reshaped_array <- array(NA, shape)
+  if (any(abs(shift_index) > shape)) {
+    stop("shift exceeds array dimensions")
+  }
 
+  index_list_source <- index_list_target <- NULL
+
+  for (k in 1:length(shape)) {
+    index_list_source <- c(index_list_source, list(c(1:shape[k])))
+    temp_index <- (0:(shape[k] - 1) + shift_index[k]) %% shape[k] + 1
+    temp_index[(temp_index < 1) | (temp_index > shape[k])] <- NA
+    index_list_target <- c(index_list_target, list(temp_index))
+  }
+  index_source <- as.matrix(expand.grid(index_list_source))
+  index_target <- as.matrix(expand.grid(index_list_target))
+  in_range <- rowSums(is.na(index_target)) == 0
+  reshaped_array[index_target[in_range, ]] <- array_object[index_source[in_range, ]]
+  return(reshaped_array)
+}
