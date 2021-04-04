@@ -409,7 +409,7 @@ setDefaultAwght <- function(LKinfo) {
   a_wght <- LKinfo$a.wght
   nlevel <- LKinfo$nlevel
   isotropic <- length(a_wght) == 1
-  
+
   if (!is.list(a_wght)) {
     if (nlevel == 1) {
       a_wght <- list(a_wght)
@@ -438,21 +438,22 @@ setDefaultAwght <- function(LKinfo) {
 #' @return A matrix
 #'
 calculateLatticeKrigBasis <- function(x1, LKinfo) {
-  nlevel <- LKinfo$nlevel
-  distance.type <- LKinfo$distance.type
   x1 <- as.matrix(x1)
-  
+
   PHI <- NULL
-  basis.delta <- LKrigLatticeScales(LKinfo)
-  for (l in 1:nlevel) {
+  basis_delta <- LKinfo$latticeInfo$delta * LKinfo$basisInfo$overlap
+  for (l in 1:LKinfo$nlevel) {
     centers <- LKrigLatticeCenters(LKinfo, Level = l)
     if (LKinfo$basisInfo$BasisType == "Radial") {
-      PHItemp <- Radial.basis(x1, centers, basis.delta[l],
-                              max.points = LKinfo$basisInfo$max.points,
-                              mean.neighbor = LKinfo$basisInfo$mean.neighbor,
-                              BasisFunction = get(LKinfo$basisInfo$BasisFunction),
-                              distance.type = LKinfo$distance.type,
-                              verbose = FALSE
+      PHItemp <- Radial.basis(
+        x1,
+        centers,
+        basis_delta[l],
+        max.points = LKinfo$basisInfo$max.points,
+        mean.neighbor = LKinfo$basisInfo$mean.neighbor,
+        BasisFunction = get(LKinfo$basisInfo$BasisFunction),
+        distance.type = LKinfo$distance.type,
+        verbose = FALSE
       )
     }
     # Normalization
@@ -468,31 +469,15 @@ calculateLatticeKrigBasis <- function(x1, LKinfo) {
     else {
       PHItemp@entries <- PHItemp@entries / sqrt(wght)
     }
-    
-    if (is.null(LKinfo$alphaObject[[l]])) {
-      wght <- LKinfo$alpha[[l]]
+
+    if (length(LKinfo$alpha[[l]]) > 1) {
+      PHItemp <- diag.spam(sqrt(LKinfo$alpha[[l]])) %*% PHItemp
     }
     else {
-      wght <- LKinfo$alpha[[l]] * c(predict(LKinfo$alphaObject[[l]], x1))
-    }
-    if (length(wght) > 1) {
-      PHItemp <- diag.spam(sqrt(wght)) %*% PHItemp
-    }
-    else {
-      PHItemp <- sqrt(wght) * PHItemp
+      PHItemp <- sqrt(LKinfo$alpha[[l]]) * PHItemp
     }
     PHI <- spam::cbind.spam(PHI, PHItemp)
   }
-  
-  wght <- ifelse(is.na(LKinfo$rho), 1.0, LKinfo$rho)
-  
-  if (length(wght) > 1) {
-    PHI <- diag.spam(sqrt(wght)) %*% PHI
-  }
-  else {
-    PHI <- sqrt(wght) * PHI
-  }
-  
+
   return(PHI)
 }
-
