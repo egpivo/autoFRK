@@ -684,12 +684,12 @@ shiftArray <- function(array_object, shift_index) {
 #'
 #' @keywords internal
 #' @param r A matrix of 2 or 3 d locations
-#' @return A numeric
+#' @return A matrix
 #'
 wendland <- function(r) {
   # Ref: https://arxiv.org/pdf/1203.5696.pdf
-  if (any(r) < 0) {
-    stop(c("Invalid values: ", r[which(r < 0)]))
+  if (any(r < 0)) {
+    stop(paste(c("Invalid values: ", r[which(r < 0)]), " "))
   }
   return(r < 1) * (1 - r)^6 * (35 * r^2 + 18 * r + 3)
 }
