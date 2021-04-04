@@ -656,7 +656,6 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
 #' @keywords internal
 #' @param array_object array
 #' @param shift_index one-dim array
-#' @return A larray
 #'
 shiftArray <- function(array_object, shift_index) {
   shape <- dim(array_object)
@@ -678,4 +677,19 @@ shiftArray <- function(array_object, shift_index) {
   in_range <- rowSums(is.na(index_target)) == 0
   reshaped_array[index_target[in_range, ]] <- array_object[index_source[in_range, ]]
   return(reshaped_array)
+}
+
+#'
+#' Internal function: A wendland function with k = 2 and l = 4
+#'
+#' @keywords internal
+#' @param r A matrix of 2 or 3 d locations
+#' @return A numeric
+#'
+wendland <- function(r) {
+  # Ref: https://arxiv.org/pdf/1203.5696.pdf
+  if (any(r) < 0) {
+    stop(c("Invalid values: ", r[which(r < 0)]))
+  }
+  return(r < 1) * (1 - r)^6 * (35 * r^2 + 18 * r + 3)
 }
