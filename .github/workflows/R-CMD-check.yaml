@@ -69,6 +69,11 @@ jobs:
       - name: Install system dependencies
         if: runner.os == 'Linux'
         run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install gcc-4.9
+          sudo apt-get upgrade libstdc++6
+          sudo apt-get dist-upgrade
           while read -r cmd
           do
             eval sudo $cmd
