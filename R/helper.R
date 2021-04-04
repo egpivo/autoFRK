@@ -451,11 +451,10 @@ calculateLatticeKrigBasis <- function(x1, LKinfo) {
       max.points = LKinfo$basisInfo$max.points,
       mean.neighbor = LKinfo$basisInfo$mean.neighbor,
       BasisFunction = get(LKinfo$basisInfo$BasisFunction),
-      distance.type = LKinfo$distance.type,
-      verbose = FALSE
+      distance.type = LKinfo$distance.type
     )
     # Normalization
-    wght <- normalizeBasis(LKinfo, Level = l, PHI = PHItemp)
+    wght <- normalizeBasis(LKinfo, level = l, PHI = PHItemp)
     indZero <- wght == 0
     if (any(indZero)) {
       warning("Some normalization weights are zero")
