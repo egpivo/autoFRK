@@ -22,6 +22,10 @@ Depends: R (>= 3.5.0), spam
 Imports: fields (>= 6.9.1), filehashSQLite, filehash, MASS, mgcv, LatticeKrig
         (>= 5.4), FNN, filematrix, Rcpp,  methods
 LinkingTo: Rcpp, RSpectra, RcppEigen, RcppParallel
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 2.1.0)
 Author: ShengLi Tzeng [aut, cre], Hsin-Cheng Huang [aut], Wen-Ting Wang [ctb], Douglas Nychka [ctb], Colin Gillespie [ctb]
 Maintainer: ShengLi Tzeng <slt.cmu@gmail.com>
 NeedsCompilation: yes

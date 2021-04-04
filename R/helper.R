@@ -563,10 +563,10 @@ calculateSARForTowDimLocation <- function(LKinfo, level) {
     c(shiftArray(Bindex, c(0, 0, -1))),
     c(shiftArray(Bindex, c(0, 0, 1)))
   )
-  inRange <- !is.na(Bj)
-  Bi <- Bi[inRange]
-  Bj <- Bj[inRange]
-  ra <- ra[inRange]
+  in_range <- !is.na(Bj)
+  Bi <- Bi[in_range]
+  Bj <- Bj[in_range]
+  ra <- ra[in_range]
   return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
 }
 
