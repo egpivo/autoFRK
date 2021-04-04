@@ -444,18 +444,16 @@ calculateLatticeKrigBasis <- function(x1, LKinfo) {
   basis_delta <- LKinfo$latticeInfo$delta * LKinfo$basisInfo$overlap
   for (l in 1:LKinfo$nlevel) {
     centers <- LKinfo$latticeInfo$grid[[l]]
-    if (LKinfo$basisInfo$BasisType == "Radial") {
-      PHItemp <- Radial.basis(
-        x1,
-        centers,
-        basis_delta[l],
-        max.points = LKinfo$basisInfo$max.points,
-        mean.neighbor = LKinfo$basisInfo$mean.neighbor,
-        BasisFunction = get(LKinfo$basisInfo$BasisFunction),
-        distance.type = LKinfo$distance.type,
-        verbose = FALSE
-      )
-    }
+    PHItemp <- Radial.basis(
+      x1,
+      centers,
+      basis_delta[l],
+      max.points = LKinfo$basisInfo$max.points,
+      mean.neighbor = LKinfo$basisInfo$mean.neighbor,
+      BasisFunction = get(LKinfo$basisInfo$BasisFunction),
+      distance.type = LKinfo$distance.type,
+      verbose = FALSE
+    )
     # Normalization
     wght <- LKrigNormalizeBasis(LKinfo, Level = l, PHI = PHItemp)
     indZero <- wght == 0
