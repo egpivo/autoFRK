@@ -107,14 +107,14 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
       xrng <- matrix(range(x), 2, 1)
     }
   }
-  mysamp <- function(zANDid) {
-    z <- as.double(names(zANDid))
+  mysamp <- function(z_and_id) {
+    z <- as.double(names(z_and_id))
     if (length(z) == 1L) {
-      z
+      return(z)
     }
     else {
-      set.seed(mean(zANDid))
-      sample(z, size = min(nsamp, length(z)))
+      set.seed(mean(z_and_id))
+      return(sample(z, size = min(nsamp, length(z))))
     }
   }
   rng <- sqrt(xrng[2, ] - xrng[1, ])
@@ -133,14 +133,12 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     gvec <- matrix(1, xdim[1], 1)
     kconst <- 1
     for (kk in 1:xdim[2]) {
-      grp <- pmin(round((nmbin[kk] - 1) * ((x[, kk] - xrng[
-        1,
-        kk
-      ]) / (xrng[2, kk] - xrng[1, kk]))), nmbin[kk] -
-        1L)
+      grp <- pmin(
+        round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
+        nmbin[kk] -1L
+      )
       if (length(unique(grp)) < nmbin[kk]) {
-        brk <- quantile(x[, kk], seq(0, 1, l = nmbin[kk] +
-          1))
+        brk <- quantile(x[, kk], seq(0, 1, l = nmbin[kk] + 1))
         brk[1] <- brk[1] - 0.1^8
         grp <- as.double(cut(x[, kk], brk))
       }
@@ -356,7 +354,7 @@ LKrigSetupWrapper <- function(x = NULL,
     rho.object = NULL,
     LKGeometry = LKGeometry,
     distance.type = "Euclidean",
-    BasisFunction = "WendlandFunction",
+    BasisFunction = "wendland",
     overlap = 2.5,
     V = NULL,
     BasisType = "Radial",
@@ -372,7 +370,7 @@ LKrigSetupWrapper <- function(x = NULL,
 
   LKinfo$basisInfo <- list(
     BasisType = "Radial",
-    BasisFunction = "WendlandFunction",
+    BasisFunction = "wendland",
     overlap = 2.5,
     max.points = NULL,
     mean.neighbor = 50,
