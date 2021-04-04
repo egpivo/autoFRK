@@ -107,14 +107,14 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
       xrng <- matrix(range(x), 2, 1)
     }
   }
-  mysamp <- function(zANDid) {
-    z <- as.double(names(zANDid))
+  mysamp <- function(z_and_id) {
+    z <- as.double(names(z_and_id))
     if (length(z) == 1L) {
-      z
+      return(z)
     }
     else {
-      set.seed(mean(zANDid))
-      sample(z, size = min(nsamp, length(z)))
+      set.seed(mean(z_and_id))
+      return(sample(z, size = min(nsamp, length(z))))
     }
   }
   rng <- sqrt(xrng[2, ] - xrng[1, ])
@@ -133,14 +133,12 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     gvec <- matrix(1, xdim[1], 1)
     kconst <- 1
     for (kk in 1:xdim[2]) {
-      grp <- pmin(round((nmbin[kk] - 1) * ((x[, kk] - xrng[
-        1,
-        kk
-      ]) / (xrng[2, kk] - xrng[1, kk]))), nmbin[kk] -
-        1L)
+      grp <- pmin(
+        round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
+        nmbin[kk] -1L
+      )
       if (length(unique(grp)) < nmbin[kk]) {
-        brk <- quantile(x[, kk], seq(0, 1, l = nmbin[kk] +
-          1))
+        brk <- quantile(x[, kk], seq(0, 1, l = nmbin[kk] + 1))
         brk[1] <- brk[1] - 0.1^8
         grp <- as.double(cut(x[, kk], brk))
       }
@@ -356,7 +354,7 @@ LKrigSetupWrapper <- function(x = NULL,
     rho.object = NULL,
     LKGeometry = LKGeometry,
     distance.type = "Euclidean",
-    BasisFunction = "WendlandFunction",
+    BasisFunction = "wendland",
     overlap = 2.5,
     V = NULL,
     BasisType = "Radial",
@@ -372,7 +370,7 @@ LKrigSetupWrapper <- function(x = NULL,
 
   LKinfo$basisInfo <- list(
     BasisType = "Radial",
-    BasisFunction = "WendlandFunction",
+    BasisFunction = "wendland",
     overlap = 2.5,
     max.points = NULL,
     mean.neighbor = 50,
@@ -399,7 +397,7 @@ LKrigSetupWrapper <- function(x = NULL,
 }
 
 #'
-#' Internal function: A wrapper for LatticeKrig::LKrigSetupAwght
+#' Internal function: A wrapper of LatticeKrig::LKrigSetupAwght
 #'
 #' @keywords internal
 #' @param LKinfo LKinfo object
@@ -409,6 +407,7 @@ setDefaultAwght <- function(LKinfo) {
   a_wght <- LKinfo$a.wght
   nlevel <- LKinfo$nlevel
   isotropic <- length(a_wght) == 1
+
   if (!is.list(a_wght)) {
     if (nlevel == 1) {
       a_wght <- list(a_wght)
@@ -426,4 +425,269 @@ setDefaultAwght <- function(LKinfo) {
   attr(a_wght, "fastNormalize") <- FALSE
   attr(a_wght, "isotropic") <- isotropic
   return(a_wght)
+}
+
+#'
+#' Internal function: A modifier of LatticeKrig::LKrig.basis
+#'
+#' @keywords internal
+#' @param x1 A matrix
+#' @param LKinfo LKinfo object
+#' @return A matrix
+#'
+calculateLatticeKrigBasis <- function(x1, LKinfo) {
+  x1 <- as.matrix(x1)
+
+  PHI <- NULL
+  basis_delta <- LKinfo$latticeInfo$delta * LKinfo$basisInfo$overlap
+  for (l in 1:LKinfo$nlevel) {
+    centers <- LKinfo$latticeInfo$grid[[l]]
+    if (LKinfo$LKGeometry == "LKBox") class(centers) <- "gridList"
+
+    PHItemp <- Radial.basis(
+      x1,
+      centers,
+      basis_delta[l],
+      max.points = LKinfo$basisInfo$max.points,
+      mean.neighbor = LKinfo$basisInfo$mean.neighbor,
+      BasisFunction = get(LKinfo$basisInfo$BasisFunction),
+      distance.type = LKinfo$distance.type
+    )
+    # Normalization
+    wght <- normalizeBasis(LKinfo, level = l, PHI = PHItemp)
+    indZero <- wght == 0
+    if (any(indZero)) {
+      warning("Some normalization weights are zero")
+    }
+    wght[indZero] <- 1.0
+    if (nrow(x1) > 1) {
+      PHItemp <- diag.spam(1 / sqrt(wght)) %*% PHItemp
+    }
+    else {
+      PHItemp@entries <- PHItemp@entries / sqrt(wght)
+    }
+
+    if (length(LKinfo$alpha[[l]]) > 1) {
+      PHItemp <- diag.spam(sqrt(LKinfo$alpha[[l]])) %*% PHItemp
+    }
+    else {
+      PHItemp <- sqrt(LKinfo$alpha[[l]]) * PHItemp
+    }
+    PHI <- spam::cbind.spam(PHI, PHItemp)
+  }
+
+  return(PHI)
+}
+
+#'
+#' Internal function: A modifier of LatticeKrig::LKrigNormalizeBasis
+#'
+#' @keywords internal
+#' @param x1 A matrix
+#' @param LKinfo LKinfo object
+#' @return A matrix
+#'
+normalizeBasis <- function(LKinfo, level, PHI) {
+  if (LKinfo$LKGeometry == "LKInterval") {
+    tempB <- calculateSARForOneDimLocation(LKinfo, level)
+  } else if (LKinfo$LKGeometry == "LKRectangle") {
+    tempB <- calculateSARForTowDimLocation(LKinfo, level)
+  } else {
+    tempB <- calculateSARForThreeDimLocation(LKinfo, level)
+  }
+
+  # tempB is in spind format
+  tempB <- spam(tempB[c("ind", "ra")], nrow = tempB$da[1], ncol = tempB$da[2])
+  # quadratic form involves applying inverse precision matrix to basis function evaluted at
+  # locations for evaluation
+  wght <- LKrig.quadraticform(t(tempB) %*% tempB,
+    PHI = PHI,
+    choleskyMemory = LKinfo$choleskyMemory
+  )
+  return(wght)
+}
+
+
+#'
+#' Internal function: A modifier of LatticeKrig::LKrigSAR.LKInterval
+#'
+#' @keywords internal
+#' @param LKinfo LKinfo object
+#' @param level an integer
+#' @return A list
+#'
+calculateSARForOneDimLocation <- function(LKinfo, level) {
+  m <- LKinfo$latticeInfo$mLevel[level]
+  a.wght <- (LKinfo$a.wght)[[level]]
+  if (length(a.wght) == 1) {
+    a.wght <- rep(a.wght, m)
+  }
+  if (length(a.wght) != m) {
+    cat("Level, m, length( a.wght): ", level, m, length(a.wght), fill = TRUE)
+    stop("a.wght wrong length")
+  }
+  da <- c(m, m)
+  ra <- c(a.wght, rep(-1, (m - 1)), rep(-1, (m - 1)))
+  Bi <- c(1:m, 2:m, 1:(m - 1))
+  Bj <- c(1:m, 1:(m - 1), 2:m)
+  return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
+}
+
+#'
+#' Internal function: A modifier of LatticeKrig::LKrigSAR.LKBox
+#'
+#' @keywords internal
+#' @param LKinfo LKinfo object
+#' @param level an integer
+#' @return A list
+#'
+calculateSARForTowDimLocation <- function(LKinfo, level) {
+  m <- LKinfo$latticeInfo$mLevel[level]
+  a.wght <- (LKinfo$a.wght)[[level]]
+  if (length(a.wght) > 1) {
+    stop("a.wght must be constant")
+  }
+  da <- c(m, m)
+
+  ra <- c(rep(a.wght, m), rep(-1, m * 6))
+  Bi <- c(rep(1:m, 7))
+  Bindex <- array(1:m, LKinfo$latticeInfo$mx[level, ])
+  Bj <- c(
+    1:m,
+    c(shiftArray(Bindex, c(-1, 0, 0))),
+    c(shiftArray(Bindex, c(1, 0, 0))),
+    c(shiftArray(Bindex, c(0, -1, 0))),
+    c(shiftArray(Bindex, c(0, 1, 0))),
+    c(shiftArray(Bindex, c(0, 0, -1))),
+    c(shiftArray(Bindex, c(0, 0, 1)))
+  )
+  in_range <- !is.na(Bj)
+  Bi <- Bi[in_range]
+  Bj <- Bj[in_range]
+  ra <- ra[in_range]
+  return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
+}
+
+#'
+#' Internal function: A modifier of LatticeKrig::LKrigSAR.LKRectangle
+#'
+#' @keywords internal
+#' @param LKinfo LKinfo object
+#' @param level an integer
+#' @return A list
+#'
+calculateSARForThreeDimLocation <- function(LKinfo, level) {
+  mx1 <- LKinfo$latticeInfo$mx[level, 1]
+  mx2 <- LKinfo$latticeInfo$mx[level, 2]
+  m <- mx1 * mx2
+  a.wght <- (LKinfo$a.wght)[[level]]
+
+  stationary <- (attr(LKinfo$a.wght, "stationary"))[level]
+  first.order <- attr(LKinfo$a.wght, "first.order")[level]
+  isotropic <- attr(LKinfo$a.wght, "isotropic")[level]
+  distance.type <- LKinfo$distance.type
+  if (all(stationary & isotropic)) {
+    if (any(unlist(a.wght) < 4)) {
+      stop("a.wght less than 4")
+    }
+  }
+
+  dim.a.wght <- dim(a.wght)
+  index <- c(5, 4, 6, 2, 8, 3, 9, 1, 7)
+  da <- as.integer(c(m, m))
+  if (first.order) {
+    ra <- array(NA, c(mx1 * mx2, 5))
+    ra[, 1] <- a.wght
+    ra[, 2:5] <- -1
+  }
+  else {
+    ra <- array(NA, c(mx1 * mx2, 9))
+    for (kk in 1:9) {
+      if (stationary) {
+        ra[, kk] <- a.wght[index[kk]]
+      }
+      else {
+        ra[, kk] <- a.wght[, index[kk]]
+      }
+    }
+  }
+
+  Bi <- rep(1:m, 5)
+  i.c <- matrix(1:m, nrow = mx1, ncol = mx2)
+  Bj <- c(
+    i.c,
+    LKrig.shift.matrix(i.c, 0, -1),
+    LKrig.shift.matrix(i.c, 0, 1),
+    LKrig.shift.matrix(i.c, 1, 0),
+    LKrig.shift.matrix(i.c, -1, 0)
+  )
+  if (!first.order) {
+    Bi <- c(Bi, rep(1:m, 4))
+    Bj <- c(
+      Bj,
+      LKrig.shift.matrix(i.c, 1, 1),
+      LKrig.shift.matrix(i.c, -1, 1),
+      LKrig.shift.matrix(i.c, 1, -1),
+      LKrig.shift.matrix(i.c, -1, -1)
+    )
+  }
+
+  good <- !is.na(Bj)
+  Bi <- as.integer(Bi[good])
+  Bj <- as.integer(Bj[good])
+  ra <- c(ra)[good]
+
+  if (!is.null(LKinfo$setupArgs$BCHook)) {
+    M <- da[1]
+    for (i in 1:M) {
+      rowI <- which(Bi == i)
+      rowNN <- rowI[-1]
+      ra[rowNN] <- 4 * ra[rowNN] / length(rowNN)
+    }
+  }
+  return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
+}
+
+#'
+#' Internal function: A modifier of LatticeKrig::LKArrayShift
+#'
+#' @keywords internal
+#' @param array_object array
+#' @param shift_index one-dim array
+#'
+shiftArray <- function(array_object, shift_index) {
+  shape <- dim(array_object)
+  reshaped_array <- array(NA, shape)
+  if (any(abs(shift_index) > shape)) {
+    stop("shift exceeds array dimensions")
+  }
+
+  index_list_source <- index_list_target <- NULL
+
+  for (k in 1:length(shape)) {
+    index_list_source <- c(index_list_source, list(c(1:shape[k])))
+    temp_index <- (0:(shape[k] - 1) + shift_index[k]) %% shape[k] + 1
+    temp_index[(temp_index < 1) | (temp_index > shape[k])] <- NA
+    index_list_target <- c(index_list_target, list(temp_index))
+  }
+  index_source <- as.matrix(expand.grid(index_list_source))
+  index_target <- as.matrix(expand.grid(index_list_target))
+  in_range <- rowSums(is.na(index_target)) == 0
+  reshaped_array[index_target[in_range, ]] <- array_object[index_source[in_range, ]]
+  return(reshaped_array)
+}
+
+#'
+#' Internal function: A wendland function with k = 2 and l = 4
+#'
+#' @keywords internal
+#' @param r A matrix of 2 or 3 d locations
+#' @return A matrix
+#'
+wendland <- function(r) {
+  # Ref: https://arxiv.org/pdf/1203.5696.pdf
+  if (any(r < 0)) {
+    stop(paste(c("Invalid values: ", r[which(r < 0)]), " "))
+  }
+  return(r < 1) * (1 - r)^6 * (35 * r^2 + 18 * r + 3)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{setDefaultAwght}
 \alias{setDefaultAwght}
-\title{Internal function: A wrapper for LatticeKrig::LKrigSetupAwght}
+\title{Internal function: A wrapper of LatticeKrig::LKrigSetupAwght}
 \usage{
 setDefaultAwght(LKinfo)
 }
@@ -13,6 +13,6 @@ setDefaultAwght(LKinfo)
 list
 }
 \description{
-Internal function: A wrapper for LatticeKrig::LKrigSetupAwght
+Internal function: A wrapper of LatticeKrig::LKrigSetupAwght
 }
 \keyword{internal}
