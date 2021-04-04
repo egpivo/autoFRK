@@ -443,7 +443,7 @@ calculateLatticeKrigBasis <- function(x1, LKinfo) {
   PHI <- NULL
   basis_delta <- LKinfo$latticeInfo$delta * LKinfo$basisInfo$overlap
   for (l in 1:LKinfo$nlevel) {
-    centers <- LKrigLatticeCenters(LKinfo, Level = l)
+    centers <- LKinfo$latticeInfo$grid[[l]]
     if (LKinfo$basisInfo$BasisType == "Radial") {
       PHItemp <- Radial.basis(
         x1,
