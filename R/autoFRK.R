@@ -177,15 +177,9 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         iniobj$weight[iniobj$pick],
         length(iniobj$weight[iniobj$pick])
       )
-      obj <- indeMLE(
-        Data,
-        Fk[, 1:K],
-        D,
-        maxit,
+      obj <- indeMLE(Data, Fk[, 1:K], D, maxit,
         avgtol = tolerance,
-        wSave = TRUE,
-        DfromLK = DfromLK,
-        vfixed = DnLK$s
+        wSave = TRUE, DfromLK = DfromLK, vfixed = DnLK$s
       )
     }
     obj$G <- Fk
@@ -269,15 +263,10 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
   method <- match.arg(method)
   if ((method == "EM") & (is.null(DfromLK))) {
     for (k in 1:length(K)) {
-      AIClist[k] <- indeMLE(
-        Data,
-        Fk[pick, 1:K[k]],
-        D,
-        maxit,
-        avgtol,
-        wSave = FALSE,
-        num.report = FALSE
-      )$negloglik
+      AIClist[k] <- indeMLE(Data, Fk[
+        pick,
+        1:K[k]
+      ], D, maxit, avgtol, wSave = FALSE, num.report = FALSE)$negloglik
     }
   }
   else {
@@ -401,13 +390,10 @@ cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL,
     }
     L <- as.matrix(L[, dhat > 0])
   }
-  return(list(
-    v = v,
-    M = M,
-    s = s,
-    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT,
-    L = L
-  ))
+  return(list(v = v, M = M, s = s, negloglik = neg2llik(
+    dii,
+    s, v, trS, n
+  ) * TT + ldet * TT, L = L))
 }
 
 cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
@@ -458,7 +444,8 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
   v <- sol.v(d, s, trS, n)
   dii <- pmax(d, 0)
   if (onlylogLike) {
-    return(list(negloglik = neg2llik(dii, s, v, trS, n) * TT))
+    return(list(negloglik = neg2llik(dii, s, v, trS, n) *
+      TT))
   }
   dhat <- sol.eta(dii, s, v)
   M <- half %*% P %*% (dhat * t(P)) %*% half
@@ -476,19 +463,19 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
     L <- L[, dhat > 0]
     invD <- rep(1, n) / (s + v)
     iDZ <- invD * Data
-    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
+    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD *
+      L)) %*% (t(L) %*% iDZ))
     INVtZ <- iDZ - invD * right
     etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
     GM <- Fk %*% M
-    V <- as.matrix(M - t(GM) %*% invCz((s + v) * diag.spam(n), L, GM))
-    return(list(
-      v = v,
-      M = M,
-      s = s,
-      negloglik = neg2llik(dii, s, v, trS, n) * TT,
-      w = etatt,
-      V = V
+    V <- as.matrix(M - t(GM) %*% invCz(
+      (s + v) * diag.spam(n),
+      L, GM
     ))
+    return(list(v = v, M = M, s = s, negloglik = neg2llik(
+      dii,
+      s, v, trS, n
+    ) * TT, w = etatt, V = V))
   }
 }
 
@@ -938,7 +925,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   if (is.null(nc)) nc <- setNC(z, x, nlevel)
   if (is.null(a.wght)) a.wght <- 2 * NCOL(x) + 0.01
 
-  info <- LKrigSetupWrapper(
+  info <- LKrigSetup(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
@@ -949,7 +936,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   )
 
   loc <- x
-  phi <- LKrig.basis(loc, info)
+  phi <- calculateLatticeKrigBasis(loc, info)
   w <- diag.spam(sqrt(weights))
   wX <- w %*% phi
   wwX <- w %*% wX
@@ -987,7 +974,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   lambda.MLE <- sol$minimum
   out <- iniLike(sol$minimum, z, full = TRUE)
   llike <- out$negloglik
-  info.MLE <- LKrigSetupWrapper(
+  info.MLE <- LKrigSetup(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
@@ -1230,7 +1217,8 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       if (se.report) {
         TT <- NCOL(object$w)
         if (is.null(miss)) {
-          se <- sqrt(pmax(0, rowSums((basis %*% object$V) * basis)))
+          se <- sqrt(pmax(0, rowSums((basis %*% object$V) *
+            basis)))
           se <- matrix(se, length(se), TT)
         }
         else {
@@ -1245,9 +1233,14 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
             G <- Fk[!miss[, tt], ]
             GM <- G %*% M
             De <- D0[!miss[, tt], !miss[, tt]]
-            L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value, 0)), NROW(M))
-            V <- as.matrix(M - t(GM) %*% invCz(object$s * De, L, GM))
-            se[, tt] <- sqrt(pmax(0, rowSums((basis %*% V) * basis)))
+            L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(
+              dec$value,
+              0
+            )), NROW(M))
+            V <- as.matrix(M - t(GM) %*% invCz(object$s *
+              De, L, GM))
+            se[, tt] <- sqrt(pmax(0, rowSums((basis %*%
+              V) * basis)))
           }
         }
       }
@@ -1265,10 +1258,17 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       M <- object$M
       GM <- G %*% M
       dec <- eigen(M)
-      L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value, 0)), NROW(M))
-      yhat <- basis %*% t(GM) %*% invCz(object$s * De, L, obsData[pick])
+      L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(
+        dec$value,
+        0
+      )), NROW(M))
+      yhat <- basis %*% t(GM) %*% invCz(
+        object$s * De, L,
+        obsData[pick]
+      )
       if (se.report) {
-        V <- as.matrix(M - t(GM) %*% invCz(object$s * De, L, GM))
+        V <- as.matrix(M - t(GM) %*% invCz(object$s *
+          De, L, GM))
         se <- sqrt(pmax(0, rowSums((basis %*% V) * basis)))
       }
     }
@@ -1301,23 +1301,26 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
         wlk <- t(wXiG) %*% Data - t(wXiG) %*% (LiiLiDZ)
         return(list(w = w, wlk = wlk))
       }
-      MFiS11 <- M %*% t(iDFk) / s - ((M %*% t(iDFk / s)) %*% L) %*% iiLiD
+      MFiS11 <- M %*% t(iDFk) / s - ((M %*% t(iDFk / s)) %*%
+        L) %*% iiLiD
       FMfi <- basis %*% MFiS11
       p0Pp1 <- as.matrix(phi0P %*% t(phi1))
-      se0 <- rowSums((basis %*% M) * basis) + rowSums(as.matrix(phi0P * phi0)) / lambda * s
+      se0 <- rowSums((basis %*% M) * basis) + rowSums(as.matrix(phi0P *
+        phi0)) / lambda * s
       se11 <- rowSums((FMfi %*% fM) * basis)
       se12 <- rowSums(p0Pp1 * (FMfi)) * s / lambda
       se13 <- se12
-      se14 <- rowSums(as.matrix(phi0 %*% t(wXiG)) * p0Pp1) * s / lambda - colSums((ihL %*% wXiG %*% t(phi0))^2)
-      se <- sqrt(pmax(se0 - (se11 + se12 + se13 + se14), 0))
+      se14 <- rowSums(as.matrix(phi0 %*% t(wXiG)) * p0Pp1) *
+        s / lambda - colSums((ihL %*% wXiG %*% t(phi0))^2)
+      se <- sqrt(pmax(
+        se0 - (se11 + se12 + se13 + se14),
+        0
+      ))
       if (only.se) {
         return(se)
       } else {
-        return(list(
-          se = se,
-          w = MFiS11 %*% Data,
-          wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
-        ))
+        return(list(se = se, w = MFiS11 %*% Data, wlk = t(wXiG) %*%
+          Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
       }
     }
     if (is.null(obsloc) & is.null(obsData)) {
@@ -1326,7 +1329,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       }
       miss <- attr(object, "missing")
       info <- object$LKobj$LKinfo.MLE
-      phi0 <- LKrig.basis(newloc, info)
+      phi0 <- calculateLatticeKrigBasis(newloc, info)
       pinfo <- attr(object, "pinfo")
       yhat <- basis %*% object$w + phi0 %*% pinfo$wlk
       if (se.report) {
@@ -1337,26 +1340,19 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
         G <- object$G[pick, ]
         M <- object$M
         dec <- eigen(M)
-        L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value, 0)), NROW(M))
+        L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(
+          dec$value,
+          0
+        )), NROW(M))
         L <- as.matrix(L)
-        phi1 <- LKrig.basis(as.matrix(loc)[pick, ], info)
+        phi1 <- calculateLatticeKrigBasis(as.matrix(loc)[pick, ], info)
         Q <- LKrig.precision(info)
         weight <- pinfo$weights[pick]
         s <- object$s
         phi0P <- phi0 %*% solve(Q)
         if (is.null(miss)) {
-          se <- LKpeon(
-            M,
-            s,
-            G,
-            basis,
-            weight,
-            phi1,
-            phi0,
-            Q,
-            lambda,
-            phi0P,
-            L,
+          se <- LKpeon(M, s, G, basis, weight, phi1, phi0,
+            Q, lambda, phi0P, L,
             only.se = TRUE
           )
           se <- matrix(se, length(se), TT)
@@ -1365,20 +1361,16 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
           se <- matrix(NA, NROW(basis), TT)
           miss <- (as.matrix(miss$miss) == 1)
           for (tt in 1:TT) {
-            se[, tt] <- LKpeon(
-              M,
-              s,
-              G[!miss[, tt], ],
-              basis,
-              weight[!miss[, tt]],
-              phi1[!miss[, tt], ],
-              phi0,
-              Q,
-              lambda,
-              phi0P,
-              L[!miss[, tt], ],
-              only.se = TRUE
-            )
+            se[, tt] <- LKpeon(M, s, G[!miss[
+              ,
+              tt
+            ], ], basis, weight[!miss[, tt]], phi1[!miss[
+              ,
+              tt
+            ], ], phi0, Q, lambda, phi0P, L[!miss[
+              ,
+              tt
+            ], ], only.se = TRUE)
           }
         }
       }
@@ -1405,25 +1397,15 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       )), NROW(M))
       L <- as.matrix(L)
       info <- object$LKobj$LKinfo.MLE
-      phi1 <- LKrig.basis(as.matrix(obsloc)[pick, ], info)
+      phi1 <- calculateLatticeKrigBasis(as.matrix(obsloc)[pick, ], info)
       Q <- LKrig.precision(info)
       weight <- rep(1, length(pick))
       s <- object$s
-      phi0 <- LKrig.basis(newloc, info)
+      phi0 <- calculateLatticeKrigBasis(newloc, info)
       phi0P <- phi0 %*% solve(Q)
       lambda <- object$LKobj$lambda.MLE
-      pred <- LKpeon(
-        M,
-        s,
-        G,
-        basis,
-        weight,
-        phi1,
-        phi0,
-        Q,
-        lambda,
-        phi0P,
-        L,
+      pred <- LKpeon(M, s, G, basis, weight, phi1, phi0,
+        Q, lambda, phi0P, L,
         Data = obsData[pick, ],
         only.wlk = !se.report
       )
@@ -1469,12 +1451,10 @@ predict.mrts <- function(object, newx, ...) {
     X1 <- NULL
   } else {
     X1 <- mrtsrcpp_predict(
-      Xu,
-      xobs_diag,
-      x0,
-      attr(object, "BBBH"),
-      attr(object, "UZ"),
-      attr(object, "nconst"),
+      Xu, xobs_diag, x0, attr(
+        object,
+        "BBBH"
+      ), attr(object, "UZ"), attr(object, "nconst"),
       k
     )$X1
     X1 <- X1[, 1:kstar]
