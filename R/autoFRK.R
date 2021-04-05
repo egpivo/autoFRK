@@ -177,9 +177,15 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         iniobj$weight[iniobj$pick],
         length(iniobj$weight[iniobj$pick])
       )
-      obj <- indeMLE(Data, Fk[, 1:K], D, maxit,
+      obj <- indeMLE(
+        Data,
+        Fk[, 1:K],
+        D,
+        maxit,
         avgtol = tolerance,
-        wSave = TRUE, DfromLK = DfromLK, vfixed = DnLK$s
+        wSave = TRUE, 
+        DfromLK = DfromLK,
+        vfixed = DnLK$s
       )
     }
     obj$G <- Fk
@@ -263,10 +269,15 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
   method <- match.arg(method)
   if ((method == "EM") & (is.null(DfromLK))) {
     for (k in 1:length(K)) {
-      AIClist[k] <- indeMLE(Data, Fk[
-        pick,
-        1:K[k]
-      ], D, maxit, avgtol, wSave = FALSE, num.report = FALSE)$negloglik
+      AIClist[k] <- indeMLE(
+        Data,
+        Fk[pick, 1:K[k]],
+        D,
+        maxit,
+        avgtol,
+        wSave = FALSE,
+        num.report = FALSE
+      )$negloglik
     }
   }
   else {
@@ -353,12 +364,12 @@ cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL,
   neg2llik <- function(d, s, v, trS, n) {
     k <- length(d)
     eta <- pmax(d - s - v, 0)
-    if (max(eta / (s + v)) > 10^20) {
-      return(Inf)
-    }
-    n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) *
-      (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta +
-      s + v))
+    return(
+      ifelse(max(eta / (s + v)) > 1e20,
+        Inf,
+        n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta + s + v))
+      )
+    )
   }
   if (is.null(ldet)) {
     ldet <- 0
@@ -390,10 +401,12 @@ cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL,
     }
     L <- as.matrix(L[, dhat > 0])
   }
-  return(list(v = v, M = M, s = s, negloglik = neg2llik(
-    dii,
-    s, v, trS, n
-  ) * TT + ldet * TT, L = L))
+  return(list(
+    v = v,
+    M = M,
+    s = s,
+    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT, L = L
+  ))
 }
 
 cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
@@ -1322,8 +1335,9 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       if (only.se) {
         return(se)
       } else {
-        return(list(se = se, w = MFiS11 %*% Data, wlk = t(wXiG) %*%
-          Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
+        return(list(se = se,
+                    w = MFiS11 %*% Data,
+                    wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
       }
     }
     if (is.null(obsloc) & is.null(obsData)) {
@@ -1364,16 +1378,20 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
           se <- matrix(NA, NROW(basis), TT)
           miss <- (as.matrix(miss$miss) == 1)
           for (tt in 1:TT) {
-            se[, tt] <- LKpeon(M, s, G[!miss[
-              ,
-              tt
-            ], ], basis, weight[!miss[, tt]], phi1[!miss[
-              ,
-              tt
-            ], ], phi0, Q, lambda, phi0P, L[!miss[
-              ,
-              tt
-            ], ], only.se = TRUE)
+            se[, tt] <- LKpeon(
+              M,
+              s,
+              G[!miss[, tt], ],
+              basis,
+              weight[!miss[, tt]],
+              phi1[!miss[, tt], ],
+              phi0, 
+              Q,
+              lambda,
+              phi0P,
+              L[!miss[, tt], ],
+              only.se = TRUE
+            )
           }
         }
       }
