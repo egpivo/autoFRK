@@ -42,3 +42,9 @@ test_that("nc for LkrigInfo", {
   expect_equal(setNC(z, grid, 1), 4)
   expect_equal(setNC(z, grid, 2), 4)
 })
+
+a <- matrix(1)
+attr(a, "UZ") <- matrix(2)
+test_that("Set mrts object to matrix class", {
+  expect_equal(as.matrix.mrts(a), matrix(1))
+})

@@ -1,3 +1,11 @@
+#'
+#' Internal function: Remove attributes of mrts
+#'
+#' @keywords internal 
+#' @param x A mrts object
+#' @param ... Not used directly
+#' @return A matrix object 
+#'
 as.matrix.mrts <- function(x, ...) {
   attr(x, "S") <- NULL
   attr(x, "UZ") <- NULL
