@@ -36,8 +36,7 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
   n2loglik <- sum(O) * log(2 * pi)
   R <- toSpMat(s * Depsilon)
   eg <- eigen(M)
-  L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0))) %*%
-    t(eg$vector)
+  L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0))) %*% t(eg$vector)
   K <- NCOL(Fk)
   for (tt in 1:TT) {
     zt <- Data[O[, tt], tt]
@@ -54,17 +53,32 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
   return(n2loglik)
 }
 
-checkDiag <- function(X) {
-  if (is(X, "numeric") & (length(X) == 1)) {
+#'
+#' Internal function: check if a numeric-like object is diagonal
+#'
+#' @keywords internal
+#' @param object An R object
+#' @return logical
+#'
+isDiagonal <- function(object) {
+  if (!is.numeric(object)) {
+    return(FALSE)
+  }
+  if (is.numeric(object) & (length(object) == 1)) {
     return(TRUE)
   }
-  if (is(X, "matrix")) {
-    return(sum(abs(diag(diag(X)) - X)) < .Machine$double.eps)
-  }
-  else {
-    x <- diag.spam(diag.of.spam(X), NROW(X))
-    return(identical(x, X))
-  }
+  tryCatch(
+    {
+      if (is.matrix(object)) {
+        return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
+      }
+      else {
+        x <- diag.spam(diag.of.spam(object), NROW(object))
+        return(identical(x, object))
+      }
+    },
+    error = function(cond) {return(FALSE)}
+  )
 }
 
 setNC <- function(z, loc, nlevel) {

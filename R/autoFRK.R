@@ -586,7 +586,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   db <- list()
   D <- toSpMat(Depsilon)
   iD <- solve(D)
-  diagD <- checkDiag(D)
+  diagD <- isDiagonal(D)
 
   if (!is.null(DfromLK)) {
     pick <- DfromLK$pick
@@ -766,7 +766,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
   }
   del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
   pick <- 1:NROW(Data)
-  if (!checkDiag(D)) {
+  if (!isDiagonal(D)) {
     D0 <- toSpMat(D)
   } else {
     D0 <- diag.spam(diag(D), NROW(Data))
@@ -775,7 +775,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
     pick <- pick[-del]
     Data <- Data[-del, ]
     Fk <- Fk[-del, ]
-    if (!checkDiag(D)) {
+    if (!isDiagonal(D)) {
       D <- D[-del, -del]
     } else {
       D <- diag.spam(diag(D)[-del], NROW(Data))
@@ -785,7 +785,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
   N <- NROW(Data)
   K <- NCOL(Fk)
   Depsilon <- toSpMat(D)
-  isimat <- checkDiag(D) * (sum(abs(rep(mean(diag(D)), N) -
+  isimat <- isDiagonal(D) * (sum(abs(rep(mean(diag(D)), N) -
     diag(Depsilon))) < .Machine$double.eps)
   if (!withNA) {
     if (isimat & is.null(DfromLK)) {

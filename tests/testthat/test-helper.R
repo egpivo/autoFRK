@@ -27,3 +27,10 @@ test_that("Fetch system RAM", {
 test_that("Remove white space", {
   expect_equal(removeWhitespace(" test test "), "test test")
 })
+
+test_that("Is an object diagonal", {
+  expect_true(isDiagonal(1))
+  expect_true(isDiagonal(diag(2)))
+  expect_false(isDiagonal("ss"))
+  expect_false(isDiagonal(matrix))
+})
