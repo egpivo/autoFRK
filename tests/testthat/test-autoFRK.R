@@ -26,7 +26,8 @@ yhat_example2 <- predict(user_defined_basis_object, newloc = grids, basis = Gpre
 
 # Example 3
 wt <- matrix(0, 2, 20)
-for (tt in 1:20) wt[, tt] <- c(rnorm(1, sd = 5), rnorm(1, sd = 3))
+for (tt in 1:20) 
+  wt[, tt] <- c(rnorm(1, sd = 5), rnorm(1, sd = 3))
 yt <- fn %*% wt
 obs <- sample(900, n)
 zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
@@ -61,6 +62,6 @@ test_that("Independent multi-realization", {
   expect_lte(
     abs(max(yhat_example3) - 4.134017), tolerance
   )
-  expect_equal(class(yhat_example3), "matrix")
+  expect_true(any("matrix" %in% class(yhat_example3)))
   expect_equal(dim(yhat_example3), c(900, 13))
 })
