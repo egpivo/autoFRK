@@ -1085,8 +1085,11 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
       x <- as.matrix(array(as.double(as.matrix(x)), dim(x)))
     }
     if (k - ndims - 1 > 0) {
-      result <- mrtsrcpp_predict0(Xu, xobs_diag, x, k -
-        ndims - 1)
+      result <- predictMrtsRcpp(
+        Xu,
+        xobs_diag,
+        x,
+        k - ndims - 1)
     } else {
       X2 <- scale(Xu, scale = FALSE)
       shift <- colMeans(Xu)
@@ -1098,7 +1101,7 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
   }
   else {
     if (k - ndims - 1 > 0) {
-      result <- mrtsrcpp(Xu, xobs_diag, k - ndims - 1)
+      result <- computeMrtsRcpp(Xu, xobs_diag, k - ndims - 1)
     } else {
       X2 <- scale(Xu, scale = FALSE)
       shift <- colMeans(Xu)
@@ -1450,11 +1453,13 @@ predict.mrts <- function(object, newx, ...) {
   if (kstar <= 0) {
     X1 <- NULL
   } else {
-    X1 <- mrtsrcpp_predict(
-      Xu, xobs_diag, x0, attr(
-        object,
-        "BBBH"
-      ), attr(object, "UZ"), attr(object, "nconst"),
+    X1 <- predictMrtsRcppWithBasis(
+      Xu,
+      xobs_diag,
+      x0,
+      attr(object, "BBBH"),
+      attr(object, "UZ"),
+      attr(object, "nconst"),
       k
     )$X1
     X1 <- X1[, 1:kstar]

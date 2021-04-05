@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{eigenDecompose}
 \alias{eigenDecompose}
-\title{Internal function: Eigen Decompose a matrix}
+\title{Internal function: Eigen-decompose a matrix}
 \usage{
 eigenDecompose(matrix)
 }
@@ -15,6 +15,6 @@ A list of objects
 \item{vector}{A matrix of eigenvectors}
 }
 \description{
-Internal function: Eigen Decompose a matrix
+Internal function: Eigen-decompose a matrix
 }
 \keyword{internal}
