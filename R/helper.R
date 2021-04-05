@@ -77,16 +77,27 @@ isDiagonal <- function(object) {
         return(identical(x, object))
       }
     },
-    error = function(cond) {return(FALSE)}
+    error = function(cond) {
+      return(FALSE)
+    }
   )
 }
 
-setNC <- function(z, loc, nlevel) {
-  Dimension <- NCOL(loc)
-  N <- nrow(z)
-  a <- sum(2^(Dimension * (0:(nlevel - 1))))
-  NCtest <- (N / a)^(1 / Dimension)
-  return(round(max(4, NCtest)))
+#'
+#' Internal function: set 'nc' for LKrigInfo
+#'
+#' @keywords internal
+#' @param z A matrix
+#' @param location A location matrix
+#' @param nlelve An integer
+#' @return numeric
+#'
+setNC <- function(z, location, nlevel) {
+  location_dim <- NCOL(location)
+  n <- nrow(z)
+  a <- sum(2^(location_dim * (0:(nlevel - 1))))
+  nc_estimate <- round((n / a)^(1 / location_dim))
+  return(max(4, nc_estimate))
 }
 
 subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {

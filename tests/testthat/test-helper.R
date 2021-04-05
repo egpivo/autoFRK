@@ -34,3 +34,11 @@ test_that("Is an object diagonal", {
   expect_false(isDiagonal("ss"))
   expect_false(isDiagonal(matrix))
 })
+
+grid <-seq(0, 1, l = 30)
+z <- sample(30, 10)
+
+test_that("nc for LkrigInfo", {
+  expect_equal(setNC(z, grid, 1), 4)
+  expect_equal(setNC(z, grid, 2), 4)
+})
