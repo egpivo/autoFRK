@@ -11,14 +11,16 @@ using Eigen::Lower;
 typedef Map<MatrixXd> MapMatd;
 using Eigen::VectorXd;                  
 using Eigen::SelfAdjointEigenSolver;
-
+using namespace Rcpp;
+using namespace std;
 using namespace Eigen;
+using namespace Spectra;
+
 Eigen::VectorXd getASCeigenValues(const Eigen::Map<Eigen::MatrixXd> A) {
     SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
     return es.eigenvalues();
 }
 
-using namespace Eigen;
 // [[Rcpp::export]]
 Rcpp::List getASCeigens(const Eigen::Map<Eigen::MatrixXd> A) {
     SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
@@ -29,11 +31,6 @@ Rcpp::List getASCeigens(const Eigen::Map<Eigen::MatrixXd> A) {
       return Rcpp::List::create(Rcpp::Named("value") = lambda,
                             Rcpp::Named("vector") = V);
 }
-
-
-using namespace Spectra;
-using namespace Eigen;
-using namespace Rcpp;
 
 void mrtseigencpp(const Eigen::MatrixXd & M, const int ncv, const int k, Eigen::VectorXd &rho, Eigen::MatrixXd &gamma){
 
@@ -49,10 +46,6 @@ void mrtseigencpp(const Eigen::MatrixXd & M, const int ncv, const int k, Eigen::
   gamma.noalias() = eigs.eigenvectors();
 }
 
-
-using namespace Rcpp;
-using namespace std;
-using namespace Eigen;
 void tpm2(const MatrixXd P, MatrixXd& L, int p, int d){
 
   double r;
@@ -88,10 +81,6 @@ void tpm2(const MatrixXd P, MatrixXd& L, int p, int d){
 
 }
 
-
-using namespace Rcpp;
-using namespace std;
-using namespace Eigen;
 void tpm_predict(const MatrixXd P_new, const MatrixXd P, MatrixXd& L, int d){
 
   double r;
@@ -128,11 +117,6 @@ void tpm_predict(const MatrixXd P_new, const MatrixXd P, MatrixXd& L, int d){
   }
 
 }
-
-
-
-using namespace Eigen;
-using namespace Rcpp;
 
 void mrts(const Eigen::MatrixXd &Xu,
           const Eigen::MatrixXd &xobs_diag,
@@ -184,10 +168,6 @@ void mrts(const Eigen::MatrixXd &Xu,
   nconst /= root;
 }
 
-
-
-using namespace Eigen;
-using namespace Rcpp;
 // [[Rcpp::export]]
 Rcpp::List mrtsrcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,
@@ -206,9 +186,6 @@ Rcpp::List mrtsrcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
                             Rcpp::Named("nconst") = nconst);
 }
 
-
-using namespace Eigen;
-using namespace Rcpp;
 // [[Rcpp::export]]
 Rcpp::List mrtsrcpp_predict0(const Eigen::Map<Eigen::MatrixXd> Xu,
                             const Eigen::Map<Eigen::MatrixXd> xobs_diag,
@@ -246,9 +223,9 @@ using namespace Rcpp;
 Rcpp::List mrtsrcpp_predict(const Eigen::Map<Eigen::MatrixXd> Xu,
                             const Eigen::Map<Eigen::MatrixXd> xobs_diag,
                             const Eigen::Map<Eigen::MatrixXd> xnew,
-							const Eigen::Map<Eigen::MatrixXd> BBBH,
-							const Eigen::Map<Eigen::MatrixXd> UZ,
-							const Eigen::Map<Eigen::VectorXd> nconst,
+              							const Eigen::Map<Eigen::MatrixXd> BBBH,
+              							const Eigen::Map<Eigen::MatrixXd> UZ,
+              							const Eigen::Map<Eigen::VectorXd> nconst,
                             const int k){
 
 
