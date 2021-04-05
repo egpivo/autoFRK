@@ -11,6 +11,23 @@ eigenDecompose <- function(matrix) {
     .Call(`_autoFRK_eigenDecompose`, matrix)
 }
 
+#' Internal function: A wrapper function of 'MatrixBase::sqrt()'
+#' @keywords internal
+#' @param matrix A matrix
+#' @return A matrix
+getSquareRootMatrix <- function(matrix) {
+    .Call(`_autoFRK_getSquareRootMatrix`, matrix)
+}
+
+#' Internal function: Inverse square root matrix of  A^t * B
+#' @keywords internal
+#' @param left_matrix A matrix
+#' @param right_matrix A matrix
+#' @return A matrix
+getInverseSquareRootMatrix <- function(left_matrix, right_matrix) {
+    .Call(`_autoFRK_getInverseSquareRootMatrix`, left_matrix, right_matrix)
+}
+
 #' Internal function: Compute MRTS method
 #' @keywords internal
 #' @param s A location matrix

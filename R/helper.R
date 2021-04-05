@@ -23,15 +23,6 @@ eigenDecomposeInDecreasingOrder <- function(matrix) {
   return(obj)
 }
 
-getHalf <- function(Fk, iDFk) {
-  dec <- eigenDecomposeInDecreasingOrder(t(Fk) %*% iDFk)
-  dec$vector <- dec$vector
-  sroot <- sqrt(pmax(dec$value, 0))
-  sroot[sroot == 0] <- Inf
-  sroot <- 1 / sroot
-  dec$vector %*% (sroot * t(dec$vector))
-}
-
 getLikelihood <- function(Data, Fk, M, s, Depsilon) {
   logdet <- function(R, L, K) {
     spam::determinant(diag(1, K) + t(L) %*% solve(R) %*%
@@ -245,10 +236,6 @@ toSpMat <- function(mat) {
     mat[ridx, cidx] <- nonzero
   }
   return(mat)
-}
-
-uniquecombs <- function(x) {
-  unique(x)
 }
 
 ZinvC <- function(R, L, z) {

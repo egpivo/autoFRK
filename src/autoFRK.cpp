@@ -35,6 +35,27 @@ Rcpp::List eigenDecompose(const Eigen::Map<Eigen::MatrixXd> matrix) {
   );
 }
 
+//' Internal function: A wrapper function of 'MatrixBase::sqrt()'
+//' @keywords internal
+//' @param matrix A matrix
+//' @return A matrix
+// [[Rcpp::export]]
+Eigen::MatrixXd getSquareRootMatrix(Eigen::MatrixXd matrix) {
+  return(matrix.sqrt());
+}
+
+//' Internal function: Inverse square root matrix of  A^t * B
+//' @keywords internal
+//' @param left_matrix A matrix
+//' @param right_matrix A matrix
+//' @return A matrix
+// [[Rcpp::export]]
+Eigen::MatrixXd getInverseSquareRootMatrix(const Eigen::Map<Eigen::MatrixXd> left_matrix,
+                                           const Eigen::Map<Eigen::MatrixXd> right_matrix) {
+  SelfAdjointEigenSolver<Eigen::MatrixXd> es(left_matrix.transpose() * right_matrix);
+  return(es.operatorSqrt().inverse());
+}
+
 void decomposeSymmetricMatrix(const Eigen::MatrixXd &M,
                               const int ncv,
                               const int k,

@@ -18,6 +18,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getSquareRootMatrix
+Eigen::MatrixXd getSquareRootMatrix(Eigen::MatrixXd matrix);
+RcppExport SEXP _autoFRK_getSquareRootMatrix(SEXP matrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type matrix(matrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(getSquareRootMatrix(matrix));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getInverseSquareRootMatrix
+Eigen::MatrixXd getInverseSquareRootMatrix(const Eigen::Map<Eigen::MatrixXd> left_matrix, const Eigen::Map<Eigen::MatrixXd> right_matrix);
+RcppExport SEXP _autoFRK_getInverseSquareRootMatrix(SEXP left_matrixSEXP, SEXP right_matrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type left_matrix(left_matrixSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type right_matrix(right_matrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(getInverseSquareRootMatrix(left_matrix, right_matrix));
+    return rcpp_result_gen;
+END_RCPP
+}
 // computeMrtsRcpp
 Rcpp::List computeMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s, const Eigen::Map<Eigen::MatrixXd> xobs_diag, const int k);
 RcppExport SEXP _autoFRK_computeMrtsRcpp(SEXP sSEXP, SEXP xobs_diagSEXP, SEXP kSEXP) {
@@ -65,6 +88,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_autoFRK_eigenDecompose", (DL_FUNC) &_autoFRK_eigenDecompose, 1},
+    {"_autoFRK_getSquareRootMatrix", (DL_FUNC) &_autoFRK_getSquareRootMatrix, 1},
+    {"_autoFRK_getInverseSquareRootMatrix", (DL_FUNC) &_autoFRK_getInverseSquareRootMatrix, 2},
     {"_autoFRK_computeMrtsRcpp", (DL_FUNC) &_autoFRK_computeMrtsRcpp, 3},
     {"_autoFRK_predictMrtsRcpp", (DL_FUNC) &_autoFRK_predictMrtsRcpp, 4},
     {"_autoFRK_predictMrtsRcppWithBasis", (DL_FUNC) &_autoFRK_predictMrtsRcppWithBasis, 7},

@@ -314,7 +314,7 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
     }
     trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
     for (k in 1:length(K)) {
-      half <- getHalf(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
+      half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
       ihFiD <- half %*% t(iDFk[, 1:K[k]])
       JSJ <- tcrossprod(ihFiD %*% Data) / TT
       JSJ <- (JSJ + t(JSJ)) / 2
@@ -442,7 +442,7 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
   k <- ncol(Fk)
   TT <- NCOL(Data)
   trS <- sum(rowSums(as.matrix(Data)^2)) / TT
-  half <- getHalf(Fk, Fk)
+  half <- getInverseSquareRootMatrix(Fk, Fk)
   ihF <- half %*% t(Fk)
   if (is.null(S)) {
     JSJ <- tcrossprod(ihF %*% Data) / TT
@@ -504,7 +504,7 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
   wXiG <- (wwX) %*% solve(G)
   iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
   iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-  half <- getHalf(Fk, iDFk)
+  half <- getInverseSquareRootMatrix(Fk, iDFk)
   ihFiD <- half %*% t(iDFk)
   JSJ <- tcrossprod(ihFiD %*% Data) / TT
   JSJ <- (JSJ + t(JSJ)) / 2
@@ -543,7 +543,7 @@ cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
   iD <- solve(De)
   ldetD <- spam::determinant(De, logarithm = TRUE)$modulus
   iDFk <- iD %*% Fk
-  half <- getHalf(Fk, iDFk)
+  half <- getInverseSquareRootMatrix(Fk, iDFk)
   ihFiD <- half %*% t(iDFk)
   TT <- NCOL(Data)
   JSJ <- tcrossprod(ihFiD %*% Data) / TT
@@ -965,7 +965,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
     ldetD <- -nrow(Qini) * log(lambda) + ldet(G)
     ldetD <- as.vector(ldetD)
     trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
-    half <- getHalf(Fk, iDFk)
+    half <- getInverseSquareRootMatrix(Fk, iDFk)
     ihFiD <- half %*% t(iDFk)
     LSL <- tcrossprod(ihFiD %*% Data) / TT
     if (!full) {
@@ -1070,7 +1070,7 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
   } else {
     xobs <- apply(knot, 2, as.double)
   }
-  Xu <- uniquecombs(cbind(xobs))
+  Xu <- unique(cbind(xobs))
   if (is.null(x) & length(Xu) != length(xobs)) {
     x <- xobs
   }
