@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Internal function: set 'nc' for LKrigInfo — setNC • autoFRK</title>
+<title>Internal function: A wrapper for LatticeKrig::LKrigSetup — setUpKrigInfo • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Internal function: set 'nc' for LKrigInfo — setNC" />
-<meta property="og:description" content="Internal function: set 'nc' for LKrigInfo" />
+<meta property="og:title" content="Internal function: A wrapper for LatticeKrig::LKrigSetup — setUpKrigInfo" />
+<meta property="og:description" content="Internal function: A wrapper for LatticeKrig::LKrigSetup" />
 
 
 
@@ -106,37 +106,62 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Internal function: set 'nc' for LKrigInfo</h1>
+    <h1>Internal function: A wrapper for LatticeKrig::LKrigSetup</h1>
     
-    <div class="hidden name"><code>setNC.Rd</code></div>
+    <div class="hidden name"><code>setUpKrigInfo.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Internal function: set 'nc' for LKrigInfo</p>
+    <p>Internal function: A wrapper for LatticeKrig::LKrigSetup</p>
     </div>
 
-    <pre class="usage"><span class='fu'>setNC</span><span class='op'>(</span><span class='va'>z</span>, <span class='va'>location</span>, <span class='va'>nlevel</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>setUpKrigInfo</span><span class='op'>(</span>
+  x <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nlevel <span class='op'>=</span> <span class='cn'>NULL</span>,
+  alpha <span class='op'>=</span> <span class='cn'>NA</span>,
+  a.wght <span class='op'>=</span> <span class='cn'>NA</span>,
+  NC <span class='op'>=</span> <span class='cn'>NULL</span>,
+  lambda <span class='op'>=</span> <span class='cn'>NA</span>,
+  LKGeometry <span class='op'>=</span> <span class='st'>"LKRectangle"</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>z</th>
-      <td><p>A matrix</p></td>
+      <th>x</th>
+      <td><p>Spatial locations that define the spatial domain for prediction.</p></td>
     </tr>
     <tr>
-      <th>location</th>
-      <td><p>A location matrix</p></td>
+      <th>nlevel</th>
+      <td><p>Number of levels in multi-resolution.</p></td>
     </tr>
     <tr>
-      <th>nlelve</th>
-      <td><p>An integer</p></td>
+      <th>alpha</th>
+      <td><p>A vector of length nlevel with the relative variances for the different multi- resolution levels.</p></td>
+    </tr>
+    <tr>
+      <th>a.wght</th>
+      <td><p>The correlation range in the SAR model.</p></td>
+    </tr>
+    <tr>
+      <th>NC</th>
+      <td><p>The maximum number of lattice grid points for a spatial coordinate and at the coarsest level of resolution.</p></td>
+    </tr>
+    <tr>
+      <th>lambda</th>
+      <td><p>A smoothing parameter.</p></td>
+    </tr>
+    <tr>
+      <th>LKGeometry</th>
+      <td><p>A text string that gives the names of the model geometry.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>numeric</p>
+    <p>list</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

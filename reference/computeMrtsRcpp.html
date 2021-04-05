@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Internal function: set 'nc' for LKrigInfo — setNC • autoFRK</title>
+<title>Internal function: Compute MRTS method — computeMrtsRcpp • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Internal function: set 'nc' for LKrigInfo — setNC" />
-<meta property="og:description" content="Internal function: set 'nc' for LKrigInfo" />
+<meta property="og:title" content="Internal function: Compute MRTS method — computeMrtsRcpp" />
+<meta property="og:description" content="Internal function: Compute MRTS method" />
 
 
 
@@ -106,37 +106,42 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Internal function: set 'nc' for LKrigInfo</h1>
+    <h1>Internal function: Compute MRTS method</h1>
     
-    <div class="hidden name"><code>setNC.Rd</code></div>
+    <div class="hidden name"><code>computeMrtsRcpp.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Internal function: set 'nc' for LKrigInfo</p>
+    <p>Internal function: Compute MRTS method</p>
     </div>
 
-    <pre class="usage"><span class='fu'>setNC</span><span class='op'>(</span><span class='va'>z</span>, <span class='va'>location</span>, <span class='va'>nlevel</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>computeMrtsRcpp</span><span class='op'>(</span><span class='va'>s</span>, <span class='va'>xobs_diag</span>, <span class='va'>k</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>z</th>
-      <td><p>A matrix</p></td>
-    </tr>
-    <tr>
-      <th>location</th>
+      <th>s</th>
       <td><p>A location matrix</p></td>
     </tr>
     <tr>
-      <th>nlelve</th>
-      <td><p>An integer</p></td>
+      <th>xobs_diag</th>
+      <td><p>A matrix of observations</p></td>
+    </tr>
+    <tr>
+      <th>k</th>
+      <td><p>A rank</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>numeric</p>
+    <p>A list of objects</p>
+<dt>X</dt><dd><p>A matrix</p></dd>
+<dt>UZ</dt><dd><p>A matrix</p></dd>
+<dt>BBBH</dt><dd><p>A matrix</p></dd>
+<dt>nconst</dt><dd><p>A vector of column means</p></dd>
+
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
