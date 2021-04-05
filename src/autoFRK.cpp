@@ -21,15 +21,23 @@ Eigen::VectorXd getASCeigenValues(const Eigen::Map<Eigen::MatrixXd> A) {
     return es.eigenvalues();
 }
 
+//' Internal function: Eigen Decompose a matrix
+//' @keywords internal
+//' @param matrix A matrix
+//' @return A list of objects
+//' \item{value}{A vector of eigenvalues}
+//' \item{vector}{A matrix of eigenvectors}
 // [[Rcpp::export]]
-Rcpp::List getASCeigens(const Eigen::Map<Eigen::MatrixXd> A) {
-    SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+Rcpp::List eigenDecompose(const Eigen::Map<Eigen::MatrixXd> matrix) {
+  SelfAdjointEigenSolver<Eigen::MatrixXd> es(matrix);
 	Eigen::MatrixXd V;
 	Eigen::VectorXd lambda;
 	lambda = es.eigenvalues();
 	V = es.eigenvectors();
-      return Rcpp::List::create(Rcpp::Named("value") = lambda,
-                            Rcpp::Named("vector") = V);
+  return Rcpp::List::create(
+    Rcpp::Named("value") = lambda,
+    Rcpp::Named("vector") = V
+  );
 }
 
 void mrtseigencpp(const Eigen::MatrixXd & M, const int ncv, const int k, Eigen::VectorXd &rho, Eigen::MatrixXd &gamma){
@@ -216,9 +224,6 @@ Rcpp::List mrtsrcpp_predict0(const Eigen::Map<Eigen::MatrixXd> Xu,
                             
 }
 
-
-using namespace Eigen;
-using namespace Rcpp;
 // [[Rcpp::export]]
 Rcpp::List mrtsrcpp_predict(const Eigen::Map<Eigen::MatrixXd> Xu,
                             const Eigen::Map<Eigen::MatrixXd> xobs_diag,

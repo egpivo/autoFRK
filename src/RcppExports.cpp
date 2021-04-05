@@ -7,14 +7,14 @@
 
 using namespace Rcpp;
 
-// getASCeigens
-Rcpp::List getASCeigens(const Eigen::Map<Eigen::MatrixXd> A);
-RcppExport SEXP _autoFRK_getASCeigens(SEXP ASEXP) {
+// eigenDecompose
+Rcpp::List eigenDecompose(const Eigen::Map<Eigen::MatrixXd> matrix);
+RcppExport SEXP _autoFRK_eigenDecompose(SEXP matrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(getASCeigens(A));
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type matrix(matrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(eigenDecompose(matrix));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -64,7 +64,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_autoFRK_getASCeigens", (DL_FUNC) &_autoFRK_getASCeigens, 1},
+    {"_autoFRK_eigenDecompose", (DL_FUNC) &_autoFRK_eigenDecompose, 1},
     {"_autoFRK_mrtsrcpp", (DL_FUNC) &_autoFRK_mrtsrcpp, 3},
     {"_autoFRK_mrtsrcpp_predict0", (DL_FUNC) &_autoFRK_mrtsrcpp_predict0, 4},
     {"_autoFRK_mrtsrcpp_predict", (DL_FUNC) &_autoFRK_mrtsrcpp_predict, 7},

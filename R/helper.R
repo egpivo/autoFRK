@@ -9,15 +9,22 @@ as.matrix.mrts <- function(x, ...) {
   return(x)
 }
 
-getEigen <- function(A) {
-  obj <- getASCeigens(A)
+#'
+#' Internal function: eigen-decomposition in decreasing order
+#'
+#' @keywords internal
+#' @param matrix A matrix
+#' @return A list
+#'
+eigenDecomposeInDecreasingOrder <- function(matrix) {
+  obj <- eigenDecompose(matrix)
   obj$value <- rev(obj$value)
-  obj$vector <- obj$vector[, NCOL(A):1]
-  obj
+  obj$vector <- obj$vector[, ncol(matrix):1]
+  return(obj)
 }
 
 getHalf <- function(Fk, iDFk) {
-  dec <- getEigen(t(Fk) %*% iDFk)
+  dec <- eigenDecomposeInDecreasingOrder(t(Fk) %*% iDFk)
   dec$vector <- dec$vector
   sroot <- sqrt(pmax(dec$value, 0))
   sroot[sroot == 0] <- Inf
