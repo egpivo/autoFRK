@@ -1,3 +1,11 @@
+#'
+#' Internal function: Remove attributes of mrts
+#'
+#' @keywords internal 
+#' @param x A mrts object
+#' @param ... Not used directly
+#' @return A matrix object 
+#'
 as.matrix.mrts <- function(x, ...) {
   attr(x, "S") <- NULL
   attr(x, "UZ") <- NULL
@@ -9,20 +17,18 @@ as.matrix.mrts <- function(x, ...) {
   return(x)
 }
 
-getEigen <- function(A) {
-  obj <- getASCeigens(A)
+#'
+#' Internal function: eigen-decomposition in decreasing order
+#'
+#' @keywords internal
+#' @param matrix A matrix
+#' @return A list
+#'
+eigenDecomposeInDecreasingOrder <- function(matrix) {
+  obj <- eigenDecompose(matrix)
   obj$value <- rev(obj$value)
-  obj$vector <- obj$vector[, NCOL(A):1]
-  obj
-}
-
-getHalf <- function(Fk, iDFk) {
-  dec <- getEigen(t(Fk) %*% iDFk)
-  dec$vector <- dec$vector
-  sroot <- sqrt(pmax(dec$value, 0))
-  sroot[sroot == 0] <- Inf
-  sroot <- 1 / sroot
-  dec$vector %*% (sroot * t(dec$vector))
+  obj$vector <- obj$vector[, ncol(matrix):1]
+  return(obj)
 }
 
 getLikelihood <- function(Data, Fk, M, s, Depsilon) {
@@ -38,8 +44,7 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
   n2loglik <- sum(O) * log(2 * pi)
   R <- toSpMat(s * Depsilon)
   eg <- eigen(M)
-  L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0))) %*%
-    t(eg$vector)
+  L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0))) %*% t(eg$vector)
   K <- NCOL(Fk)
   for (tt in 1:TT) {
     zt <- Data[O[, tt], tt]
@@ -50,44 +55,57 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
       n2loglik <- n2loglik + log(Rt + Lt %*% t(Lt))
     }
     else {
-      n2loglik <- n2loglik + logdet(Rt, Lt, K) + sum(zt *
-        invCz(Rt, Lt, zt))
+      n2loglik <- n2loglik + logdet(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
     }
   }
   return(n2loglik)
 }
 
-ifElse <- function(cond, yes_out, no_out) {
-  if (cond) {
-    return(yes_out)
-  } else {
-    return(no_out)
+#'
+#' Internal function: check if a numeric-like object is diagonal
+#'
+#' @keywords internal
+#' @param object An R object
+#' @return logical
+#'
+isDiagonal <- function(object) {
+  if (!is.numeric(object)) {
+    return(FALSE)
   }
-}
-
-checkDiag <- function(X) {
-  if (is(X, "numeric") & (length(X) == 1)) {
+  if (is.numeric(object) & (length(object) == 1)) {
     return(TRUE)
   }
-  if (is(X, "matrix")) {
-    if (sum(abs(diag(diag(X)) - X)) < .Machine$double.eps) {
-      return(TRUE)
-    } else {
+  tryCatch(
+    {
+      if (is.matrix(object)) {
+        return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
+      }
+      else {
+        x <- diag.spam(diag.of.spam(object), NROW(object))
+        return(identical(x, object))
+      }
+    },
+    error = function(cond) {
       return(FALSE)
     }
-  }
-  else {
-    x <- diag.spam(diag.of.spam(X), NROW(X))
-    return(identical(x, X))
-  }
+  )
 }
 
-setNC <- function(z, loc, nlevel) {
-  Dimension <- NCOL(loc)
-  N <- nrow(z)
-  a <- sum(2^(Dimension * (0:(nlevel - 1))))
-  NCtest <- (N / a)^(1 / Dimension)
-  return(round(max(4, NCtest)))
+#'
+#' Internal function: set 'nc' for LKrigInfo
+#'
+#' @keywords internal
+#' @param z A matrix
+#' @param location A location matrix
+#' @param nlelve An integer
+#' @return numeric
+#'
+setNC <- function(z, location, nlevel) {
+  location_dim <- NCOL(location)
+  n <- nrow(z)
+  a <- sum(2^(location_dim * (0:(nlevel - 1))))
+  nc_estimate <- round((n / a)^(1 / location_dim))
+  return(max(4, nc_estimate))
 }
 
 subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
@@ -135,7 +153,7 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     for (kk in 1:xdim[2]) {
       grp <- pmin(
         round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
-        nmbin[kk] -1L
+        nmbin[kk] - 1L
       )
       if (length(unique(grp)) < nmbin[kk]) {
         brk <- quantile(x[, kk], seq(0, 1, l = nmbin[kk] + 1))
@@ -158,55 +176,6 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
   }
 }
 
-systemRam <- function(os) {
-  remove_white <- function(x) {
-    gsub(
-      "(^[[:space:]]+|[[:space:]]+$)",
-      "", x
-    )
-  }
-  toBytes <- function(value) {
-    num <- as.numeric(value[1])
-    units <- value[2]
-    power <- match(units, c("kB", "MB", "GB", "TB"))
-    if (!is.na(power)) {
-      return(num * 1024^power)
-    }
-    power <- match(units, c(
-      "Kilobytes", "Megabytes", "Gigabytes",
-      "Terabytes"
-    ))
-    if (!is.na(power)) {
-      return(num * 1024^power)
-    }
-    num
-  }
-  if (length(grep("^linux", os))) {
-    cmd <- "awk '/MemTotal/ {print $2}' /proc/meminfo"
-    ram <- system(cmd, intern = TRUE)
-    ram <- as.numeric(ram) * 1024
-  }
-  else if (length(grep("^darwin", os))) {
-    ram <- system("system_profiler -detailLevel mini | grep \"  Memory:\"",
-      intern = TRUE
-    )[1]
-    ram <- remove_white(ram)
-    ram <- toBytes(unlist(strsplit(ram, " "))[2:3])
-  }
-  else if (length(grep("^solaris", os))) {
-    cmd <- "prtconf | grep Memory"
-    ram <- system(cmd, intern = TRUE)
-    ram <- remove_white(ram)
-    ram <- toBytes(unlist(strsplit(ram, " "))[3:4])
-  }
-  else {
-    ram <- system("wmic MemoryChip get Capacity", intern = TRUE)[-1]
-    ram <- remove_white(ram)
-    ram <- ram[nchar(ram) > 0]
-    sum(as.numeric(ram))
-  }
-  as.double(ram)
-}
 
 toSpMat <- function(mat) {
   if (is(mat, "data.frame")) {
@@ -238,10 +207,6 @@ toSpMat <- function(mat) {
     mat[ridx, cidx] <- nonzero
   }
   return(mat)
-}
-
-uniquecombs <- function(x) {
-  unique(x)
 }
 
 ZinvC <- function(R, L, z) {
@@ -289,10 +254,11 @@ mkpd <- function(M) {
 extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
   out <- list()
   if (is.null(loc)) {
-    loc <- ifElse(
-      is.null(obj$LKinfo.MLE$x), obj$LKinfo.MLE$call["x"][[1]],
-      obj$LKinfo.MLE$x
-    )
+    if (is.null(obj$LKinfo.MLE$x)) {
+      loc <- obj$LKinfo.MLE$call["x"][[1]]
+    } else {
+      loc <- obj$LKinfo.MLE$x
+    }
   }
   phi <- LKrig.basis(loc, obj$LKinfo)
   Q <- LKrig.precision(obj$LKinfo)
@@ -328,14 +294,14 @@ extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
 #' @param LKGeometry A text string that gives the names of the model geometry.
 #' @return list
 #'
-LKrigSetupWrapper <- function(x = NULL,
-                              nlevel = NULL,
-                              alpha = NA,
-                              a.wght = NA,
-                              NC = NULL,
-                              lambda = NA,
-                              LKGeometry = "LKRectangle",
-                              ...) {
+setUpKrigInfo <- function(x = NULL,
+                          nlevel = NULL,
+                          alpha = NA,
+                          a.wght = NA,
+                          NC = NULL,
+                          lambda = NA,
+                          LKGeometry = "LKRectangle",
+                          ...) {
   setupArgs <- list(...)
   LKinfo <- list(
     x = x,
@@ -691,3 +657,81 @@ wendland <- function(r) {
   }
   return(r < 1) * (1 - r)^6 * (35 * r^2 + 18 * r + 3)
 }
+
+#'
+#' Internal function: Convert value to bytes
+#'
+#' @keywords internal
+#' @param input_array An array consisting of the value and the unit
+#' @return A scalar in byte
+#'
+toBytes <- function(input_array) {
+  num <- as.numeric(input_array[1])
+  # Avoid case-sensitive
+  units <- tolower(input_array[2])
+  lookup <- list(
+    "kb" = "kilobytes",
+    "mb" = "megabytes",
+    "gb" = "gigabytes",
+    "tb" = "terabytes"
+  )
+
+  if (units %in% lookup) {
+    power <- which(units == lookup)
+    result <- num * 1024^power
+  }
+  else if (units %in% names(lookup)) {
+    power <- which(units == names(lookup))
+    result <- num * 1024^power
+  }
+  else {
+    result <- num
+  }
+
+  return(result)
+}
+
+#'
+#' Internal function: fetch the system ram
+#'
+#' @keywords internal
+#' @param os An OS name with type
+#' @return An integer
+#'
+fetchSystemRam <- function(os) {
+  if (grepl("*linux*", os)) {
+    cmd <- "awk '/MemTotal/ {print $2}' /proc/meminfo"
+    ram <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
+    ram <- as.numeric(ram) * 1024
+  }
+  else if (grepl("*darwin*", os)) {
+    ram <- system("system_profiler -detailLevel mini | grep \"  Memory:\"",
+      intern = TRUE,
+      ignore.stderr = TRUE
+    )[1]
+    ram <- removeWhitespace(ram)
+    ram <- toBytes(unlist(strsplit(ram, " "))[2:3])
+  }
+  else if (grepl("*solaris*", os)) {
+    cmd <- "prtconf | grep Memory"
+    ram <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
+    ram <- removeWhitespace(ram)
+    ram <- toBytes(unlist(strsplit(ram, " "))[3:4])
+  }
+  else {
+    ram <- system("wmic MemoryChip get Capacity", intern = TRUE)[-1]
+    ram <- removeWhitespace(ram)
+    ram <- ram[nchar(ram) > 0]
+    ram <- sum(as.numeric(ram))
+  }
+  return(as.double(ram))
+}
+
+#'
+#' Internal function: remove white spaces for a given string
+#'
+#' @keywords internal
+#' @param x A character
+#' @return A character
+#'
+removeWhitespace <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)

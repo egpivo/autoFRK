@@ -177,9 +177,15 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         iniobj$weight[iniobj$pick],
         length(iniobj$weight[iniobj$pick])
       )
-      obj <- indeMLE(Data, Fk[, 1:K], D, maxit,
+      obj <- indeMLE(
+        Data,
+        Fk[, 1:K],
+        D,
+        maxit,
         avgtol = tolerance,
-        wSave = TRUE, DfromLK = DfromLK, vfixed = DnLK$s
+        wSave = TRUE, 
+        DfromLK = DfromLK,
+        vfixed = DnLK$s
       )
     }
     obj$G <- Fk
@@ -263,10 +269,15 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
   method <- match.arg(method)
   if ((method == "EM") & (is.null(DfromLK))) {
     for (k in 1:length(K)) {
-      AIClist[k] <- indeMLE(Data, Fk[
-        pick,
-        1:K[k]
-      ], D, maxit, avgtol, wSave = FALSE, num.report = FALSE)$negloglik
+      AIClist[k] <- indeMLE(
+        Data,
+        Fk[pick, 1:K[k]],
+        D,
+        maxit,
+        avgtol,
+        wSave = FALSE,
+        num.report = FALSE
+      )$negloglik
     }
   }
   else {
@@ -303,7 +314,7 @@ selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol
     }
     trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
     for (k in 1:length(K)) {
-      half <- getHalf(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
+      half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
       ihFiD <- half %*% t(iDFk[, 1:K[k]])
       JSJ <- tcrossprod(ihFiD %*% Data) / TT
       JSJ <- (JSJ + t(JSJ)) / 2
@@ -353,12 +364,12 @@ cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL,
   neg2llik <- function(d, s, v, trS, n) {
     k <- length(d)
     eta <- pmax(d - s - v, 0)
-    if (max(eta / (s + v)) > 10^20) {
-      return(Inf)
-    }
-    n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) *
-      (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta +
-      s + v))
+    return(
+      ifelse(max(eta / (s + v)) > 1e20,
+        Inf,
+        n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta + s + v))
+      )
+    )
   }
   if (is.null(ldet)) {
     ldet <- 0
@@ -390,10 +401,12 @@ cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL,
     }
     L <- as.matrix(L[, dhat > 0])
   }
-  return(list(v = v, M = M, s = s, negloglik = neg2llik(
-    dii,
-    s, v, trS, n
-  ) * TT + ldet * TT, L = L))
+  return(list(
+    v = v,
+    M = M,
+    s = s,
+    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT, L = L
+  ))
 }
 
 cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
@@ -429,7 +442,7 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
   k <- ncol(Fk)
   TT <- NCOL(Data)
   trS <- sum(rowSums(as.matrix(Data)^2)) / TT
-  half <- getHalf(Fk, Fk)
+  half <- getInverseSquareRootMatrix(Fk, Fk)
   ihF <- half %*% t(Fk)
   if (is.null(S)) {
     JSJ <- tcrossprod(ihF %*% Data) / TT
@@ -491,7 +504,7 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
   wXiG <- (wwX) %*% solve(G)
   iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
   iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-  half <- getHalf(Fk, iDFk)
+  half <- getInverseSquareRootMatrix(Fk, iDFk)
   ihFiD <- half %*% t(iDFk)
   JSJ <- tcrossprod(ihFiD %*% Data) / TT
   JSJ <- (JSJ + t(JSJ)) / 2
@@ -530,7 +543,7 @@ cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
   iD <- solve(De)
   ldetD <- spam::determinant(De, logarithm = TRUE)$modulus
   iDFk <- iD %*% Fk
-  half <- getHalf(Fk, iDFk)
+  half <- getInverseSquareRootMatrix(Fk, iDFk)
   ihFiD <- half %*% t(iDFk)
   TT <- NCOL(Data)
   JSJ <- tcrossprod(ihFiD %*% Data) / TT
@@ -573,7 +586,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   db <- list()
   D <- toSpMat(Depsilon)
   iD <- solve(D)
-  diagD <- checkDiag(D)
+  diagD <- isDiagonal(D)
 
   if (!is.null(DfromLK)) {
     pick <- DfromLK$pick
@@ -753,7 +766,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
   }
   del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
   pick <- 1:NROW(Data)
-  if (!checkDiag(D)) {
+  if (!isDiagonal(D)) {
     D0 <- toSpMat(D)
   } else {
     D0 <- diag.spam(diag(D), NROW(Data))
@@ -762,7 +775,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
     pick <- pick[-del]
     Data <- Data[-del, ]
     Fk <- Fk[-del, ]
-    if (!checkDiag(D)) {
+    if (!isDiagonal(D)) {
       D <- D[-del, -del]
     } else {
       D <- diag.spam(diag(D)[-del], NROW(Data))
@@ -772,7 +785,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
   N <- NROW(Data)
   K <- NCOL(Fk)
   Depsilon <- toSpMat(D)
-  isimat <- checkDiag(D) * (sum(abs(rep(mean(diag(D)), N) -
+  isimat <- isDiagonal(D) * (sum(abs(rep(mean(diag(D)), N) -
     diag(Depsilon))) < .Machine$double.eps)
   if (!withNA) {
     if (isimat & is.null(DfromLK)) {
@@ -925,7 +938,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   if (is.null(nc)) nc <- setNC(z, x, nlevel)
   if (is.null(a.wght)) a.wght <- 2 * NCOL(x) + 0.01
 
-  info <- LKrigSetup(
+  info <- setUpKrigInfo(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
@@ -952,7 +965,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
     ldetD <- -nrow(Qini) * log(lambda) + ldet(G)
     ldetD <- as.vector(ldetD)
     trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
-    half <- getHalf(Fk, iDFk)
+    half <- getInverseSquareRootMatrix(Fk, iDFk)
     ihFiD <- half %*% t(iDFk)
     LSL <- tcrossprod(ihFiD %*% Data) / TT
     if (!full) {
@@ -974,7 +987,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   lambda.MLE <- sol$minimum
   out <- iniLike(sol$minimum, z, full = TRUE)
   llike <- out$negloglik
-  info.MLE <- LKrigSetup(
+  info.MLE <- setUpKrigInfo(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
@@ -1057,7 +1070,7 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
   } else {
     xobs <- apply(knot, 2, as.double)
   }
-  Xu <- uniquecombs(cbind(xobs))
+  Xu <- unique(cbind(xobs))
   if (is.null(x) & length(Xu) != length(xobs)) {
     x <- xobs
   }
@@ -1085,8 +1098,11 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
       x <- as.matrix(array(as.double(as.matrix(x)), dim(x)))
     }
     if (k - ndims - 1 > 0) {
-      result <- mrtsrcpp_predict0(Xu, xobs_diag, x, k -
-        ndims - 1)
+      result <- predictMrtsRcpp(
+        Xu,
+        xobs_diag,
+        x,
+        k - ndims - 1)
     } else {
       X2 <- scale(Xu, scale = FALSE)
       shift <- colMeans(Xu)
@@ -1098,7 +1114,7 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
   }
   else {
     if (k - ndims - 1 > 0) {
-      result <- mrtsrcpp(Xu, xobs_diag, k - ndims - 1)
+      result <- computeMrtsRcpp(Xu, xobs_diag, k - ndims - 1)
     } else {
       X2 <- scale(Xu, scale = FALSE)
       shift <- colMeans(Xu)
@@ -1319,8 +1335,9 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       if (only.se) {
         return(se)
       } else {
-        return(list(se = se, w = MFiS11 %*% Data, wlk = t(wXiG) %*%
-          Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
+        return(list(se = se,
+                    w = MFiS11 %*% Data,
+                    wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
       }
     }
     if (is.null(obsloc) & is.null(obsData)) {
@@ -1361,16 +1378,20 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
           se <- matrix(NA, NROW(basis), TT)
           miss <- (as.matrix(miss$miss) == 1)
           for (tt in 1:TT) {
-            se[, tt] <- LKpeon(M, s, G[!miss[
-              ,
-              tt
-            ], ], basis, weight[!miss[, tt]], phi1[!miss[
-              ,
-              tt
-            ], ], phi0, Q, lambda, phi0P, L[!miss[
-              ,
-              tt
-            ], ], only.se = TRUE)
+            se[, tt] <- LKpeon(
+              M,
+              s,
+              G[!miss[, tt], ],
+              basis,
+              weight[!miss[, tt]],
+              phi1[!miss[, tt], ],
+              phi0, 
+              Q,
+              lambda,
+              phi0P,
+              L[!miss[, tt], ],
+              only.se = TRUE
+            )
           }
         }
       }
@@ -1450,11 +1471,13 @@ predict.mrts <- function(object, newx, ...) {
   if (kstar <= 0) {
     X1 <- NULL
   } else {
-    X1 <- mrtsrcpp_predict(
-      Xu, xobs_diag, x0, attr(
-        object,
-        "BBBH"
-      ), attr(object, "UZ"), attr(object, "nconst"),
+    X1 <- predictMrtsRcppWithBasis(
+      Xu,
+      xobs_diag,
+      x0,
+      attr(object, "BBBH"),
+      attr(object, "UZ"),
+      attr(object, "nconst"),
       k
     )$X1
     X1 <- X1[, 1:kstar]

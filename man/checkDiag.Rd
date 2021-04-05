@@ -1,1 +1,0 @@
-\name{checkDiag} \alias{checkDiag} \title{ internal function } \description{ internal function } \keyword{internal}
