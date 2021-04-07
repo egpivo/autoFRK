@@ -170,12 +170,11 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
   names(gid) <- 1:xdim[1]
   index <- unlist(tapply(gid, gvec, mysamp))
   if (xdim[2] > 1) {
-    x[index, ]
+    return(x[index, ])
   } else {
-    x[index]
+    return(x[index])
   }
 }
-
 
 toSpMat <- function(mat) {
   if (is(mat, "data.frame")) {
@@ -249,7 +248,6 @@ mkpd <- function(M) {
   }
   return(M)
 }
-
 
 extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
   out <- list()
@@ -472,7 +470,6 @@ normalizeBasis <- function(LKinfo, level, PHI) {
   )
   return(wght)
 }
-
 
 #'
 #' Internal function: A modifier of LatticeKrig::LKrigSAR.LKInterval

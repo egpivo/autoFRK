@@ -43,8 +43,14 @@ test_that("nc for LkrigInfo", {
   expect_equal(setNC(z, grid, 2), 4)
 })
 
+test_that("Sample knots", {
+  expect_equal(subKnot(z, 4), c(3, 8, 19, 30))
+})
+
 a <- matrix(1)
 attr(a, "UZ") <- matrix(2)
 test_that("Set mrts object to matrix class", {
   expect_equal(as.matrix.mrts(a), matrix(1))
 })
+
+
