@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Internal function: sampling knots — subKnot • autoFRK</title>
+<title>Internal function: convert to a sparse matrix — toSparseMatrix • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Internal function: sampling knots — subKnot" />
-<meta property="og:description" content="Internal function: sampling knots" />
+<meta property="og:title" content="Internal function: convert to a sparse matrix — toSparseMatrix" />
+<meta property="og:description" content="Internal function: convert to a sparse matrix" />
 
 
 
@@ -106,37 +106,33 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Internal function: sampling knots</h1>
+    <h1>Internal function: convert to a sparse matrix</h1>
     
-    <div class="hidden name"><code>subknot.Rd</code></div>
+    <div class="hidden name"><code>toSparseMatrix.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Internal function: sampling knots</p>
+    <p>Internal function: convert to a sparse matrix</p>
     </div>
 
-    <pre class="usage"><span class='fu'>subKnot</span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>nknot</span>, xrng <span class='op'>=</span> <span class='cn'>NULL</span>, nsamp <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>toSparseMatrix</span><span class='op'>(</span><span class='va'>mat</span>, verbose <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>x</th>
-      <td><p>A matrix or an array</p></td>
+      <th>mat</th>
+      <td><p>A matrix or a dataframe</p></td>
     </tr>
     <tr>
-      <th>nknot</th>
-      <td><p>A location matrix</p></td>
-    </tr>
-    <tr>
-      <th>xrng</th>
-      <td><p>An array including two integers</p></td>
+      <th>verbose</th>
+      <td><p>A boolean</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>sampling knots</p>
+    <p>sparse matrix</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
