@@ -15,7 +15,12 @@ test_that("Square Root Matrix", {
 
 test_that("Inverse Square Root Matrix", {
   expect_equal(
-    sum(getInverseSquareRootMatrix(diag(c(4, 4)), diag(2)) - matrix(c(0.5, 0, 0.5, 0), 2, 2)),
+    sum(
+      getInverseSquareRootMatrix(
+        diag(c(4, 4)),
+        diag(2)
+      ) - matrix(c(0.5, 0, 0.5, 0), 2, 2)
+    ),
     0
   )
 })

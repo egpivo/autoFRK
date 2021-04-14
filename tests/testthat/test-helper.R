@@ -69,12 +69,10 @@ mrts_message <- capture_output(print.mrts(mrts(1, 2)), print = TRUE)
 test_that("Print mrts", {
   expect_error(print.mrts(1), "Invalid object! Please enter an `mrts` object")
   expect_equal(mrts_message, "[1]   1 NaN")
-  
 })
 
-FRK_message <- capture_output(print.FRK(autoFRK(Data = rnorm(10), loc =1:10, maxK = 3)))
+FRK_message <- capture_output(print.FRK(autoFRK(Data = rnorm(10), loc = 1:10, maxK = 3)))
 test_that("Print FRK", {
   expect_error(print.FRK(1), "Invalid object! Please enter an `FRK` object")
   expect_equal(FRK_message, "[1] \"a 10 by 2 mrts matrix\"")
-  
 })
