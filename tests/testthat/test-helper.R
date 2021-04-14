@@ -36,7 +36,7 @@ test_that("Is an object diagonal", {
   expect_false(isDiagonal(matrix))
 })
 
-grid <-seq(0, 1, l = 30)
+grid <- seq(0, 1, l = 30)
 z <- sample(30, 10)
 
 test_that("nc for LkrigInfo", {
@@ -44,7 +44,7 @@ test_that("nc for LkrigInfo", {
   expect_equal(setNC(z, grid, 2), 4)
 })
 
-two_dim_knots <- subKnot(matrix(grid, ncol=2), 2)
+two_dim_knots <- subKnot(matrix(grid, ncol = 2), 2)
 true_two_dim_knots <- matrix(c(0, 0.3448276, 0.5172414, 0.8620690), 2, 2)
 test_that("Sample knots", {
   expect_equal(subKnot(z, 4), c(5, 12, 22, 30))
@@ -58,3 +58,8 @@ test_that("Set mrts object to matrix class", {
 })
 
 
+test_that("Sparse matrix", {
+  expect_error(toSparseMatrix(1), "Wrong format for toSparseMatrix")
+  expect_message(toSparseMatrix(spam(0, 10, 10)), "The input is already a sparse matrix")
+  expect_true(is.spam(toSparseMatrix(matrix(c(0, 0, 0, 1), 2, 2))))
+})

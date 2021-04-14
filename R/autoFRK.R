@@ -539,7 +539,7 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
 }
 
 cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
-  De <- toSpMat(Depsilon)
+  De <- toSparseMatrix(Depsilon)
   iD <- solve(De)
   ldetD <- spam::determinant(De, logarithm = TRUE)$modulus
   iDFk <- iD %*% Fk
@@ -584,7 +584,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   ziDz <- rep(NA, TT)
   ziDB <- matrix(NA, TT, K)
   db <- list()
-  D <- toSpMat(Depsilon)
+  D <- toSparseMatrix(Depsilon)
   iD <- solve(D)
   diagD <- isDiagonal(D)
 
@@ -732,7 +732,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
     }
     attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
     attr(out, "missing") <- list(
-      miss = toSpMat(1 - O),
+      miss = toSparseMatrix(1 - O),
       maxit = maxit, avgtol = avgtol
     )
     return(out)
@@ -742,7 +742,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
       w = etatt, V = new$M - etatt %*% t(etatt) / TT
     )
     attr(out, "missing") <- list(
-      miss = toSpMat(1 - O),
+      miss = toSparseMatrix(1 - O),
       maxit = maxit, avgtol = avgtol
     )
     return(out)
@@ -767,7 +767,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
   del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
   pick <- 1:NROW(Data)
   if (!isDiagonal(D)) {
-    D0 <- toSpMat(D)
+    D0 <- toSparseMatrix(D)
   } else {
     D0 <- diag.spam(diag(D), NROW(Data))
   }
@@ -784,7 +784,7 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
   }
   N <- NROW(Data)
   K <- NCOL(Fk)
-  Depsilon <- toSpMat(D)
+  Depsilon <- toSparseMatrix(D)
   isimat <- isDiagonal(D) * (sum(abs(rep(mean(diag(D)), N) -
     diag(Depsilon))) < .Machine$double.eps)
   if (!withNA) {

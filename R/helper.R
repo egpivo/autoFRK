@@ -1,10 +1,10 @@
 #'
 #' Internal function: Remove attributes of mrts
 #'
-#' @keywords internal 
+#' @keywords internal
 #' @param x A mrts object
 #' @param ... Not used directly
-#' @return A matrix object 
+#' @return A matrix object
 #'
 as.matrix.mrts <- function(x, ...) {
   attr(x, "S") <- NULL
@@ -42,7 +42,7 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
   O <- as.matrix(!is.na(Data))
   TT <- NCOL(Data)
   n2loglik <- sum(O) * log(2 * pi)
-  R <- toSpMat(s * Depsilon)
+  R <- toSparseMatrix(s * Depsilon)
   eg <- eigen(M)
   L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0))) %*% t(eg$vector)
   K <- NCOL(Fk)
@@ -124,7 +124,7 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
   if (is.null(xrng)) {
     xrng <- apply(x, 2, range)
   }
-  #To-do: move out the function based on SRP
+  # To-do: move out the function based on SRP
   mysamp <- function(z_and_id) {
     z <- as.double(names(z_and_id))
     if (length(z) == 1L) {
@@ -140,19 +140,19 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
   rng[rng == 0] <- min(rng[rng > 0]) / 5
   rng <- rng * 10 / min(rng)
   rng_max_index <- which.max(rng)
-  
+
   nmbin <- round(exp(log(rng) * log(nknot) / sum(log(rng))))
   nmbin <- pmax(2, nmbin)
   while (prod(nmbin) < nknot) {
     nmbin[rng_max_index] <- nmbin[rng_max_index] + 1
   }
 
-  gvec <- matrix(1, nrow=xdim[1])
+  gvec <- matrix(1, nrow = xdim[1])
   cnt <- 0
   while (length(unique(gvec)) < nknot) {
     nmbin <- nmbin + cnt
     kconst <- 1
-    gvec <- matrix(1, nrow=xdim[1])
+    gvec <- matrix(1, nrow = xdim[1])
     for (kk in 1:xdim[2]) {
       grp <- pmin(
         round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
@@ -168,7 +168,7 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     }
     cnt <- cnt + 1
   }
-  #To-do: refactor the following four lines
+  # To-do: refactor the following four lines
   gvec <- as.factor(gvec)
   gid <- as.double(as.character(gvec))
   names(gid) <- 1:xdim[1]
@@ -176,35 +176,48 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
   return(x[index, ])
 }
 
-toSpMat <- function(mat) {
-  if (is(mat, "data.frame")) {
+#'
+#' Internal function: convert to a sparse matrix
+#'
+#' @keywords internal
+#' @param mat A matrix or a dataframe
+#' @return sparse matrix
+#'
+toSparseMatrix <- function(mat) {
+  if (is.spam(mat)) {
+    message("The input is already a sparse matrix")
+    return(mat)
+  }
+  if (!(is.data.frame(mat) || is.matrix(mat))) {
+    stop(paste0(c("Wrong format for toSparseMatrix, but got ", class(mat))))
+  }
+  if (is.data.frame(mat)) {
     mat <- as.matrix(mat)
   }
-  if (is(mat, "matrix")) {
-    if (length(mat) > 10^8) {
-      warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
-      db <- tempfile()
-      NR <- NROW(mat)
-      NC <- NCOL(mat)
-      f <- fm.create(db, NR, NC)
-      f[, 1:NCOL(mat)] <- mat
-      j <- sapply(1:NC, function(j) which(f[, j] != 0))
-      ridx <- unlist(j)
-      k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
-      kk <- matrix(unlist(k), ncol = 2, byrow = T)
-      cidx <- sort(kk[, 2])
-      where <- (cidx - 1) * NR + ridx
-      closeAndDeleteFiles(f)
-    }
-    else {
-      where <- which(mat != 0)
-      ridx <- row(mat)[where]
-      cidx <- col(mat)[where]
-    }
-    nonzero <- mat[where]
-    mat <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
-    mat[ridx, cidx] <- nonzero
+
+  if (length(mat) > 1e8) {
+    warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
+    db <- tempfile()
+    NR <- NROW(mat)
+    NC <- NCOL(mat)
+    f <- fm.create(db, NR, NC)
+    f[, 1:NCOL(mat)] <- mat
+    j <- sapply(1:NC, function(j) which(f[, j] != 0))
+    ridx <- unlist(j)
+    k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
+    kk <- matrix(unlist(k), ncol = 2, byrow = T)
+    cidx <- sort(kk[, 2])
+    where <- (cidx - 1) * NR + ridx
+    closeAndDeleteFiles(f)
   }
+  else {
+    where <- which(mat != 0)
+    ridx <- row(mat)[where]
+    cidx <- col(mat)[where]
+  }
+  nonzero <- mat[where]
+  mat <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
+  mat[ridx, cidx] <- nonzero
   return(mat)
 }
 
