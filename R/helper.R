@@ -1,10 +1,10 @@
 #'
 #' Internal function: Remove attributes of mrts
 #'
-#' @keywords internal 
+#' @keywords internal
 #' @param x A mrts object
 #' @param ... Not used directly
-#' @return A matrix object 
+#' @return A matrix object
 #'
 as.matrix.mrts <- function(x, ...) {
   attr(x, "S") <- NULL
@@ -42,7 +42,7 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
   O <- as.matrix(!is.na(Data))
   TT <- NCOL(Data)
   n2loglik <- sum(O) * log(2 * pi)
-  R <- toSpMat(s * Depsilon)
+  R <- toSparseMatrix(s * Depsilon)
   eg <- eigen(M)
   L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0))) %*% t(eg$vector)
   K <- NCOL(Fk)
@@ -108,23 +108,23 @@ setNC <- function(z, location, nlevel) {
   return(max(4, nc_estimate))
 }
 
+#'
+#' Internal function: sampling knots
+#'
+#' @keywords internal
+#' @param x A matrix or an array
+#' @param nknot A location matrix
+#' @param xrng An array including two integers
+#' @return sampling knots
+#'
 subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
-  x <- as.matrix(x)
+  x <- apply(as.matrix(x), 2, sort)
   xdim <- dim(x)
-  if (xdim[2] > 1) {
-    for (kk in xdim[2]:1) x <- x[order(x[, kk]), ]
-  }
-  else {
-    x <- as.matrix(sort(x))
-  }
+
   if (is.null(xrng)) {
-    if (xdim[2] > 1) {
-      xrng <- apply(x, 2, range)
-    }
-    else {
-      xrng <- matrix(range(x), 2, 1)
-    }
+    xrng <- apply(x, 2, range)
   }
+  # To-do: move out the function based on SRP
   mysamp <- function(z_and_id) {
     z <- as.double(names(z_and_id))
     if (length(z) == 1L) {
@@ -135,21 +135,24 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
       return(sample(z, size = min(nsamp, length(z))))
     }
   }
+
   rng <- sqrt(xrng[2, ] - xrng[1, ])
   rng[rng == 0] <- min(rng[rng > 0]) / 5
   rng <- rng * 10 / min(rng)
+  rng_max_index <- which.max(rng)
+
   nmbin <- round(exp(log(rng) * log(nknot) / sum(log(rng))))
   nmbin <- pmax(2, nmbin)
   while (prod(nmbin) < nknot) {
-    nmbin[which.max(rng)] <- nmbin[which.max(rng)] +
-      1
+    nmbin[rng_max_index] <- nmbin[rng_max_index] + 1
   }
-  gvec <- matrix(1, xdim[1], 1)
+
+  gvec <- matrix(1, nrow = xdim[1])
   cnt <- 0
   while (length(unique(gvec)) < nknot) {
     nmbin <- nmbin + cnt
-    gvec <- matrix(1, xdim[1], 1)
     kconst <- 1
+    gvec <- matrix(1, nrow = xdim[1])
     for (kk in 1:xdim[2]) {
       grp <- pmin(
         round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
@@ -165,47 +168,57 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     }
     cnt <- cnt + 1
   }
+  # To-do: refactor the following four lines
   gvec <- as.factor(gvec)
   gid <- as.double(as.character(gvec))
   names(gid) <- 1:xdim[1]
   index <- unlist(tapply(gid, gvec, mysamp))
-  if (xdim[2] > 1) {
-    x[index, ]
-  } else {
-    x[index]
-  }
+  return(x[index, ])
 }
 
-
-toSpMat <- function(mat) {
-  if (is(mat, "data.frame")) {
+#'
+#' Internal function: convert to a sparse matrix
+#'
+#' @keywords internal
+#' @param mat A matrix or a dataframe
+#' @param verbose A boolean
+#' @return sparse matrix
+#'
+toSparseMatrix <- function(mat, verbose = FALSE) {
+  if (is.spam(mat)) {
+    if (verbose) message("The input is already a sparse matrix")
+    return(mat)
+  }
+  if (!(is.data.frame(mat) || is.matrix(mat))) {
+    stop(paste0(c("Wrong format for toSparseMatrix, but got ", class(mat))))
+  }
+  if (is.data.frame(mat)) {
     mat <- as.matrix(mat)
   }
-  if (is(mat, "matrix")) {
-    if (length(mat) > 10^8) {
-      warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
-      db <- tempfile()
-      NR <- NROW(mat)
-      NC <- NCOL(mat)
-      f <- fm.create(db, NR, NC)
-      f[, 1:NCOL(mat)] <- mat
-      j <- sapply(1:NC, function(j) which(f[, j] != 0))
-      ridx <- unlist(j)
-      k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
-      kk <- matrix(unlist(k), ncol = 2, byrow = T)
-      cidx <- sort(kk[, 2])
-      where <- (cidx - 1) * NR + ridx
-      closeAndDeleteFiles(f)
-    }
-    else {
-      where <- which(mat != 0)
-      ridx <- row(mat)[where]
-      cidx <- col(mat)[where]
-    }
-    nonzero <- mat[where]
-    mat <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
-    mat[ridx, cidx] <- nonzero
+
+  if (length(mat) > 1e8) {
+    warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
+    db <- tempfile()
+    NR <- NROW(mat)
+    NC <- NCOL(mat)
+    f <- fm.create(db, NR, NC)
+    f[, 1:NCOL(mat)] <- mat
+    j <- sapply(1:NC, function(j) which(f[, j] != 0))
+    ridx <- unlist(j)
+    k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
+    kk <- matrix(unlist(k), ncol = 2, byrow = T)
+    cidx <- sort(kk[, 2])
+    where <- (cidx - 1) * NR + ridx
+    closeAndDeleteFiles(f)
   }
+  else {
+    where <- which(mat != 0)
+    ridx <- row(mat)[where]
+    cidx <- col(mat)[where]
+  }
+  nonzero <- mat[where]
+  mat <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
+  mat[ridx, cidx] <- nonzero
   return(mat)
 }
 
@@ -218,24 +231,42 @@ ZinvC <- function(R, L, z) {
   ZiR - left %*% iR
 }
 
+#'
+#' Internal function: print an FRK object
+#'
+#' @keywords internal
+#' @param x An FRK object
+#' @param ... Not used directly
+#'
 print.FRK <- function(x, ...) {
+  if (class(x) != "FRK") {
+    stop("Invalid object! Please enter an `FRK` object")
+  }
   attr(x, "pinfo") <- NULL
   if (!is.null(x$LKobj)) {
     x$LKobj <- x$LKobj$summary
   }
-  out <- paste("a ", NROW(x$G), " by ", NCOL(x$G), " mrts matrix",
-    sep = ""
-  )
-  print(out)
+  out <- paste0("a ", NROW(x$G), " by ", NCOL(x$G), " mrts matrix")
+  return(print(out))
 }
 
+#'
+#' Internal function: print an mrts object
+#'
+#' @keywords internal
+#' @param x An mrts object
+#' @param ... Not used directly
+#'
 print.mrts <- function(x, ...) {
-  if (NCOL(x) == 1) {
-    out <- c(x)
-  } else {
-    out <- x[, 1:NCOL(x)]
+  if (class(x) != "mrts") {
+    stop("Invalid object! Please enter an `mrts` object")
   }
-  print(out)
+
+  if (NCOL(x) == 1) {
+    return(c(x))
+  } else {
+    return(x[, 1:NCOL(x)])
+  }
 }
 
 mkpd <- function(M) {
@@ -249,7 +280,6 @@ mkpd <- function(M) {
   }
   return(M)
 }
-
 
 extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
   out <- list()
@@ -472,7 +502,6 @@ normalizeBasis <- function(LKinfo, level, PHI) {
   )
   return(wght)
 }
-
 
 #'
 #' Internal function: A modifier of LatticeKrig::LKrigSAR.LKInterval
