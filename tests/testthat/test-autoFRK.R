@@ -26,8 +26,9 @@ yhat_example2 <- predict(user_defined_basis_object, newloc = grids, basis = Gpre
 
 # Example 3
 wt <- matrix(0, 2, 20)
-for (tt in 1:20) 
+for (tt in 1:20) {
   wt[, tt] <- c(rnorm(1, sd = 5), rnorm(1, sd = 3))
+}
 yt <- fn %*% wt
 obs <- sample(900, n)
 zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
@@ -66,12 +67,10 @@ test_that("Independent multi-realization", {
   expect_equal(dim(yhat_example3), c(900, 13))
 })
 
-
 test_that("mrts", {
   expect_equal(class(G), "mrts")
-  expect_equal(mean(G[,1]), 1)
-  expect_lte(max(colSums(G[,-1], 2)), tolerance)
+  expect_equal(mean(G[, 1]), 1)
+  expect_lte(max(colSums(G[, -1], 2)), tolerance)
   expect_error(mrts(seq(0, 1, l = 30), 1), "k-1 can not be smaller than the number of dimensions!")
   expect_error(mrts(1, 3), "nev must satisfy 1 <= nev <= n - 1, n is the size of matrix")
-  
-  })
+})
