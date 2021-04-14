@@ -1,3 +1,4 @@
+set.seed(1234)
 tolerance <- 1e-6
 
 test_r <- matrix(c(0.1, 0.2), 1, 2)
@@ -46,7 +47,7 @@ test_that("nc for LkrigInfo", {
 two_dim_knots <- subKnot(matrix(grid, ncol=2), 2)
 true_two_dim_knots <- matrix(c(0, 0.3448276, 0.5172414, 0.8620690), 2, 2)
 test_that("Sample knots", {
-  expect_equal(subKnot(z, 4), c(3, 8, 19, 30))
+  expect_equal(subKnot(z, 4), c(5, 12, 22, 30))
   expect_lte(norm(two_dim_knots - true_two_dim_knots,"F"), tolerance)
 })
 
