@@ -4,10 +4,12 @@
 \alias{toSparseMatrix}
 \title{Internal function: convert to a sparse matrix}
 \usage{
-toSparseMatrix(mat)
+toSparseMatrix(mat, verbose = FALSE)
 }
 \arguments{
 \item{mat}{A matrix or a dataframe}
+
+\item{verbose}{A boolean}
 }
 \value{
 sparse matrix

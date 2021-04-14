@@ -65,3 +65,13 @@ test_that("Independent multi-realization", {
   expect_true(any("matrix" %in% class(yhat_example3)))
   expect_equal(dim(yhat_example3), c(900, 13))
 })
+
+
+test_that("mrts", {
+  expect_equal(class(G), "mrts")
+  expect_equal(mean(G[,1]), 1)
+  expect_lte(max(colSums(G[,-1], 2)), tolerance)
+  expect_error(mrts(seq(0, 1, l = 30), 1), "k-1 can not be smaller than the number of dimensions!")
+  expect_error(mrts(1, 3), "nev must satisfy 1 <= nev <= n - 1, n is the size of matrix")
+  
+  })

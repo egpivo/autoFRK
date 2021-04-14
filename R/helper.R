@@ -181,11 +181,12 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
 #'
 #' @keywords internal
 #' @param mat A matrix or a dataframe
+#' @param verbose A boolean
 #' @return sparse matrix
 #'
-toSparseMatrix <- function(mat) {
+toSparseMatrix <- function(mat, verbose = FALSE) {
   if (is.spam(mat)) {
-    message("The input is already a sparse matrix")
+    if (verbose) message("The input is already a sparse matrix")
     return(mat)
   }
   if (!(is.data.frame(mat) || is.matrix(mat))) {
@@ -230,24 +231,42 @@ ZinvC <- function(R, L, z) {
   ZiR - left %*% iR
 }
 
+#'
+#' Internal function: print an FRK object
+#'
+#' @keywords internal
+#' @param x An FRK object
+#' @param ... Not used directly
+#'
 print.FRK <- function(x, ...) {
+  if (class(x) != "FRK") {
+    stop("Invalid object! Please enter an `FRK` object")
+  }
   attr(x, "pinfo") <- NULL
   if (!is.null(x$LKobj)) {
     x$LKobj <- x$LKobj$summary
   }
-  out <- paste("a ", NROW(x$G), " by ", NCOL(x$G), " mrts matrix",
-    sep = ""
-  )
-  print(out)
+  out <- paste0("a ", NROW(x$G), " by ", NCOL(x$G), " mrts matrix")
+  return(print(out))
 }
 
+#'
+#' Internal function: print an mrts object
+#'
+#' @keywords internal
+#' @param x An mrts object
+#' @param ... Not used directly
+#'
 print.mrts <- function(x, ...) {
-  if (NCOL(x) == 1) {
-    out <- c(x)
-  } else {
-    out <- x[, 1:NCOL(x)]
+  if (class(x) != "mrts") {
+    stop("Invalid object! Please enter an `mrts` object")
   }
-  print(out)
+
+  if (NCOL(x) == 1) {
+    return(c(x))
+  } else {
+    return(x[, 1:NCOL(x)])
+  }
 }
 
 mkpd <- function(M) {
