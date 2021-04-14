@@ -108,23 +108,23 @@ setNC <- function(z, location, nlevel) {
   return(max(4, nc_estimate))
 }
 
+#'
+#' Internal function: sampling knots
+#'
+#' @keywords internal
+#' @param x A matrix or an array
+#' @param nknot A location matrix
+#' @param xrng An array including two integers
+#' @return sampling knots
+#'
 subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
-  x <- as.matrix(x)
+  x <- apply(as.matrix(x), 2, sort)
   xdim <- dim(x)
-  if (xdim[2] > 1) {
-    for (kk in xdim[2]:1) x <- x[order(x[, kk]), ]
-  }
-  else {
-    x <- as.matrix(sort(x))
-  }
+
   if (is.null(xrng)) {
-    if (xdim[2] > 1) {
-      xrng <- apply(x, 2, range)
-    }
-    else {
-      xrng <- matrix(range(x), 2, 1)
-    }
+    xrng <- apply(x, 2, range)
   }
+  #To-do: move out the function based on SRP
   mysamp <- function(z_and_id) {
     z <- as.double(names(z_and_id))
     if (length(z) == 1L) {
@@ -135,21 +135,24 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
       return(sample(z, size = min(nsamp, length(z))))
     }
   }
+
   rng <- sqrt(xrng[2, ] - xrng[1, ])
   rng[rng == 0] <- min(rng[rng > 0]) / 5
   rng <- rng * 10 / min(rng)
+  rng_max_index <- which.max(rng)
+  
   nmbin <- round(exp(log(rng) * log(nknot) / sum(log(rng))))
   nmbin <- pmax(2, nmbin)
   while (prod(nmbin) < nknot) {
-    nmbin[which.max(rng)] <- nmbin[which.max(rng)] +
-      1
+    nmbin[rng_max_index] <- nmbin[rng_max_index] + 1
   }
-  gvec <- matrix(1, xdim[1], 1)
+
+  gvec <- matrix(1, nrow=xdim[1])
   cnt <- 0
   while (length(unique(gvec)) < nknot) {
     nmbin <- nmbin + cnt
-    gvec <- matrix(1, xdim[1], 1)
     kconst <- 1
+    gvec <- matrix(1, nrow=xdim[1])
     for (kk in 1:xdim[2]) {
       grp <- pmin(
         round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
@@ -165,15 +168,12 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     }
     cnt <- cnt + 1
   }
+  #To-do: refactor the following four lines
   gvec <- as.factor(gvec)
   gid <- as.double(as.character(gvec))
   names(gid) <- 1:xdim[1]
   index <- unlist(tapply(gid, gvec, mysamp))
-  if (xdim[2] > 1) {
-    return(x[index, ])
-  } else {
-    return(x[index])
-  }
+  return(x[index, ])
 }
 
 toSpMat <- function(mat) {
