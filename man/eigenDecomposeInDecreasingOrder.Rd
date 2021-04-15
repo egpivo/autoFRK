@@ -4,10 +4,10 @@
 \alias{eigenDecomposeInDecreasingOrder}
 \title{Internal function: eigen-decomposition in decreasing order}
 \usage{
-eigenDecomposeInDecreasingOrder(matrix)
+eigenDecomposeInDecreasingOrder(mat)
 }
 \arguments{
-\item{matrix}{A matrix}
+\item{mat}{A matrix}
 }
 \value{
 A list

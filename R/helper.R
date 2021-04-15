@@ -21,23 +21,33 @@ as.matrix.mrts <- function(x, ...) {
 #' Internal function: eigen-decomposition in decreasing order
 #'
 #' @keywords internal
-#' @param matrix A matrix
+#' @param mat A matrix
 #' @return A list
 #'
-eigenDecomposeInDecreasingOrder <- function(matrix) {
-  obj <- eigenDecompose(matrix)
+eigenDecomposeInDecreasingOrder <- function(mat) {
+  obj <- eigenDecompose(mat)
   obj$value <- rev(obj$value)
-  obj$vector <- obj$vector[, ncol(matrix):1]
+  obj$vector <- obj$vector[, ncol(mat):1]
   return(obj)
 }
 
+#'
+#' Internal function: calculate the log determinant for the likelihood use.
+#'
+#' @keywords internal
+#' @param R A p x p matrix
+#' @param L A p x K matrix
+#' @param K A numeric
+#' @return A numeric
+#'
+calculateLogDeterminant <- function(R, L, K) {
+  first_part_determinant <- spam::determinant(
+    diag(1, K) + t(L) %*% solve(R) %*% L, logarithm = TRUE)$modulus
+  second_part_determinant <- spam::determinant(R, logarithm = TRUE)$modulus
+  return(first_part_determinant + second_part_determinant)
+}
+
 getLikelihood <- function(Data, Fk, M, s, Depsilon) {
-  logdet <- function(R, L, K) {
-    spam::determinant(diag(1, K) + t(L) %*% solve(R) %*%
-      L, logarithm = TRUE)$modulus + spam::determinant(R,
-      logarithm = TRUE
-    )$modulus
-  }
   Data <- as.matrix(Data)
   O <- as.matrix(!is.na(Data))
   TT <- NCOL(Data)
@@ -55,7 +65,7 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
       n2loglik <- n2loglik + log(Rt + Lt %*% t(Lt))
     }
     else {
-      n2loglik <- n2loglik + logdet(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
+      n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
     }
   }
   return(n2loglik)
@@ -69,26 +79,18 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
 #' @return logical
 #'
 isDiagonal <- function(object) {
-  if (!is.numeric(object)) {
-    return(FALSE)
-  }
   if (is.numeric(object) & (length(object) == 1)) {
     return(TRUE)
   }
-  tryCatch(
-    {
-      if (is.matrix(object)) {
-        return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
-      }
-      else {
-        x <- diag.spam(diag.of.spam(object), NROW(object))
-        return(identical(x, object))
-      }
-    },
-    error = function(cond) {
-      return(FALSE)
-    }
-  )
+  if (is.matrix(object)) {
+    return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
+  }
+  else if (is.spam(object)) {
+    x <- diag.spam(diag.of.spam(object), NROW(object))
+    return(sum(abs(x - object)) < .Machine$double.eps)
+  } else {
+    return(FALSE)
+  }
 }
 
 #'
@@ -180,6 +182,32 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
 #' Internal function: convert to a sparse matrix
 #'
 #' @keywords internal
+#' @param mat A matrix
+#' @return An array of indeces
+#'
+fetchNonZeroIndexs <- function(mat) {
+  if (!is.matrix(mat)) {
+    stop(paste0(c("Wrong matrix format, but got ", class(mat))))
+  }
+  db <- tempfile()
+  NR <- NROW(mat)
+  NC <- NCOL(mat)
+  f <- fm.create(db, NR, NC)
+  f[, 1:NCOL(mat)] <- mat
+  j <- sapply(1:NC, function(j) which(f[, j] != 0))
+  ridx <- unlist(j)
+  k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
+  kk <- matrix(unlist(k), ncol = 2, byrow = T)
+  cidx <- sort(kk[, 2])
+  where <- (cidx - 1) * NR + ridx
+  closeAndDeleteFiles(f)
+  return(where)
+}
+
+#'
+#' Internal function: convert to a sparse matrix
+#'
+#' @keywords internal
 #' @param mat A matrix or a dataframe
 #' @param verbose A boolean
 #' @return sparse matrix
@@ -198,18 +226,7 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
 
   if (length(mat) > 1e8) {
     warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
-    db <- tempfile()
-    NR <- NROW(mat)
-    NC <- NCOL(mat)
-    f <- fm.create(db, NR, NC)
-    f[, 1:NCOL(mat)] <- mat
-    j <- sapply(1:NC, function(j) which(f[, j] != 0))
-    ridx <- unlist(j)
-    k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
-    kk <- matrix(unlist(k), ncol = 2, byrow = T)
-    cidx <- sort(kk[, 2])
-    where <- (cidx - 1) * NR + ridx
-    closeAndDeleteFiles(f)
+    where <- fetchNonZeroIndexs(mat)
   }
   else {
     where <- which(mat != 0)
@@ -222,13 +239,22 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
   return(mat)
 }
 
+#'
+#' Internal function: internal matrix calcuation (will be deprecated)
+#'
+#' @keywords internal
+#' @param R A p x p matrix
+#' @param L A p x K matrix
+#' @param z An array with length p or 1 x p matrix
+#' @return A 1 x p matrix
+#'
 ZinvC <- function(R, L, z) {
   K <- NCOL(L)
   iR <- solve(R)
   ZiR <- z %*% iR
   left <- ZiR %*% L %*% solve(diag(1, K) + t(L) %*% iR %*% L) %*%
     t(L)
-  ZiR - left %*% iR
+  return(ZiR - left %*% iR)
 }
 
 #'
@@ -269,16 +295,23 @@ print.mrts <- function(x, ...) {
   }
 }
 
-mkpd <- function(M) {
-  v <- try(min(eigen(M, only.values = T)$value), silent = TRUE)
-  if (is(v, "try-error")) {
-    M <- (M + t(M)) / 2
-    v <- min(eigen(M, only.values = T)$value)
+#'
+#' Internal function: convert a matrix to positive definite
+#'
+#' @keywords internal
+#' @param mat A matrix or a dataframe
+#' @return A positive-definite matrix
+#'
+convertToPositiveDefinite <- function(mat) {
+  v <- try(min(eigen(mat, only.values = T)$value), silent = TRUE)
+  if (is(v, "try-error") || !isSymmetric.matrix(mat)) {
+    mat <- (mat + t(mat)) / 2
+    v <- min(eigen(mat, only.values = T)$value)
   }
   if (v <= 0) {
-    M <- M + diag(max(0, -v) + 0.1^7.5, NROW(M))
+    mat <- mat + diag(max(0, -v) + 0.1^7.5, NROW(mat))
   }
-  return(M)
+  return(mat)
 }
 
 extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
@@ -322,6 +355,7 @@ extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
 #' @param NC The maximum number of lattice grid points for a spatial coordinate and at the coarsest level of resolution.
 #' @param lambda A smoothing parameter.
 #' @param LKGeometry A text string that gives the names of the model geometry.
+#' @param ... Not used directly
 #' @return list
 #'
 setUpKrigInfo <- function(x = NULL,
@@ -707,17 +741,15 @@ toBytes <- function(input_array) {
 
   if (units %in% lookup) {
     power <- which(units == lookup)
-    result <- num * 1024^power
+    return(as.numeric(num * 1024^power))
   }
   else if (units %in% names(lookup)) {
     power <- which(units == names(lookup))
-    result <- num * 1024^power
+    return(num * 1024^power)
   }
   else {
-    result <- num
+    return(num)
   }
-
-  return(result)
 }
 
 #'

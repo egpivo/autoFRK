@@ -657,7 +657,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   Z0[is.na(Z0)] <- 0
   old <- cMLEimat(Fk, Z0, s = 0, wSave = T)
   if (is.null(vfixed)) old$s <- old$v else old$s <- vfixed
-  old$M <- mkpd(old$M)
+  old$M <- convertToPositiveDefinite(old$M)
   Ptt1 <- old$M
   saveOLD(external)
   inv <- MASS::ginv
@@ -669,7 +669,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
     if (external) load(oldfile)
     for (tt in 1:TT) {
       s1.eta.P <- with(db[[tt]], {
-        iP <- mkpd(MASS::ginv(mkpd(Ptt1)) + BiDBt / old$s)
+        iP <- convertToPositiveDefinite(MASS::ginv(convertToPositiveDefinite(Ptt1)) + BiDBt / old$s)
         Ptt <- solve(iP)
         Gt <- as.matrix(Ptt %*% t(iDBt) / old$s)
         eta <- c(0 + Gt %*% zt)

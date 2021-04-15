@@ -17,8 +17,14 @@ test_that("Eigen Decomposition", {
   expect_equal(sum(result$value[1]), 3)
 })
 
+test_that("Calculate the log determinant for the likelihood use", {
+  expect_lte(abs(calculateLogDeterminant(diag(2), matrix(1:6, 2, 3), 3) - 4.75359), tolerance)
+})
+
 test_that("Convert value to bytes", {
   expect_equal(toBytes(c("1", "gb")), 1073741824)
+  expect_equal(toBytes(c("1", "KBytes")), 1)
+  expect_equal(toBytes(c("1", "megabytes")), 1048576)
 })
 
 test_that("Fetch system RAM", {
@@ -32,6 +38,7 @@ test_that("Remove white space", {
 test_that("Is an object diagonal", {
   expect_true(isDiagonal(1))
   expect_true(isDiagonal(diag(2)))
+  expect_true(isDiagonal(spam(0, 10, 10)))
   expect_false(isDiagonal("ss"))
   expect_false(isDiagonal(matrix))
 })
@@ -44,11 +51,14 @@ test_that("nc for LkrigInfo", {
   expect_equal(setNC(z, grid, 2), 4)
 })
 
-two_dim_knots <- subKnot(matrix(grid, ncol = 2), 2)
-true_two_dim_knots <- matrix(c(0, 0.3448276, 0.5172414, 0.8620690), 2, 2)
+two_dim_knots_example_1 <- subKnot(matrix(grid, ncol = 2), 2)
+true_two_dim_knots_example_1 <- matrix(c(0, 0.3448276, 0.5172414, 0.8620690), 2, 2)
+two_dim_knots_example_2 <- subKnot(matrix(grid, ncol = 2), nknot = 10, xrng = matrix(c(0, 0.1, 0, 0.1), 2))
+true_sum_of_two_dim_knots_example_2 <- 13
 test_that("Sample knots", {
   expect_equal(subKnot(z, 4), c(5, 12, 22, 30))
-  expect_lte(norm(two_dim_knots - true_two_dim_knots, "F"), tolerance)
+  expect_lte(norm(two_dim_knots_example_1 - true_two_dim_knots_example_1, "F"), tolerance)
+  expect_equal(sum(two_dim_knots_example_2), true_sum_of_two_dim_knots_example_2)
 })
 
 a <- matrix(1)
@@ -57,22 +67,47 @@ test_that("Set mrts object to matrix class", {
   expect_equal(as.matrix.mrts(a), matrix(1))
 })
 
+test_that("Fetch non-zero indeces", {
+  expect_error(fetchNonZeroIndexs(1), "Wrong matrix format, but got numeric")
+  expect_equal(fetchNonZeroIndexs(matrix(c(0, 1, 1, 0), 2, 2)), c(2, 3))
+})
 
 test_that("Sparse matrix", {
   expect_error(toSparseMatrix(1), "Wrong format for toSparseMatrix")
   expect_message(toSparseMatrix(spam(0, 10, 10), TRUE), "The input is already a sparse matrix")
   expect_true(is.spam(toSparseMatrix(matrix(c(0, 0, 0, 1), 2, 2))))
+  expect_true(is.spam(toSparseMatrix(data.frame(1))))
 })
 
+R <- matrix(c(1, 2, 2, 1), 2)
+L <- matrix(c(0.1, 0, 0, 0.1), 2)
+z <- c(0, 1)
+test_that("Interanl matrix calculation function", {
+  expect_lte(sum(ZinvC(R, L, z) - matrix(c(0.6711635, -0.3389375), 1)), tolerance)
+})
 
 mrts_message <- capture_output(print.mrts(mrts(1, 2)), print = TRUE)
 test_that("Print mrts", {
   expect_error(print.mrts(1), "Invalid object! Please enter an `mrts` object")
   expect_equal(mrts_message, "[1]   1 NaN")
+  expect_equal(sum(print.mrts(mrts(matrix(1:10, 2), 6))), 2)
 })
 
 FRK_message <- capture_output(print.FRK(autoFRK(Data = rnorm(10), loc = 1:10, maxK = 3)))
 test_that("Print FRK", {
   expect_error(print.FRK(1), "Invalid object! Please enter an `FRK` object")
   expect_equal(FRK_message, "[1] \"a 10 by 2 mrts matrix\"")
+})
+
+test_coverted_matrix <- convertToPositiveDefinite(matrix(c(1, 2, 3, 4), 2, 2))
+true_pd_matrix <- matrix(c(1.415476, 2.5, 2.5, 4.415476), 2, 2)
+test_that("Convert a matrix to positive definite", {
+  expect_lte(norm(test_coverted_matrix - true_pd_matrix, "F"), tolerance)
+})
+
+shifted_array <- shiftArray(array(1:10, 2), c(-1, 0, 0))
+test_that("Shift an array", {
+  expect_equal(sum(shifted_array - c(2, 1)), 0)
+  expect_equal(attributes(shifted_array)$dim, 2)
+  expect_error(shiftArray(array(1:10, 2), c(-100, 0, 0)), "shift exceeds array dimensions")
 })
