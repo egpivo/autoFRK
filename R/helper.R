@@ -21,23 +21,33 @@ as.matrix.mrts <- function(x, ...) {
 #' Internal function: eigen-decomposition in decreasing order
 #'
 #' @keywords internal
-#' @param matrix A matrix
+#' @param mat A matrix
 #' @return A list
 #'
-eigenDecomposeInDecreasingOrder <- function(matrix) {
-  obj <- eigenDecompose(matrix)
+eigenDecomposeInDecreasingOrder <- function(mat) {
+  obj <- eigenDecompose(mat)
   obj$value <- rev(obj$value)
-  obj$vector <- obj$vector[, ncol(matrix):1]
+  obj$vector <- obj$vector[, ncol(mat):1]
   return(obj)
 }
 
+#'
+#' Internal function: calculate the log determinant for the likelihood use.
+#'
+#' @keywords internal
+#' @param R A p x p matrix
+#' @param L A p x K matrix
+#' @param K A numeric
+#' @return A numeric
+#'
+calculateLogDeterminant <- function(R, L, K) {
+  first_part_determinant <- spam::determinant(
+    diag(1, K) + t(L) %*% solve(R) %*% L, logarithm = TRUE)$modulus
+  second_part_determinant <- spam::determinant(R, logarithm = TRUE)$modulus
+  return(first_part_determinant + second_part_determinant)
+}
+
 getLikelihood <- function(Data, Fk, M, s, Depsilon) {
-  logdet <- function(R, L, K) {
-    spam::determinant(diag(1, K) + t(L) %*% solve(R) %*%
-      L, logarithm = TRUE)$modulus + spam::determinant(R,
-      logarithm = TRUE
-    )$modulus
-  }
   Data <- as.matrix(Data)
   O <- as.matrix(!is.na(Data))
   TT <- NCOL(Data)
@@ -55,7 +65,7 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
       n2loglik <- n2loglik + log(Rt + Lt %*% t(Lt))
     }
     else {
-      n2loglik <- n2loglik + logdet(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
+      n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
     }
   }
   return(n2loglik)
@@ -233,7 +243,7 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
 #' Internal function: internal matrix calcuation (will be deprecated)
 #'
 #' @keywords internal
-#' @param R A p x p matrix 
+#' @param R A p x p matrix
 #' @param L A p x K matrix
 #' @param z An array with length p or 1 x p matrix
 #' @return A 1 x p matrix
