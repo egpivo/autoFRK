@@ -172,6 +172,32 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
 #' Internal function: convert to a sparse matrix
 #'
 #' @keywords internal
+#' @param mat A matrix
+#' @return An array of indeces
+#'
+fetchNonZeroIndexs <- function(mat) {
+  if (!is.matrix(mat)) {
+    stop(paste0(c("Wrong matrix format, but got ", class(mat))))
+  }
+  db <- tempfile()
+  NR <- NROW(mat)
+  NC <- NCOL(mat)
+  f <- fm.create(db, NR, NC)
+  f[, 1:NCOL(mat)] <- mat
+  j <- sapply(1:NC, function(j) which(f[, j] != 0))
+  ridx <- unlist(j)
+  k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
+  kk <- matrix(unlist(k), ncol = 2, byrow = T)
+  cidx <- sort(kk[, 2])
+  where <- (cidx - 1) * NR + ridx
+  closeAndDeleteFiles(f)
+  return(where)
+}
+
+#'
+#' Internal function: convert to a sparse matrix
+#'
+#' @keywords internal
 #' @param mat A matrix or a dataframe
 #' @param verbose A boolean
 #' @return sparse matrix
@@ -190,18 +216,7 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
 
   if (length(mat) > 1e8) {
     warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
-    db <- tempfile()
-    NR <- NROW(mat)
-    NC <- NCOL(mat)
-    f <- fm.create(db, NR, NC)
-    f[, 1:NCOL(mat)] <- mat
-    j <- sapply(1:NC, function(j) which(f[, j] != 0))
-    ridx <- unlist(j)
-    k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
-    kk <- matrix(unlist(k), ncol = 2, byrow = T)
-    cidx <- sort(kk[, 2])
-    where <- (cidx - 1) * NR + ridx
-    closeAndDeleteFiles(f)
+    where <- fetchNonZeroIndexs(mat)
   }
   else {
     where <- which(mat != 0)

@@ -62,13 +62,17 @@ test_that("Set mrts object to matrix class", {
   expect_equal(as.matrix.mrts(a), matrix(1))
 })
 
+test_that("Fetch non-zero indeces", {
+  expect_error(fetchNonZeroIndexs(1), "Wrong matrix format, but got numeric")
+  expect_equal(fetchNonZeroIndexs(matrix(c(0,1,1,0),2,2)), c(2, 3))
+})
 
 test_that("Sparse matrix", {
   expect_error(toSparseMatrix(1), "Wrong format for toSparseMatrix")
   expect_message(toSparseMatrix(spam(0, 10, 10), TRUE), "The input is already a sparse matrix")
   expect_true(is.spam(toSparseMatrix(matrix(c(0, 0, 0, 1), 2, 2))))
+  expect_true(is.spam(toSparseMatrix(data.frame(1))))
 })
-
 
 mrts_message <- capture_output(print.mrts(mrts(1, 2)), print = TRUE)
 test_that("Print mrts", {
@@ -81,3 +85,6 @@ test_that("Print FRK", {
   expect_error(print.FRK(1), "Invalid object! Please enter an `FRK` object")
   expect_equal(FRK_message, "[1] \"a 10 by 2 mrts matrix\"")
 })
+
+
+
