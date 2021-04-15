@@ -16,8 +16,8 @@ Description: Automatic fixed rank kriging for (irregularly located)
     include a stationary structure in the spatial covariance, which utilizes
     'LatticeKrig' package.
 License: GPL (>= 2)
-Version: 1.4.7
-Date: 2021-04-14
+Version: 1.4.8
+Date: 2021-04-15
 Depends: R (>= 3.5.0), spam
 Imports: fields (>= 6.9.1), filehashSQLite, filehash, MASS, mgcv, LatticeKrig
         (>= 5.4), FNN, filematrix, Rcpp,  methods
