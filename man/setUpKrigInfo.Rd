@@ -29,6 +29,8 @@ setUpKrigInfo(
 \item{lambda}{A smoothing parameter.}
 
 \item{LKGeometry}{A text string that gives the names of the model geometry.}
+
+\item{...}{Not used directly}
 }
 \value{
 list

@@ -345,6 +345,7 @@ extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
 #' @param NC The maximum number of lattice grid points for a spatial coordinate and at the coarsest level of resolution.
 #' @param lambda A smoothing parameter.
 #' @param LKGeometry A text string that gives the names of the model geometry.
+#' @param ... Not used directly
 #' @return list
 #'
 setUpKrigInfo <- function(x = NULL,
@@ -730,17 +731,15 @@ toBytes <- function(input_array) {
 
   if (units %in% lookup) {
     power <- which(units == lookup)
-    result <- num * 1024^power
+    return(as.numeric(num * 1024^power))
   }
   else if (units %in% names(lookup)) {
     power <- which(units == names(lookup))
-    result <- num * 1024^power
+    return(num * 1024^power)
   }
   else {
-    result <- num
+    return(num)
   }
-
-  return(result)
 }
 
 #'

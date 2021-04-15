@@ -19,6 +19,8 @@ test_that("Eigen Decomposition", {
 
 test_that("Convert value to bytes", {
   expect_equal(toBytes(c("1", "gb")), 1073741824)
+  expect_equal(toBytes(c("1", "KBytes")), 1)
+  expect_equal(toBytes(c("1", "megabytes")), 1048576 )
 })
 
 test_that("Fetch system RAM", {
