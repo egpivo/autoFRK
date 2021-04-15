@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Internal function: internal matrix calcuation (will be deprecated) — ZinvC • autoFRK</title>
+<title>Internal function: convert a matrix to positive definite — convertToPositiveDefinite • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Internal function: internal matrix calcuation (will be deprecated) — ZinvC" />
-<meta property="og:description" content="Internal function: internal matrix calcuation (will be deprecated)" />
+<meta property="og:title" content="Internal function: convert a matrix to positive definite — convertToPositiveDefinite" />
+<meta property="og:description" content="Internal function: convert a matrix to positive definite" />
 
 
 
@@ -106,37 +106,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Internal function: internal matrix calcuation (will be deprecated)</h1>
+    <h1>Internal function: convert a matrix to positive definite</h1>
     
-    <div class="hidden name"><code>ZinvC.Rd</code></div>
+    <div class="hidden name"><code>convertToPositiveDefinite.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Internal function: internal matrix calcuation (will be deprecated)</p>
+    <p>Internal function: convert a matrix to positive definite</p>
     </div>
 
-    <pre class="usage"><span class='fu'>ZinvC</span><span class='op'>(</span><span class='va'>R</span>, <span class='va'>L</span>, <span class='va'>z</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>convertToPositiveDefinite</span><span class='op'>(</span><span class='va'>mat</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>R</th>
-      <td><p>A p x p matrix</p></td>
-    </tr>
-    <tr>
-      <th>L</th>
-      <td><p>A p x K matrix</p></td>
-    </tr>
-    <tr>
-      <th>z</th>
-      <td><p>An array with length p or 1 x p matrix</p></td>
+      <th>mat</th>
+      <td><p>A matrix or a dataframe</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A 1 x p matrix</p>
+    <p>A positive-definite matrix</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
