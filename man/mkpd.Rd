@@ -1,1 +1,0 @@
-\name{mkpd} \alias{mkpd} \title{ internal function } \description{ internal function } \keyword{internal}

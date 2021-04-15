@@ -285,16 +285,23 @@ print.mrts <- function(x, ...) {
   }
 }
 
-mkpd <- function(M) {
-  v <- try(min(eigen(M, only.values = T)$value), silent = TRUE)
-  if (is(v, "try-error")) {
-    M <- (M + t(M)) / 2
-    v <- min(eigen(M, only.values = T)$value)
+#'
+#' Internal function: convert a matrix to positive definite
+#'
+#' @keywords internal
+#' @param mat A matrix or a dataframe
+#' @return A positive-definite matrix
+#'
+convertToPositiveDefinite <- function(mat) {
+  v <- try(min(eigen(mat, only.values = T)$value), silent = TRUE)
+  if (is(v, "try-error") || !isSymmetric.matrix(mat)) {
+    mat <- (mat + t(mat)) / 2
+    v <- min(eigen(mat, only.values = T)$value)
   }
   if (v <= 0) {
-    M <- M + diag(max(0, -v) + 0.1^7.5, NROW(M))
+    mat <- mat + diag(max(0, -v) + 0.1^7.5, NROW(mat))
   }
-  return(M)
+  return(mat)
 }
 
 extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
