@@ -69,26 +69,19 @@ getLikelihood <- function(Data, Fk, M, s, Depsilon) {
 #' @return logical
 #'
 isDiagonal <- function(object) {
-  if (!is.numeric(object)) {
-    return(FALSE)
-  }
   if (is.numeric(object) & (length(object) == 1)) {
     return(TRUE)
   }
-  tryCatch(
-    {
-      if (is.matrix(object)) {
-        return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
-      }
-      else {
-        x <- diag.spam(diag.of.spam(object), NROW(object))
-        return(identical(x, object))
-      }
-    },
-    error = function(cond) {
-      return(FALSE)
-    }
-  )
+
+  if (is.matrix(object)) {
+    return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
+  }
+  else if (is.spam(object)) {
+    x <- diag.spam(diag.of.spam(object), NROW(object))
+    return(sum(abs(x - object)) < .Machine$double.eps)
+  } else {
+    return(FALSE)
+  }
 }
 
 #'

@@ -32,8 +32,10 @@ test_that("Remove white space", {
 test_that("Is an object diagonal", {
   expect_true(isDiagonal(1))
   expect_true(isDiagonal(diag(2)))
+  expect_true(isDiagonal(spam(0, 10, 10)))
   expect_false(isDiagonal("ss"))
   expect_false(isDiagonal(matrix))
+  
 })
 
 grid <- seq(0, 1, l = 30)
