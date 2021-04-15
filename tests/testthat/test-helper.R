@@ -104,3 +104,10 @@ true_pd_matrix <- matrix(c(1.415476, 2.5, 2.5, 4.415476), 2, 2)
 test_that("Convert a matrix to positive definite", {
   expect_lte(norm(test_coverted_matrix - true_pd_matrix, "F"), tolerance)
 })
+
+shifted_array <- shiftArray(array(1:10, 2), c(-1, 0, 0))
+test_that("Shift an array", {
+  expect_equal(sum(shifted_array - c(2, 1)), 0)
+  expect_equal(attributes(shifted_array)$dim, 2)
+  expect_error(shiftArray(array(1:10, 2), c(-100, 0, 0)), "shift exceeds array dimensions")
+})
