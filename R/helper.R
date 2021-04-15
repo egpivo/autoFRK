@@ -72,7 +72,6 @@ isDiagonal <- function(object) {
   if (is.numeric(object) & (length(object) == 1)) {
     return(TRUE)
   }
-
   if (is.matrix(object)) {
     return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
   }

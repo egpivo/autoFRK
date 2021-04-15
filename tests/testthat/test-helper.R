@@ -46,11 +46,14 @@ test_that("nc for LkrigInfo", {
   expect_equal(setNC(z, grid, 2), 4)
 })
 
-two_dim_knots <- subKnot(matrix(grid, ncol = 2), 2)
-true_two_dim_knots <- matrix(c(0, 0.3448276, 0.5172414, 0.8620690), 2, 2)
+two_dim_knots_example_1 <- subKnot(matrix(grid, ncol = 2), 2)
+true_two_dim_knots_example_1 <- matrix(c(0, 0.3448276, 0.5172414, 0.8620690), 2, 2)
+two_dim_knots_example_2 <- subKnot(matrix(grid, ncol = 2), nknot=10, xrng=matrix(c(0, 0.1, 0, 0.1),2))
+true_sum_of_two_dim_knots_example_2 <- 13
 test_that("Sample knots", {
   expect_equal(subKnot(z, 4), c(5, 12, 22, 30))
-  expect_lte(norm(two_dim_knots - true_two_dim_knots, "F"), tolerance)
+  expect_lte(norm(two_dim_knots_example_1 - true_two_dim_knots_example_1, "F"), tolerance)
+  expect_equal(sum(two_dim_knots_example_2), true_sum_of_two_dim_knots_example_2)
 })
 
 a <- matrix(1)
