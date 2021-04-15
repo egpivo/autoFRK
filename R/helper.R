@@ -229,13 +229,22 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
   return(mat)
 }
 
+#'
+#' Internal function: internal matrix calcuation (will be deprecated)
+#'
+#' @keywords internal
+#' @param R A p x p matrix 
+#' @param L A p x K matrix
+#' @param z An array with length p or 1 x p matrix
+#' @return A 1 x p matrix
+#'
 ZinvC <- function(R, L, z) {
   K <- NCOL(L)
   iR <- solve(R)
   ZiR <- z %*% iR
   left <- ZiR %*% L %*% solve(diag(1, K) + t(L) %*% iR %*% L) %*%
     t(L)
-  ZiR - left %*% iR
+  return(ZiR - left %*% iR)
 }
 
 #'
