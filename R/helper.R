@@ -35,7 +35,7 @@ eigenDecomposeInDecreasingOrder <- function(mat) {
 #' Internal function: calculate the log determinant for the likelihood use.
 #'
 #' @keywords internal
-#' @param R A p x p matrix
+#' @param R A p x p positive-definite matrix
 #' @param L A p x K matrix
 #' @param K A numeric
 #' @return A numeric
@@ -59,7 +59,7 @@ calculateLogDeterminant <- function(R, L, K) {
 #'  each column being a basis function taken values at \code{loc}
 #' @param M A symmetric matrix
 #' @param s A scalar
-#' @param Depsilion A \emph{n} by \emph{n} matrix
+#' @param Depsilion A \emph{n} by \emph{n} diagonal matrix
 #' @return A numeric
 #'
 computeLikelihood <- function(Data, Fk, M, s, Depsilon) {
@@ -78,8 +78,7 @@ computeLikelihood <- function(Data, Fk, M, s, Depsilon) {
     if (NCOL(Lt) == 1) {
       Lt <- t(Lt)
       n2loglik <- n2loglik + log(Rt + Lt %*% t(Lt))
-    }
-    else {
+    } else {
       n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
     }
   }

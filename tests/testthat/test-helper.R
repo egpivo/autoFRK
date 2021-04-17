@@ -115,3 +115,25 @@ test_that("Shift an array", {
   expect_equal(attributes(shifted_array)$dim, 2)
   expect_error(shiftArray(array(1:10, 2), c(-100, 0, 0)), "shift exceeds array dimensions")
 })
+
+
+n <- 150
+s <- 5
+grid1 <- grid2 <- seq(0, 1, l = 30)
+grids <- expand.grid(grid1, grid2)
+Fk<- matrix(0, 900, 2)
+Fk[, 1] <- cos(sqrt((grids[, 1] - 0)^2 + (grids[, 2] - 1)^2) * pi)
+Fk[, 2] <- cos(sqrt((grids[, 1] - 0.75)^2 + (grids[, 2] - 0.25)^2) * 2 * pi)
+w <- matrix(c(rnorm(2, sd = 5), rnorm(2, sd = 3)), 2, 2)
+y <- Fk %*% w
+obs <- sample(900, n)
+epsilon <- rexp(n) * sqrt(s)
+data <- y[obs] + epsilon
+M <- matrix(rnorm(4), 2, 2)
+M <- (M + t(M)) /2
+
+estimeated_log_likelihood <- computeLikelihood(data, Fk[obs,], M, s, diag(epsilon))
+true_log_likelihood <- 935.087343
+test_that("Negative log likelihood", {
+  expect_lte(estimeated_log_likelihood -true_log_likelihood, tolerance) 
+})

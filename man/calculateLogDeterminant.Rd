@@ -7,7 +7,7 @@
 calculateLogDeterminant(R, L, K)
 }
 \arguments{
-\item{R}{A p x p matrix}
+\item{R}{A p x p positive-definite matrix}
 
 \item{L}{A p x K matrix}
 

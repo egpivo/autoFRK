@@ -7,9 +7,6 @@
 computeLikelihood(Data, Fk, M, s, Depsilon)
 }
 \arguments{
-\item{Data}{Data  \emph{n} by \emph{T} data matrix (NA allowed) with
-\eqn{z[t]} as the \emph{t}-th column.}
-
 \item{Fk}{A  \emph{n} by \emph{K} matrix of basis function values with
 each column being a basis function taken values at \code{loc}}
 
@@ -17,7 +14,10 @@ each column being a basis function taken values at \code{loc}}
 
 \item{s}{A scalar}
 
-\item{Depsilion}{A spamn matrix}
+\item{data}{A \emph{n} by \emph{T} data matrix (NA allowed) with
+\eqn{z[t]} as the \emph{t}-th column.}
+
+\item{Depsilion}{A \emph{n} by \emph{n} diagonal matrix}
 }
 \value{
 A numeric
