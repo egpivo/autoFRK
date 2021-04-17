@@ -183,7 +183,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         D,
         maxit,
         avgtol = tolerance,
-        wSave = TRUE, 
+        wSave = TRUE,
         DfromLK = DfromLK,
         vfixed = DnLK$s
       )
@@ -1093,7 +1093,8 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
         Xu,
         xobs_diag,
         x,
-        k - ndims - 1)
+        k - ndims - 1
+      )
     } else {
       X2 <- scale(Xu, scale = FALSE)
       shift <- colMeans(Xu)
@@ -1326,9 +1327,11 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       if (only.se) {
         return(se)
       } else {
-        return(list(se = se,
-                    w = MFiS11 %*% Data,
-                    wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
+        return(list(
+          se = se,
+          w = MFiS11 %*% Data,
+          wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
+        ))
       }
     }
     if (is.null(obsloc) & is.null(obsData)) {
@@ -1376,7 +1379,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
               basis,
               weight[!miss[, tt]],
               phi1[!miss[, tt], ],
-              phi0, 
+              phi0,
               Q,
               lambda,
               phi0P,
