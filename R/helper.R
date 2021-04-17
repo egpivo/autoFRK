@@ -42,7 +42,9 @@ eigenDecomposeInDecreasingOrder <- function(mat) {
 #'
 calculateLogDeterminant <- function(R, L, K) {
   first_part_determinant <- spam::determinant(
-    diag(1, K) + t(L) %*% solve(R) %*% L, logarithm = TRUE)$modulus
+    diag(1, K) + t(L) %*% solve(R) %*% L,
+    logarithm = TRUE
+  )$modulus
   second_part_determinant <- spam::determinant(R, logarithm = TRUE)$modulus
   return(first_part_determinant + second_part_determinant)
 }
@@ -244,8 +246,13 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
   else {
     where <- which(mat != 0)
   }
+  matrix_dim <- dim(mat)
   sparse_matrix <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
-  sparse_matrix[where] <- mat[where]
+  for (j in 1:matrix_dim[2]) {
+    flat_indexs <- where[((j - 1) * matrix_dim[1] + 1):(j * matrix_dim[1])]
+    row_indexs <- flat_indexs - ((j - 1) * matrix_dim[1])
+    sparse_matrix[row_indexs, j] <- mat[row_indexs, j]
+  }
   return(sparse_matrix)
 }
 
@@ -281,7 +288,7 @@ invCz <- function(R, L, z) {
   iR <- solve(R)
   iRZ <- iR %*% z
   right <- L %*% solve(diag(1, K) + as.matrix(t(L) %*% iR %*% L)) %*% (t(L) %*% iRZ)
-  
+
   return(iRZ - iR %*% right)
 }
 
