@@ -82,8 +82,10 @@ test_that("Sparse matrix", {
 R <- matrix(c(1, 2, 2, 1), 2)
 L <- matrix(c(0.1, 0, 0, 0.1), 2)
 z <- c(0, 1)
+true_matrix <- matrix(c(0.6711635, -0.3389375), 1, 2)
 test_that("Interanl matrix calculation function", {
-  expect_lte(sum(ZinvC(R, L, z) - matrix(c(0.6711635, -0.3389375), 1)), tolerance)
+  expect_lte(sum(ZinvC(R, L, z) - true_matrix), tolerance)
+  expect_lte(sum(invCz(R, L, z) - t(true_matrix)), tolerance)
 })
 
 mrts_message <- capture_output(print.mrts(mrts(1, 2)), print = TRUE)

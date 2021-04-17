@@ -47,7 +47,20 @@ calculateLogDeterminant <- function(R, L, K) {
   return(first_part_determinant + second_part_determinant)
 }
 
-getLikelihood <- function(Data, Fk, M, s, Depsilon) {
+#'
+#' Internal function: compute a negative log-likelihood
+#'
+#' @keywords internal
+#' @param Data  Data  \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
+#' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}
+#' @param M A symmetric matrix
+#' @param s A scalar
+#' @param Depsilion A spamn matrix
+#' @return A numeric
+#'
+computeLikelihood <- function(Data, Fk, M, s, Depsilon) {
   Data <- as.matrix(Data)
   O <- as.matrix(!is.na(Data))
   TT <- NCOL(Data)
@@ -256,6 +269,25 @@ ZinvC <- function(R, L, z) {
     t(L)
   return(ZiR - left %*% iR)
 }
+
+#'
+#' Internal function: internal matrix calcuation
+#'
+#' @keywords internal
+#' @param R A p x p matrix
+#' @param L A p x K matrix
+#' @param z An array with length p or 1 x p matrix
+#' @return A 1 x p matrix
+#'
+invCz <- function(R, L, z) {
+  K <- NCOL(L)
+  iR <- solve(R)
+  iRZ <- iR %*% z
+  right <- L %*% solve(diag(1, K) + as.matrix(t(L) %*% iR %*% L)) %*% (t(L) %*% iRZ)
+  
+  return(iRZ - iR %*% right)
+}
+
 
 #'
 #' Internal function: print an FRK object

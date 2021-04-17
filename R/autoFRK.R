@@ -700,7 +700,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   }
   if (num.report) cat("Number of iteration: ", cnt, "\n")
   unlink(tmpdir, recursive = TRUE)
-  n2loglik <- getLikelihood(Data, Fk, new$M, new$s, Depsilon)
+  n2loglik <- computeLikelihood(Data, Fk, new$M, new$s, Depsilon)
 
   if (!wSave) {
     return(list(M = new$M, s = new$s, negloglik = n2loglik))
@@ -853,15 +853,6 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
     }
     return(out)
   }
-}
-
-invCz <- function(R, L, z) {
-  K <- NCOL(L)
-  iR <- solve(R)
-  iRZ <- iR %*% z
-  right <- L %*% solve(diag(1, K) + as.matrix(t(L) %*% iR %*% L)) %*% (t(L) %*% iRZ)
-
-  return(iRZ - iR %*% right)
 }
 
 initializeLKnFRK <- function(Data, loc, nlevel = 3, weights = NULL, n.neighbor = 3, nu = 1) {
