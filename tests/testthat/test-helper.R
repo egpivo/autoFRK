@@ -120,7 +120,7 @@ n <- 150
 s <- 5
 grid1 <- grid2 <- seq(0, 1, l = 30)
 grids <- expand.grid(grid1, grid2)
-Fk<- matrix(0, 900, 2)
+Fk <- matrix(0, 900, 2)
 Fk[, 1] <- cos(sqrt((grids[, 1] - 0)^2 + (grids[, 2] - 1)^2) * pi)
 Fk[, 2] <- cos(sqrt((grids[, 1] - 0.75)^2 + (grids[, 2] - 0.25)^2) * 2 * pi)
 w <- matrix(c(rnorm(2, sd = 5), rnorm(2, sd = 3)), 2, 2)
@@ -129,13 +129,13 @@ obs <- sample(900, n)
 epsilon <- rexp(n) * sqrt(s)
 data <- y[obs] + epsilon
 M <- matrix(rnorm(4), 2, 2)
-M <- (M + t(M)) /2
+M <- (M + t(M)) / 2
 
-estimeated_log_likelihood_K_2 <- computeLikelihood(data, Fk[obs,], M, s, diag(epsilon))
+estimeated_log_likelihood_K_2 <- computeLikelihood(data, Fk[obs, ], M, s, diag(epsilon))
 true_log_likelihood_K_2 <- 935.087343
 estimeated_log_likelihood_K_1 <- computeLikelihood(data, as.matrix(Fk[obs, 1]), M[1], s, diag(epsilon))
 true_log_likelihood_K_1 <- 1421.554255359496
 test_that("Negative log likelihood", {
-  expect_lte(estimeated_log_likelihood_K_2 -true_log_likelihood_K_2, tolerance)
-  expect_lte(estimeated_log_likelihood_K_1 -true_log_likelihood_K_1, tolerance) 
+  expect_lte(estimeated_log_likelihood_K_2 - true_log_likelihood_K_2, tolerance)
+  expect_lte(estimeated_log_likelihood_K_1 - true_log_likelihood_K_1, tolerance)
 })
