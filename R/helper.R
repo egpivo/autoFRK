@@ -242,16 +242,17 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
   if (length(mat) > 1e8) {
     warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
     where <- fetchNonZeroIndexs(mat)
-  }
-  else {
+  } else {
     where <- which(mat != 0)
   }
   matrix_dim <- dim(mat)
   sparse_matrix <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
   for (j in 1:matrix_dim[2]) {
-    flat_indexs <- where[((j - 1) * matrix_dim[1] + 1):(j * matrix_dim[1])]
-    row_indexs <- flat_indexs - ((j - 1) * matrix_dim[1])
-    sparse_matrix[row_indexs, j] <- mat[row_indexs, j]
+    flat_indexs <- where[where >= ((j - 1) * matrix_dim[1] + 1) & where <= (j * matrix_dim[1])]
+    if (length(flat_indexs) > 0) {
+      row_indexs <- flat_indexs - ((j - 1) * matrix_dim[1])
+      sparse_matrix[row_indexs, j] <- mat[row_indexs, j]
+    }
   }
   return(sparse_matrix)
 }

@@ -45,7 +45,6 @@ test_that("Is an object diagonal", {
 
 grid <- seq(0, 1, l = 30)
 z <- sample(30, 10)
-
 test_that("nc for LkrigInfo", {
   expect_equal(setNC(z, grid, 1), 4)
   expect_equal(setNC(z, grid, 2), 4)
@@ -76,6 +75,9 @@ test_that("Sparse matrix", {
   expect_error(toSparseMatrix(1), "Wrong format for toSparseMatrix")
   expect_message(toSparseMatrix(spam(0, 10, 10), TRUE), "The input is already a sparse matrix")
   expect_true(is.spam(toSparseMatrix(matrix(c(0, 0, 0, 1), 2, 2))))
+  expect_true(is.spam(toSparseMatrix(matrix(rnorm(100), 1, 100))))
+  expect_true(is.spam(toSparseMatrix(matrix(rnorm(100), 100, 1))))
+  expect_true(is.spam(toSparseMatrix(matrix(0, 100, 100))))
   expect_true(is.spam(toSparseMatrix(data.frame(1))))
 })
 
