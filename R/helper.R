@@ -51,13 +51,13 @@ calculateLogDeterminant <- function(R, L, K) {
 #' Internal function: compute a negative log-likelihood
 #'
 #' @keywords internal
-#' @param Data  Data  \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param data  A \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}
 #' @param M A symmetric matrix
 #' @param s A scalar
-#' @param Depsilion A spamn matrix
+#' @param Depsilion A \emph{n} by \emph{n} matrix
 #' @return A numeric
 #'
 computeLikelihood <- function(Data, Fk, M, s, Depsilon) {
@@ -243,13 +243,10 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
   }
   else {
     where <- which(mat != 0)
-    ridx <- row(mat)[where]
-    cidx <- col(mat)[where]
   }
-  nonzero <- mat[where]
-  mat <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
-  mat[ridx, cidx] <- nonzero
-  return(mat)
+  sparse_matrix <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
+  sparse_matrix[where] <- mat[where]
+  return(sparse_matrix)
 }
 
 #'
