@@ -64,17 +64,20 @@ calculateLogDeterminant <- function(R, L, K) {
 #'
 computeLikelihood <- function(Data, Fk, M, s, Depsilon) {
   Data <- as.matrix(Data)
-  O <- as.matrix(!is.na(Data))
-  TT <- NCOL(Data)
+  non_missing_points_matrix <- as.matrix(!is.na(Data))
+  num_columns <- NCOL(Data)
+
   n2loglik <- sum(O) * log(2 * pi)
   R <- toSparseMatrix(s * Depsilon)
-  eg <- eigen(M)
+  eg <- eigenDecompose(M)
+
   K <- NCOL(Fk)
   L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0)), K) %*% t(eg$vector)
-  for (tt in 1:TT) {
-    zt <- Data[O[, tt], tt]
-    Rt <- R[O[, tt], O[, tt]]
-    Lt <- L[O[, tt], ]
+
+  for (t in 1:num_columns) {
+    zt <- Data[non_missing_points_matrix[, t], t]
+    Rt <- R[non_missing_points_matrix[, t], non_missing_points_matrix[, t]]
+    Lt <- L[non_missing_points_matrix[, t], ]
     n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
   }
   return(n2loglik)
