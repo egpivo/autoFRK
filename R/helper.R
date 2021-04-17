@@ -57,7 +57,7 @@ calculateLogDeterminant <- function(R, L, K) {
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}
-#' @param M A symmetric matrix
+#' @param M A \emph{K} by \emph{K} symmetric matrix
 #' @param s A scalar
 #' @param Depsilion A \emph{n} by \emph{n} diagonal matrix
 #' @return A numeric
@@ -69,18 +69,13 @@ computeLikelihood <- function(Data, Fk, M, s, Depsilon) {
   n2loglik <- sum(O) * log(2 * pi)
   R <- toSparseMatrix(s * Depsilon)
   eg <- eigen(M)
-  L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0))) %*% t(eg$vector)
   K <- NCOL(Fk)
+  L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0)), K) %*% t(eg$vector)
   for (tt in 1:TT) {
     zt <- Data[O[, tt], tt]
     Rt <- R[O[, tt], O[, tt]]
     Lt <- L[O[, tt], ]
-    if (NCOL(Lt) == 1) {
-      Lt <- t(Lt)
-      n2loglik <- n2loglik + log(Rt + Lt %*% t(Lt))
-    } else {
-      n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
-    }
+    n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
   }
   return(n2loglik)
 }
