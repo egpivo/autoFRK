@@ -67,7 +67,7 @@ computeLikelihood <- function(Data, Fk, M, s, Depsilon) {
   non_missing_points_matrix <- as.matrix(!is.na(Data))
   num_columns <- NCOL(Data)
 
-  n2loglik <- sum(O) * log(2 * pi)
+  n2loglik <- sum(non_missing_points_matrix) * log(2 * pi)
   R <- toSparseMatrix(s * Depsilon)
   eg <- eigenDecompose(M)
 
