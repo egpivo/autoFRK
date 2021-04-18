@@ -59,7 +59,7 @@ calculateLogDeterminant <- function(R, L, K) {
 #'  each column being a basis function taken values at \code{loc}.
 #' @param M A \emph{K} by \emph{K} symmetric matrix.
 #' @param s A scalar.
-#' @param Depsilion A \emph{n} by \emph{n} diagonal matrix.
+#' @param Depsilon A \emph{n} by \emph{n} diagonal matrix.
 #' @return A numeric.
 #'
 computeLikelihood <- function(data, Fk, M, s, Depsilon) {
@@ -100,7 +100,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' @param DfromLK A \emph{n} by \emph{n} diagonal matrix.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
-#' @return A matrix.
+#' @return An mrts object with 6 attributes
 #'
 selectBasis <- function(data,
                         loc,
@@ -119,6 +119,7 @@ selectBasis <- function(data,
   if (sum(empty) > 0) {
     data <- data[, which(!empty)]
   }
+
   loc <- as.matrix(loc)
   d <- NCOL(loc)
   withNA <- sum(is.na(data)) > 0
@@ -173,6 +174,7 @@ selectBasis <- function(data,
   }
   AIClist <- rep(Inf, length(K))
   method <- match.arg(method)
+  TT <- NCOL(data)
   if ((method == "EM") & (is.null(DfromLK))) {
     for (k in 1:length(K)) {
       AIClist[k] <- indeMLE(
@@ -201,7 +203,6 @@ selectBasis <- function(data,
         data[where, tt] <- rowMeans(nnval)
       }
     }
-    TT <- NCOL(data)
     if (is.null(DfromLK)) {
       iD <- solve(D)
       iDFk <- iD %*% Fk[pick, ]
@@ -234,7 +235,6 @@ selectBasis <- function(data,
     }
   }
   
-  TT <- NCOL(data)
   df <- (K * (K + 1) / 2 + 1) * (K <= TT) + (K * TT + 1 - TT * (TT - 1) / 2) * (K > TT)
   AIClist <- AIClist + 2 * df
   Kopt <- K[which.min(AIClist)]

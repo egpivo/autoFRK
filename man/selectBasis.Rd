@@ -45,7 +45,7 @@ selectBasis(
 each column being a basis function taken values at \code{loc}.}
 }
 \value{
-A matrix.
+An mrts object with 6 attributes
 }
 \description{
 Internal function: select basis functions

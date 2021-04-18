@@ -17,7 +17,7 @@ each column being a basis function taken values at \code{loc}.}
 
 \item{s}{A scalar.}
 
-\item{Depsilion}{A \emph{n} by \emph{n} diagonal matrix.}
+\item{Depsilon}{A \emph{n} by \emph{n} diagonal matrix.}
 }
 \value{
 A numeric.
