@@ -45,7 +45,6 @@ test_that("Is an object diagonal", {
 
 grid <- seq(0, 1, l = 30)
 z <- sample(30, 10)
-
 test_that("nc for LkrigInfo", {
   expect_equal(setNC(z, grid, 1), 4)
   expect_equal(setNC(z, grid, 2), 4)
@@ -76,14 +75,19 @@ test_that("Sparse matrix", {
   expect_error(toSparseMatrix(1), "Wrong format for toSparseMatrix")
   expect_message(toSparseMatrix(spam(0, 10, 10), TRUE), "The input is already a sparse matrix")
   expect_true(is.spam(toSparseMatrix(matrix(c(0, 0, 0, 1), 2, 2))))
+  expect_true(is.spam(toSparseMatrix(matrix(rnorm(100), 1, 100))))
+  expect_true(is.spam(toSparseMatrix(matrix(rnorm(100), 100, 1))))
+  expect_true(is.spam(toSparseMatrix(matrix(0, 100, 100))))
   expect_true(is.spam(toSparseMatrix(data.frame(1))))
 })
 
 R <- matrix(c(1, 2, 2, 1), 2)
 L <- matrix(c(0.1, 0, 0, 0.1), 2)
 z <- c(0, 1)
+true_matrix <- matrix(c(0.6711635, -0.3389375), 1, 2)
 test_that("Interanl matrix calculation function", {
-  expect_lte(sum(ZinvC(R, L, z) - matrix(c(0.6711635, -0.3389375), 1)), tolerance)
+  expect_lte(sum(ZinvC(R, L, z) - true_matrix), tolerance)
+  expect_lte(sum(invCz(R, L, z) - t(true_matrix)), tolerance)
 })
 
 mrts_message <- capture_output(print.mrts(mrts(1, 2)), print = TRUE)
@@ -110,4 +114,61 @@ test_that("Shift an array", {
   expect_equal(sum(shifted_array - c(2, 1)), 0)
   expect_equal(attributes(shifted_array)$dim, 2)
   expect_error(shiftArray(array(1:10, 2), c(-100, 0, 0)), "shift exceeds array dimensions")
+})
+
+n <- 150
+s <- 5
+grid1 <- grid2 <- seq(0, 1, l = 30)
+grids <- expand.grid(grid1, grid2)
+Fk <- matrix(0, 900, 2)
+Fk[, 1] <- cos(sqrt((grids[, 1] - 0)^2 + (grids[, 2] - 1)^2) * pi)
+Fk[, 2] <- cos(sqrt((grids[, 1] - 0.75)^2 + (grids[, 2] - 0.25)^2) * 2 * pi)
+w <- matrix(c(rnorm(2, sd = 5), rnorm(2, sd = 3)), 2, 2)
+y <- Fk %*% w
+obs <- sample(900, n)
+epsilon <- rexp(n) * sqrt(s)
+data <- y[obs] + epsilon
+M <- matrix(rnorm(4), 2, 2)
+M <- (M + t(M)) / 2
+
+estimeated_log_likelihood_K_2 <- computeLikelihood(data, Fk[obs, ], M, s, diag(epsilon))
+true_log_likelihood_K_2 <- 935.087343
+estimeated_log_likelihood_K_1 <- computeLikelihood(data, as.matrix(Fk[obs, 1]), M[1], s, diag(epsilon))
+true_log_likelihood_K_1 <- 1421.554255359496
+test_that("Negative log likelihood", {
+  expect_lte(estimeated_log_likelihood_K_2 - true_log_likelihood_K_2, tolerance)
+  expect_lte(estimeated_log_likelihood_K_1 - true_log_likelihood_K_1, tolerance)
+})
+
+selected_basis <- selectBasis(data, grids)
+selected_basis_em <- selectBasis(data, grids, method = "EM")
+data[3:10] <- NA
+selected_basis_na <- selectBasis(data, grids)
+
+test_that("Basis functions selection", {
+  expect_equal(names(attributes(selected_basis)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
+  expect_equal(class(selected_basis), "mrts")
+  expect_equal(dim(selected_basis), c(900, 112))
+  expect_equal(dim(attributes(selected_basis)$UZ), c(153, 112))
+  expect_lte(norm(attributes(selected_basis)$UZ, "F") - 2493869, tolerance)
+  expect_equal(dim(attributes(selected_basis)$Xu), c(150, 2))
+  expect_lte(norm(attributes(selected_basis)$Xu, "F") - 7.206402, tolerance)
+  expect_lte(sum(attributes(selected_basis)$nconst - c(0.29846350, 0.04876598)), tolerance)
+  expect_equal(dim(attributes(selected_basis)$BBBH), c(3, 150))
+  expect_lte(norm(attributes(selected_basis)$BBBH, "F") - 0.09683313, tolerance)
+  expect_equal(names(attributes(selected_basis_em)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
+  expect_lte(norm(attributes(selected_basis_em)$UZ, "F") - 2493869, tolerance)
+  expect_equal(dim(attributes(selected_basis_em)$Xu), c(150, 2))
+  expect_lte(norm(attributes(selected_basis_em)$Xu, "F") - 7.206402, tolerance)
+  expect_lte(sum(attributes(selected_basis_em)$nconst - c(0.29846350, 0.04876598)), tolerance)
+  expect_equal(dim(attributes(selected_basis_em)$BBBH), c(3, 150))
+  expect_lte(norm(attributes(selected_basis_em)$BBBH, "F") - 0.09683313, tolerance)
+  expect_equal(dim(selected_basis_na), c(900, 111))
+  expect_lte(norm(attributes(selected_basis_na)$UZ, "F") - 2552476, tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$Xu), c(142, 2))
+  expect_lte(norm(attributes(selected_basis_na)$Xu, "F") - 7.182933, tolerance)
+  expect_lte(sum(attributes(selected_basis_na)$nconst - 0.3438869), tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 142))
+  expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.0950111, tolerance)
+  expect_warning(selectBasis(data, grids, sequence_rank = 1:10, max_knot = 1000), "The minimum of sequence_rank can not less than 3. Too small values will be ignored.")
 })

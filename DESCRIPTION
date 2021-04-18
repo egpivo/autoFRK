@@ -20,7 +20,7 @@ Version: 1.4.8
 Date: 2021-04-15
 Depends: R (>= 3.5.0), spam
 Imports: fields (>= 6.9.1), filehashSQLite, filehash, MASS, mgcv, LatticeKrig
-        (>= 5.4), FNN, filematrix, Rcpp,  methods
+        (>= 5.4), FNN, filematrix, Rcpp, methods
 LinkingTo: Rcpp, RSpectra, RcppEigen, RcppParallel
 Suggests: 
     knitr,

@@ -7,12 +7,12 @@
 eigenDecomposeInDecreasingOrder(mat)
 }
 \arguments{
-\item{mat}{A matrix}
+\item{mat}{A matrix.}
 }
 \value{
-A list
+A list.
 }
 \description{
 Internal function: eigen-decomposition in decreasing order
 }
-\keyword{internal}
+\keyword{internal.}

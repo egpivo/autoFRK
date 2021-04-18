@@ -183,7 +183,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         D,
         maxit,
         avgtol = tolerance,
-        wSave = TRUE, 
+        wSave = TRUE,
         DfromLK = DfromLK,
         vfixed = DnLK$s
       )
@@ -200,145 +200,6 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
     class(obj) <- "FRK"
     return(obj)
   }
-}
-
-selectBasis <- function(Data, loc, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.1^6,
-                        maxK = NULL, Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3,
-                        maxknot = 5000, DfromLK = NULL, Fk = NULL) {
-  Data <- as.matrix(Data)
-  empty <- apply(!is.na(Data), 2, sum) == 0
-  if (sum(empty) > 0) {
-    Data <- Data[, which(!empty)]
-  }
-  if (is(Data, "vector")) {
-    Data <- as.matrix(Data)
-  }
-  loc <- as.matrix(loc)
-  d <- NCOL(loc)
-  withNA <- sum(is.na(Data)) > 0
-  del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
-  pick <- 1:NROW(Data)
-  if (length(del) > 0) {
-    Data <- Data[-del, ]
-    D <- D[-del, -del]
-    pick <- pick[-del]
-    withNA <- sum(is.na(Data)) > 0
-  }
-  N <- length(pick)
-  klim <- min(N, round(10 * sqrt(N)))
-  if (N < maxknot) {
-    knot <- loc[pick, ]
-  } else {
-    knot <- subKnot(loc[pick, ], min(maxknot, klim))
-  }
-  if (!is.null(maxK)) {
-    maxK <- round(maxK)
-  } else {
-    if (!is.null(Kseq)) {
-      maxK <- round(max(Kseq))
-    } else {
-      maxK <- klim
-    }
-  }
-  if (!is.null(Kseq)) {
-    K <- unique(round(Kseq))
-    if (max(K) > maxK) {
-      stop("maximum of Kseq is larger than maxK!")
-    }
-    if (any(K < (d + 1))) {
-      warning(
-        "The minimum of Kseq can not less than ",
-        d + 1, ". Too small values will be ignored."
-      )
-    }
-    K <- K[K > d]
-    if (length(K) == 0) {
-      stop("Not valid Kseq!")
-    }
-  }
-  else {
-    K <- unique(round(seq(d + 1, maxK, by = maxK^(1 / 3) * d)))
-    if (length(K) > 30) {
-      K <- unique(round(seq(d + 1, maxK, l = 30)))
-    }
-  }
-  if (is.null(Fk)) {
-    Fk <- mrts(knot, max(K), loc, maxknot)
-  }
-  AIClist <- rep(Inf, length(K))
-  method <- match.arg(method)
-  if ((method == "EM") & (is.null(DfromLK))) {
-    for (k in 1:length(K)) {
-      AIClist[k] <- indeMLE(
-        Data,
-        Fk[pick, 1:K[k]],
-        D,
-        maxit,
-        avgtol,
-        wSave = FALSE,
-        num.report = FALSE
-      )$negloglik
-    }
-  }
-  else {
-    if (withNA) {
-      Data <- as.matrix(Data)
-      for (tt in 1:NCOL(Data)) {
-        where <- is.na(Data[, tt])
-        if (sum(where) == 0) {
-          next
-        }
-        cidx <- which(!where)
-        nnidx <- FNN::get.knnx(loc[cidx, ], as.matrix(loc[where, ]), k = n.neighbor)
-        nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
-        nnval <- array((Data[, tt])[nnidx], dim(nnidx))
-        Data[where, tt] <- rowMeans(nnval)
-      }
-    }
-    TT <- NCOL(Data)
-    if (is.null(DfromLK)) {
-      iD <- solve(D)
-      iDFk <- iD %*% Fk[pick, ]
-      iDZ <- iD %*% Data
-    }
-    else {
-      wX <- DfromLK$wX[pick, ]
-      G <- t(DfromLK$wX) %*% DfromLK$wX + DfromLK$lambda *
-        DfromLK$Q
-      weight <- DfromLK$weights[pick]
-      wwX <- diag.spam(sqrt(weight)) %*% wX
-      wXiG <- (wwX) %*% solve(G)
-      iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*%
-        as.matrix(Fk[pick, ]))
-      iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-    }
-    trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
-    for (k in 1:length(K)) {
-      half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
-      ihFiD <- half %*% t(iDFk[, 1:K[k]])
-      JSJ <- tcrossprod(ihFiD %*% Data) / TT
-      JSJ <- (JSJ + t(JSJ)) / 2
-      AIClist[k] <- cMLE(
-        Fk = Fk[pick, 1:K[k]],
-        TT = TT,
-        trS = trS,
-        half = half,
-        JSJ = JSJ
-      )$negloglik
-    }
-  }
-
-  TT <- NCOL(Data)
-  df <- (K * (K + 1) / 2 + 1) * (K <= TT) + (K * TT + 1 - TT * (TT - 1) / 2) * (K > TT)
-  AIClist <- AIClist + 2 * df
-  Kopt <- K[which.min(AIClist)]
-  out <- Fk[, 1:Kopt]
-
-  dimnames(Fk) <- NULL
-  aname <- names(attributes(Fk))
-  attributes(out) <- c(attributes(out), attributes(Fk)[setdiff(aname, "dim")])
-
-  return(out)
 }
 
 cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL,
@@ -700,7 +561,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   }
   if (num.report) cat("Number of iteration: ", cnt, "\n")
   unlink(tmpdir, recursive = TRUE)
-  n2loglik <- getLikelihood(Data, Fk, new$M, new$s, Depsilon)
+  n2loglik <- computeLikelihood(Data, Fk, new$M, new$s, Depsilon)
 
   if (!wSave) {
     return(list(M = new$M, s = new$s, negloglik = n2loglik))
@@ -853,15 +714,6 @@ indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.
     }
     return(out)
   }
-}
-
-invCz <- function(R, L, z) {
-  K <- NCOL(L)
-  iR <- solve(R)
-  iRZ <- iR %*% z
-  right <- L %*% solve(diag(1, K) + as.matrix(t(L) %*% iR %*% L)) %*% (t(L) %*% iRZ)
-
-  return(iRZ - iR %*% right)
 }
 
 initializeLKnFRK <- function(Data, loc, nlevel = 3, weights = NULL, n.neighbor = 3, nu = 1) {
@@ -1102,7 +954,8 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
         Xu,
         xobs_diag,
         x,
-        k - ndims - 1)
+        k - ndims - 1
+      )
     } else {
       X2 <- scale(Xu, scale = FALSE)
       shift <- colMeans(Xu)
@@ -1335,9 +1188,11 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       if (only.se) {
         return(se)
       } else {
-        return(list(se = se,
-                    w = MFiS11 %*% Data,
-                    wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)))
+        return(list(
+          se = se,
+          w = MFiS11 %*% Data,
+          wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
+        ))
       }
     }
     if (is.null(obsloc) & is.null(obsData)) {
@@ -1385,7 +1240,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
               basis,
               weight[!miss[, tt]],
               phi1[!miss[, tt], ],
-              phi0, 
+              phi0,
               Q,
               lambda,
               phi0P,

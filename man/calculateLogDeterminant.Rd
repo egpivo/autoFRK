@@ -7,16 +7,16 @@
 calculateLogDeterminant(R, L, K)
 }
 \arguments{
-\item{R}{A p x p matrix}
+\item{R}{A p x p positive-definite matrix.}
 
-\item{L}{A p x K matrix}
+\item{L}{A p x K matrix.}
 
-\item{K}{A numeric}
+\item{K}{A numeric.}
 }
 \value{
-A numeric
+A numeric.
 }
 \description{
 Internal function: calculate the log determinant for the likelihood use.
 }
-\keyword{internal}
+\keyword{internal.}
