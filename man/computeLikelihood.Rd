@@ -4,25 +4,25 @@
 \alias{computeLikelihood}
 \title{Internal function: compute a negative log-likelihood}
 \usage{
-computeLikelihood(Data, Fk, M, s, Depsilon)
+computeLikelihood(data, Fk, M, s, Depsilon)
 }
 \arguments{
-\item{Fk}{A  \emph{n} by \emph{K} matrix of basis function values with
-each column being a basis function taken values at \code{loc}}
-
-\item{M}{A \emph{K} by \emph{K} symmetric matrix}
-
-\item{s}{A scalar}
-
 \item{data}{A \emph{n} by \emph{T} data matrix (NA allowed) with
 \eqn{z[t]} as the \emph{t}-th column.}
 
-\item{Depsilion}{A \emph{n} by \emph{n} diagonal matrix}
+\item{Fk}{A  \emph{n} by \emph{K} matrix of basis function values with
+each column being a basis function taken values at \code{loc}.}
+
+\item{M}{A \emph{K} by \emph{K} symmetric matrix.}
+
+\item{s}{A scalar.}
+
+\item{Depsilion}{A \emph{n} by \emph{n} diagonal matrix.}
 }
 \value{
-A numeric
+A numeric.
 }
 \description{
 Internal function: compute a negative log-likelihood
 }
-\keyword{internal}
+\keyword{internal.}

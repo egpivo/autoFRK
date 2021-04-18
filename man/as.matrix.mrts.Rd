@@ -7,14 +7,14 @@
 as.matrix.mrts(x, ...)
 }
 \arguments{
-\item{x}{A mrts object}
+\item{x}{A mrts object.}
 
-\item{...}{Not used directly}
+\item{...}{Not used directly.}
 }
 \value{
-A matrix object
+A matrix object.
 }
 \description{
 Internal function: Remove attributes of mrts
 }
-\keyword{internal}
+\keyword{internal.}
