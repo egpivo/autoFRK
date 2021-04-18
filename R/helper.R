@@ -290,7 +290,6 @@ invCz <- function(R, L, z) {
   return(iRZ - iR %*% right)
 }
 
-
 #'
 #' Internal function: print an FRK object
 #'
@@ -346,36 +345,6 @@ convertToPositiveDefinite <- function(mat) {
     mat <- mat + diag(max(0, -v) + 0.1^7.5, NROW(mat))
   }
   return(mat)
-}
-
-extractLK <- function(obj, loc = NULL, w = NULL, pick = NULL) {
-  out <- list()
-  if (is.null(loc)) {
-    if (is.null(obj$LKinfo.MLE$x)) {
-      loc <- obj$LKinfo.MLE$call["x"][[1]]
-    } else {
-      loc <- obj$LKinfo.MLE$x
-    }
-  }
-  phi <- LKrig.basis(loc, obj$LKinfo)
-  Q <- LKrig.precision(obj$LKinfo)
-  out$Q <- Q
-  if (!is.null(w)) {
-    out$weights <- w
-  } else {
-    out$weights <- obj$LKinfo.MLE$weights
-  }
-  w <- diag.spam(sqrt(out$weights))
-  wX <- w %*% phi
-  out$wX <- wX
-  out$G <- t(wX) %*% wX + obj$lambda.MLE * Q
-  out$lambda <- obj$lambda.MLE
-  if (is.null(pick)) {
-    pick <- 1:NROW(loc)
-  }
-  out$pick <- pick
-
-  return(out)
 }
 
 #'
