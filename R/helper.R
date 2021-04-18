@@ -93,11 +93,11 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' @param D A diagonal matrix.
 #' @param maxit An iteger for the maximum number of iterations used in indeMLE.
 #' @param avgtol A numeric for average tolerance used in indeMLE.
-#' @param maxK An integer of the maximum of K values.
-#' @param Kseq An array of K values
+#' @param max_rank An integer of the maximum of K values.
+#' @param sequence_rank An array of K values
 #' @param method A character of a list of characters.
-#' @param n.neighbor An integer.
-#' @param maxknot An integer for the maximum number of knots
+#' @param num_neighbors An integer.
+#' @param max_knot An integer for the maximum number of knots
 #' @param DfromLK A \emph{n} by \emph{n} diagonal matrix.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
@@ -108,11 +108,11 @@ selectBasis <- function(data,
                         D = NULL,
                         maxit = 50,
                         avgtol = 1e-6,
-                        maxK = NULL,
-                        Kseq = NULL,
+                        max_rank = NULL,
+                        sequence_rank = NULL,
                         method = c("fast", "EM"),
-                        n.neighbor = 3,
-                        maxknot = 5000,
+                        num_neighbors = 3,
+                        max_knot = 5000,
                         DfromLK = NULL,
                         Fk = NULL) {
   data <- as.matrix(data)
@@ -122,62 +122,62 @@ selectBasis <- function(data,
 
   loc <- as.matrix(loc)
   d <- NCOL(loc)
-  withNA <- sum(is.na(data)) > 0
+  does_data_exist_missing_values <- sum(is.na(data)) > 0
   na_rows <- which(rowSums(as.matrix(!is.na(data))) == 0)
   pick <- 1:NROW(data)
   if (length(na_rows) > 0) {
     data <- data[-na_rows, ]
     D <- D[-na_rows, -na_rows]
     pick <- pick[-na_rows]
-    withNA <- sum(is.na(data)) > 0
+    does_data_exist_missing_values <- sum(is.na(data)) > 0
   }
 
   N <- length(pick)
   klim <- min(N, round(10 * sqrt(N)))
-  if (N < maxknot) {
+  if (N < max_knot) {
     knot <- loc[pick, ]
   } else {
-    knot <- subKnot(loc[pick, ], min(maxknot, klim))
+    knot <- subKnot(loc[pick, ], min(max_knot, klim))
   }
   
-  if (!is.null(maxK)) {
-    maxK <- round(maxK)
+  if (!is.null(max_rank)) {
+    max_rank <- round(max_rank)
   } else {
-    maxK <- ifelse(!is.null(Kseq), round(max(Kseq)), klim)
+    max_rank <- ifelse(!is.null(sequence_rank), round(max(sequence_rank)), klim)
   }
 
-  if (!is.null(Kseq)) {
-    K <- unique(round(Kseq))
-    if (max(K) > maxK) {
-      stop("maximum of Kseq is larger than maxK!")
+  if (!is.null(sequence_rank)) {
+    K <- unique(round(sequence_rank))
+    if (max(K) > max_rank) {
+      stop("maximum of sequence_rank is larger than max_rank!")
     }
     if (sum(K > d) == length(K)) {
-      stop("Not valid Kseq!")
+      stop("Not valid sequence_rank!")
     } else if (any(K < (d + 1))) {
       warning(
-        "The minimum of Kseq can not less than ",
+        "The minimum of sequence_rank can not less than ",
         d + 1, ". Too small values will be ignored."
       )
     }
     K <- K[K > d]
 
   } else {
-    K <- unique(round(seq(d + 1, maxK, by = maxK^(1 / 3) * d)))
+    K <- unique(round(seq(d + 1, max_rank, by = max_rank^(1 / 3) * d)))
     if (length(K) > 30) {
-      K <- unique(round(seq(d + 1, maxK, l = 30)))
+      K <- unique(round(seq(d + 1, max_rank, l = 30)))
     }
   }
 
   if (is.null(Fk)) {
-    Fk <- mrts(knot, max(K), loc, maxknot)
+    Fk <- mrts(knot, max(K), loc, max_knot)
   }
-  AIClist <- rep(Inf, length(K))
+  AIC_list <- rep(Inf, length(K))
   method <- match.arg(method)
-  TT <- NCOL(data)
+  num_data_columns <- NCOL(data)
 
   if ((method == "EM") & (is.null(DfromLK))) {
     for (k in 1:length(K)) {
-      AIClist[k] <- indeMLE(
+      AIC_list[k] <- indeMLE(
         data,
         Fk[pick, 1:K[k]],
         D,
@@ -188,18 +188,17 @@ selectBasis <- function(data,
       )$negloglik
     }
   } else {
-    if (withNA) {
-      data <- as.matrix(data)
-      for (tt in 1:NCOL(data)) {
-        where <- is.na(data[, tt])
-        if (sum(where) == 0) {
+    if (does_data_exist_missing_values) {
+      for (tt in 1:num_data_columns) {
+        is_row_missing <- is.na(data[, tt])
+        if (sum(is_row_missing) == 0) {
           next
         }
-        cidx <- which(!where)
-        nnidx <- FNN::get.knnx(loc[cidx, ], as.matrix(loc[where, ]), k = n.neighbor)
+        cidx <- which(!is_row_missing)
+        nnidx <- FNN::get.knnx(loc[cidx, ], as.matrix(loc[is_row_missing, ]), k = num_neighbors)
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
         nnval <- array((data[, tt])[nnidx], dim(nnidx))
-        data[where, tt] <- rowMeans(nnval)
+        data[is_row_missing, tt] <- rowMeans(nnval)
       }
     }
     if (is.null(DfromLK)) {
@@ -218,15 +217,15 @@ selectBasis <- function(data,
         as.matrix(Fk[pick, ]))
       iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
     }
-    trS <- sum(rowSums(as.matrix(iDZ) * data)) / TT
+    trS <- sum(rowSums(as.matrix(iDZ) * data)) / num_data_columns
     for (k in 1:length(K)) {
       half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
       ihFiD <- half %*% t(iDFk[, 1:K[k]])
-      JSJ <- tcrossprod(ihFiD %*% data) / TT
+      JSJ <- tcrossprod(ihFiD %*% data) / num_data_columns
       JSJ <- (JSJ + t(JSJ)) / 2
-      AIClist[k] <- cMLE(
+      AIC_list[k] <- cMLE(
         Fk = Fk[pick, 1:K[k]],
-        TT = TT,
+        TT = num_data_columns,
         trS = trS,
         half = half,
         JSJ = JSJ
@@ -234,9 +233,9 @@ selectBasis <- function(data,
     }
   }
 
-  df <- (K * (K + 1) / 2 + 1) * (K <= TT) + (K * TT + 1 - TT * (TT - 1) / 2) * (K > TT)
-  AIClist <- AIClist + 2 * df
-  Kopt <- K[which.min(AIClist)]
+  df <- (K * (K + 1) / 2 + 1) * (K <= num_data_columns) + (K * num_data_columns + 1 - num_data_columns * (num_data_columns - 1) / 2) * (K > num_data_columns)
+  AIC_list <- AIC_list + 2 * df
+  Kopt <- K[which.min(AIC_list)]
   out <- Fk[, 1:Kopt]
 
   dimnames(Fk) <- NULL
@@ -401,14 +400,14 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
 
   if (length(mat) > 1e8) {
     warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
-    where <- fetchNonZeroIndexs(mat)
+    non_zero_indexs <- fetchNonZeroIndexs(mat)
   } else {
-    where <- which(mat != 0)
+    non_zero_indexs <- which(mat != 0)
   }
   matrix_dim <- dim(mat)
   sparse_matrix <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
   for (j in 1:matrix_dim[2]) {
-    flat_indexs <- where[where >= ((j - 1) * matrix_dim[1] + 1) & where <= (j * matrix_dim[1])]
+    flat_indexs <- non_zero_indexs[non_zero_indexs >= ((j - 1) * matrix_dim[1] + 1) & non_zero_indexs <= (j * matrix_dim[1])]
     if (length(flat_indexs) > 0) {
       row_indexs <- flat_indexs - ((j - 1) * matrix_dim[1])
       sparse_matrix[row_indexs, j] <- mat[row_indexs, j]
