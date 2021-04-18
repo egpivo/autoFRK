@@ -105,7 +105,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #'
 selectBasis <- function(data,
                         loc,
-                        D = diag.spam(NROW(data)),
+                        D = NULL,
                         maxit = 50,
                         avgtol = 1e-6,
                         maxK = NULL,
@@ -117,21 +117,21 @@ selectBasis <- function(data,
                         Fk = NULL) {
   data <- as.matrix(data)
   empty <- apply(!is.na(data), 2, sum) == 0
-  if (sum(empty) > 0) {
-    data <- data[, which(!empty)]
-  }
+  if (sum(empty) > 0) data <- data[, which(!empty)]
+  if (is.null(D)) D <- diag.spam(NROW(data))
 
   loc <- as.matrix(loc)
   d <- NCOL(loc)
   withNA <- sum(is.na(data)) > 0
-  del <- which(rowSums(as.matrix(!is.na(data))) == 0)
+  na_rows <- which(rowSums(as.matrix(!is.na(data))) == 0)
   pick <- 1:NROW(data)
-  if (length(del) > 0) {
-    data <- data[-del, ]
-    D <- D[-del, -del]
-    pick <- pick[-del]
+  if (length(na_rows) > 0) {
+    data <- data[-na_rows, ]
+    D <- D[-na_rows, -na_rows]
+    pick <- pick[-na_rows]
     withNA <- sum(is.na(data)) > 0
   }
+
   N <- length(pick)
   klim <- min(N, round(10 * sqrt(N)))
   if (N < maxknot) {
@@ -142,12 +142,9 @@ selectBasis <- function(data,
   if (!is.null(maxK)) {
     maxK <- round(maxK)
   } else {
-    if (!is.null(Kseq)) {
-      maxK <- round(max(Kseq))
-    } else {
-      maxK <- klim
-    }
+    maxK <- ifelse(!is.null(Kseq), round(max(Kseq)), klim)
   }
+
   if (!is.null(Kseq)) {
     K <- unique(round(Kseq))
     if (max(K) > maxK) {
@@ -163,19 +160,20 @@ selectBasis <- function(data,
     if (length(K) == 0) {
       stop("Not valid Kseq!")
     }
-  }
-  else {
+  } else {
     K <- unique(round(seq(d + 1, maxK, by = maxK^(1 / 3) * d)))
     if (length(K) > 30) {
       K <- unique(round(seq(d + 1, maxK, l = 30)))
     }
   }
+
   if (is.null(Fk)) {
     Fk <- mrts(knot, max(K), loc, maxknot)
   }
   AIClist <- rep(Inf, length(K))
   method <- match.arg(method)
   TT <- NCOL(data)
+
   if ((method == "EM") & (is.null(DfromLK))) {
     for (k in 1:length(K)) {
       AIClist[k] <- indeMLE(
@@ -188,8 +186,7 @@ selectBasis <- function(data,
         num.report = FALSE
       )$negloglik
     }
-  }
-  else {
+  } else {
     if (withNA) {
       data <- as.matrix(data)
       for (tt in 1:NCOL(data)) {
@@ -204,6 +201,7 @@ selectBasis <- function(data,
         data[where, tt] <- rowMeans(nnval)
       }
     }
+
     if (is.null(DfromLK)) {
       iD <- solve(D)
       iDFk <- iD %*% Fk[pick, ]
@@ -217,9 +215,10 @@ selectBasis <- function(data,
       wwX <- diag.spam(sqrt(weight)) %*% wX
       wXiG <- (wwX) %*% solve(G)
       iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*%
-                                                as.matrix(Fk[pick, ]))
+        as.matrix(Fk[pick, ]))
       iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
     }
+
     trS <- sum(rowSums(as.matrix(iDZ) * data)) / TT
     for (k in 1:length(K)) {
       half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
@@ -235,16 +234,16 @@ selectBasis <- function(data,
       )$negloglik
     }
   }
-  
+
   df <- (K * (K + 1) / 2 + 1) * (K <= TT) + (K * TT + 1 - TT * (TT - 1) / 2) * (K > TT)
   AIClist <- AIClist + 2 * df
   Kopt <- K[which.min(AIClist)]
   out <- Fk[, 1:Kopt]
-  
+
   dimnames(Fk) <- NULL
   aname <- names(attributes(Fk))
   attributes(out) <- c(attributes(out), attributes(Fk)[setdiff(aname, "dim")])
-  
+
   return(out)
 }
 

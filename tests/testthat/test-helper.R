@@ -141,6 +141,9 @@ test_that("Negative log likelihood", {
 })
 
 selected_basis <- selectBasis(data, grids)
+selected_basis_em <- selectBasis(data, grids, method="EM")
+data[3:10] <- NA
+selected_basis_na <- selectBasis(data, grids)
 
 test_that("Basis functions selection", {
   expect_equal(names(attributes(selected_basis)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
@@ -153,4 +156,18 @@ test_that("Basis functions selection", {
   expect_lte(sum(attributes(selected_basis)$nconst - c(0.29846350, 0.04876598)), tolerance)
   expect_equal(dim(attributes(selected_basis)$BBBH), c(3, 150))
   expect_lte(norm(attributes(selected_basis)$BBBH, "F") - 0.09683313, tolerance)
+  expect_equal(names(attributes(selected_basis_em)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
+  expect_lte(norm(attributes(selected_basis_em)$UZ, "F") - 2493869, tolerance)
+  expect_equal(dim(attributes(selected_basis_em)$Xu), c(150, 2))
+  expect_lte(norm(attributes(selected_basis_em)$Xu, "F") - 7.206402, tolerance)
+  expect_lte(sum(attributes(selected_basis_em)$nconst - c(0.29846350, 0.04876598)), tolerance)
+  expect_equal(dim(attributes(selected_basis_em)$BBBH), c(3, 150))
+  expect_lte(norm(attributes(selected_basis_em)$BBBH, "F") - 0.09683313, tolerance)
+  expect_equal(dim(selected_basis_na), c(900, 111))
+  expect_lte(norm(attributes(selected_basis_na)$UZ, "F") - 2552476, tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$Xu), c(142, 2))
+  expect_lte(norm(attributes(selected_basis_na)$Xu, "F") - 7.182933, tolerance)
+  expect_lte(sum(attributes(selected_basis_na)$nconst - 0.3438869), tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 142))
+  expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.0950111, tolerance)
 })

@@ -7,7 +7,7 @@
 selectBasis(
   data,
   loc,
-  D = diag.spam(NROW(data)),
+  D = NULL,
   maxit = 50,
   avgtol = 1e-06,
   maxK = NULL,
