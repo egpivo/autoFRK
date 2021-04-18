@@ -37,6 +37,8 @@ selectBasis(
 
 \item{method}{A character of a list of characters.}
 
+\item{n.neighbor}{An integer.}
+
 \item{maxknot}{An integer for the maximum number of knots}
 
 \item{DfromLK}{A \emph{n} by \emph{n} diagonal matrix.}

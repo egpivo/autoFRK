@@ -96,6 +96,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' @param maxK An integer of the maximum of K values.
 #' @param Kseq An array of K values
 #' @param method A character of a list of characters.
+#' @param n.neighbor An integer.
 #' @param maxknot An integer for the maximum number of knots
 #' @param DfromLK A \emph{n} by \emph{n} diagonal matrix.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
