@@ -141,7 +141,7 @@ test_that("Negative log likelihood", {
 })
 
 selected_basis <- selectBasis(data, grids)
-selected_basis_em <- selectBasis(data, grids, method="EM")
+selected_basis_em <- selectBasis(data, grids, method = "EM")
 data[3:10] <- NA
 selected_basis_na <- selectBasis(data, grids)
 
@@ -170,4 +170,5 @@ test_that("Basis functions selection", {
   expect_lte(sum(attributes(selected_basis_na)$nconst - 0.3438869), tolerance)
   expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 142))
   expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.0950111, tolerance)
+  expect_warning(selectBasis(data, grids, Kseq = 1:10, maxknot = 1000), "The minimum of Kseq can not less than 3. Too small values will be ignored.")
 })

@@ -139,6 +139,7 @@ selectBasis <- function(data,
   } else {
     knot <- subKnot(loc[pick, ], min(maxknot, klim))
   }
+  
   if (!is.null(maxK)) {
     maxK <- round(maxK)
   } else {
@@ -150,16 +151,16 @@ selectBasis <- function(data,
     if (max(K) > maxK) {
       stop("maximum of Kseq is larger than maxK!")
     }
-    if (any(K < (d + 1))) {
+    if (sum(K > d) == length(K)) {
+      stop("Not valid Kseq!")
+    } else if (any(K < (d + 1))) {
       warning(
         "The minimum of Kseq can not less than ",
         d + 1, ". Too small values will be ignored."
       )
     }
     K <- K[K > d]
-    if (length(K) == 0) {
-      stop("Not valid Kseq!")
-    }
+
   } else {
     K <- unique(round(seq(d + 1, maxK, by = maxK^(1 / 3) * d)))
     if (length(K) > 30) {
@@ -201,7 +202,6 @@ selectBasis <- function(data,
         data[where, tt] <- rowMeans(nnval)
       }
     }
-
     if (is.null(DfromLK)) {
       iD <- solve(D)
       iDFk <- iD %*% Fk[pick, ]
@@ -218,7 +218,6 @@ selectBasis <- function(data,
         as.matrix(Fk[pick, ]))
       iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
     }
-
     trS <- sum(rowSums(as.matrix(iDZ) * data)) / TT
     for (k in 1:length(K)) {
       half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
