@@ -139,3 +139,18 @@ test_that("Negative log likelihood", {
   expect_lte(estimeated_log_likelihood_K_2 - true_log_likelihood_K_2, tolerance)
   expect_lte(estimeated_log_likelihood_K_1 - true_log_likelihood_K_1, tolerance)
 })
+
+selected_basis <- selectBasis(data, grids)
+
+test_that("Basis functions selection", {
+  expect_equal(names(attributes(selected_basis)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
+  expect_equal(class(selected_basis), "mrts")
+  expect_equal(dim(selected_basis), c(900, 112))
+  expect_equal(dim(attributes(selected_basis)$UZ), c(153, 112))
+  expect_lte(norm(attributes(selected_basis)$UZ, "F") - 2493869, tolerance)
+  expect_equal(dim(attributes(selected_basis)$Xu), c(150, 2))
+  expect_lte(norm(attributes(selected_basis)$Xu, "F") - 7.206402, tolerance)
+  expect_lte(sum(attributes(selected_basis)$nconst - c(0.29846350, 0.04876598)), tolerance)
+  expect_equal(dim(attributes(selected_basis)$BBBH), c(3, 150))
+  expect_lte(norm(attributes(selected_basis)$BBBH, "F") - 0.09683313, tolerance)
+})

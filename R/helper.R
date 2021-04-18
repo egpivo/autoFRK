@@ -119,9 +119,6 @@ selectBasis <- function(data,
   if (sum(empty) > 0) {
     data <- data[, which(!empty)]
   }
-  if (is(data, "vector")) {
-    data <- as.matrix(data)
-  }
   loc <- as.matrix(loc)
   d <- NCOL(loc)
   withNA <- sum(is.na(data)) > 0
