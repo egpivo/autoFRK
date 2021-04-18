@@ -173,3 +173,8 @@ test_that("Basis functions selection", {
   expect_warning(selectBasis(data, grids, sequence_rank = 1:10, max_knot = 1000), "The minimum of sequence_rank can not less than 3. Too small values will be ignored.")
   expect_error(selectBasis(data, grids, sequence_rank = 1:2, max_knot = 1000), "Not valid sequence_rank!")
 })
+
+test_that("Estimate the parameter v", {
+  expect_equal(estimateV(1:3, 2, 100, 20), 3)
+  expect_lte(abs(estimateV(1:100, 2, 100, 20) -  59.875), tolerance)
+})

@@ -244,6 +244,92 @@ selectBasis <- function(data,
   return(out)
 }
 
+
+#'
+#' Internal function: solve v parameter
+#'
+#' @keywords internal.
+#' @param d An array of nonnegative values.
+#' @param s A positive numeric.
+#' @param sample_covariance_trace A positive numeric.
+#' @param n An integer. Sample size.
+#' @return A numeric.
+#'
+estimateV <- function(d, s, sample_covariance_trace, n) {
+  if (max(d) < max(sample_covariance_trace / n, s)) {
+    return(max(sample_covariance_trace / n - s, 0))
+  }
+
+  k <- length(d)
+  cumulative_d_values <- cumsum(d)
+  ks <- 1:k
+  if (k == n) ks[n] <- n - 1
+
+  eligible_indexs <- which(d > ((sample_covariance_trace - cumulative_d_values) / (n - ks)))
+  L <- max(eligible_indexs)
+  if (L == n) L <- n - 1
+  return(max((sample_covariance_trace - cumulative_d_values[L]) / (n - L) - s, 0))
+}
+
+cMLE <- function(Fk,
+                 TT,
+                 trS,
+                 half,
+                 JSJ = NULL,
+                 s = 0,
+                 ldet = NULL,
+                 wSave = FALSE,
+                 onlylogLike = !wSave,
+                 vfixed = NULL) {
+  sol.eta <- function(d, s, v) pmax(d - s - v, 0)
+  neg2llik <- function(d, s, v, trS, n) {
+    k <- length(d)
+    eta <- pmax(d - s - v, 0)
+    return(
+      ifelse(max(eta / (s + v)) > 1e20,
+        Inf,
+        n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta + s + v))
+      )
+    )
+  }
+  if (is.null(ldet)) {
+    ldet <- 0
+  }
+  n <- nrow(Fk)
+  k <- ncol(Fk)
+  eg <- eigen(JSJ)
+  d <- eg$value[1:k]
+  P <- eg$vector[, 1:k]
+  if (is.null(vfixed)) {
+    v <- estimateV(d, s, trS, n)
+  } else {
+    v <- vfixed
+  }
+  dii <- pmax(d, 0)
+  dhat <- sol.eta(dii, s, v)
+  if (onlylogLike) {
+    return(list(negloglik = neg2llik(dii, s, v, trS, n) *
+      TT + ldet * TT))
+  }
+  M <- half %*% P %*% (dhat * t(P)) %*% half
+  dimnames(M) <- NULL
+  if (!wSave) {
+    L <- NULL
+  } else {
+    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
+    if (all(dhat == 0)) {
+      dhat[1] <- 0.1^10
+    }
+    L <- as.matrix(L[, dhat > 0])
+  }
+  return(list(
+    v = v,
+    M = M,
+    s = s,
+    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT, L = L
+  ))
+}
+
 #'
 #' Internal function: check if a numeric-like object is diagonal
 #'
