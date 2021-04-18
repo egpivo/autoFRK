@@ -23,6 +23,8 @@ selectBasis(
 \item{data}{A \emph{n} by \emph{T} data matrix (NA allowed) with
 \eqn{z[t]} as the \emph{t}-th column.}
 
+\item{loc}{\emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.}
+
 \item{D}{A diagonal matrix.}
 
 \item{maxit}{An iteger for the maximum number of iterations used in indeMLE.}

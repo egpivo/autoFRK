@@ -50,7 +50,7 @@ calculateLogDeterminant <- function(R, L, K) {
 }
 
 #'
-#' Internal function: compute a negative log-likelihood
+#' Internal function: compute a negative log-likelihood (-2*log(likelihood))
 #'
 #' @keywords internal.
 #' @param data  A \emph{n} by \emph{T} data matrix (NA allowed) with
@@ -64,7 +64,7 @@ calculateLogDeterminant <- function(R, L, K) {
 #'
 computeLikelihood <- function(data, Fk, M, s, Depsilon) {
   data <- as.matrix(data)
-  non_missing_points_matrix <- as.matrix(!is.na(Data))
+  non_missing_points_matrix <- as.matrix(!is.na(data))
   num_columns <- NCOL(data)
 
   n2loglik <- sum(non_missing_points_matrix) * log(2 * pi)
@@ -75,7 +75,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
   L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0)), K) %*% t(eg$vector)
 
   for (t in 1:num_columns) {
-    zt <- Data[non_missing_points_matrix[, t], t]
+    zt <- data[non_missing_points_matrix[, t], t]
     Rt <- R[non_missing_points_matrix[, t], non_missing_points_matrix[, t]]
     Lt <- L[non_missing_points_matrix[, t], ]
     n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
@@ -89,6 +89,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' @keywords internal.
 #' @param data  A \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
+#' @param loc \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
 #' @param D A diagonal matrix.
 #' @param maxit An iteger for the maximum number of iterations used in indeMLE.
 #' @param avgtol A numeric for average tolerance used in indeMLE.
@@ -130,7 +131,7 @@ selectBasis <- function(data,
     data <- data[-del, ]
     D <- D[-del, -del]
     pick <- pick[-del]
-    withNA <- sum(is.na(Data)) > 0
+    withNA <- sum(is.na(data)) > 0
   }
   N <- length(pick)
   klim <- min(N, round(10 * sqrt(N)))
@@ -200,14 +201,14 @@ selectBasis <- function(data,
         nnidx <- FNN::get.knnx(loc[cidx, ], as.matrix(loc[where, ]), k = n.neighbor)
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
         nnval <- array((data[, tt])[nnidx], dim(nnidx))
-        Data[where, tt] <- rowMeans(nnval)
+        data[where, tt] <- rowMeans(nnval)
       }
     }
     TT <- NCOL(data)
     if (is.null(DfromLK)) {
       iD <- solve(D)
       iDFk <- iD %*% Fk[pick, ]
-      iDZ <- iD %*% Data
+      iDZ <- iD %*% data
     }
     else {
       wX <- DfromLK$wX[pick, ]
@@ -218,13 +219,13 @@ selectBasis <- function(data,
       wXiG <- (wwX) %*% solve(G)
       iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*%
                                                 as.matrix(Fk[pick, ]))
-      iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
+      iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
     }
-    trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
+    trS <- sum(rowSums(as.matrix(iDZ) * data)) / TT
     for (k in 1:length(K)) {
       half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
       ihFiD <- half %*% t(iDFk[, 1:K[k]])
-      JSJ <- tcrossprod(ihFiD %*% Data) / TT
+      JSJ <- tcrossprod(ihFiD %*% data) / TT
       JSJ <- (JSJ + t(JSJ)) / 2
       AIClist[k] <- cMLE(
         Fk = Fk[pick, 1:K[k]],

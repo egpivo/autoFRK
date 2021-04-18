@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{computeLikelihood}
 \alias{computeLikelihood}
-\title{Internal function: compute a negative log-likelihood}
+\title{Internal function: compute a negative log-likelihood (-2*log(likelihood))}
 \usage{
 computeLikelihood(data, Fk, M, s, Depsilon)
 }
@@ -23,6 +23,6 @@ each column being a basis function taken values at \code{loc}.}
 A numeric.
 }
 \description{
-Internal function: compute a negative log-likelihood
+Internal function: compute a negative log-likelihood (-2*log(likelihood))
 }
 \keyword{internal.}
