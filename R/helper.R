@@ -139,7 +139,7 @@ selectBasis <- function(data,
   } else {
     knot <- subKnot(loc[pick, ], min(max_knot, klim))
   }
-  
+
   if (!is.null(max_rank)) {
     max_rank <- round(max_rank)
   } else {
@@ -160,7 +160,6 @@ selectBasis <- function(data,
       )
     }
     K <- K[K > d]
-
   } else {
     K <- unique(round(seq(d + 1, max_rank, by = max_rank^(1 / 3) * d)))
     if (length(K) > 30) {

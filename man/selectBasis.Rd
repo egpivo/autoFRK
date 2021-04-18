@@ -10,11 +10,11 @@ selectBasis(
   D = NULL,
   maxit = 50,
   avgtol = 1e-06,
-  maxK = NULL,
-  Kseq = NULL,
+  max_rank = NULL,
+  sequence_rank = NULL,
   method = c("fast", "EM"),
-  n.neighbor = 3,
-  maxknot = 5000,
+  num_neighbors = 3,
+  max_knot = 5000,
   DfromLK = NULL,
   Fk = NULL
 )
@@ -31,15 +31,15 @@ selectBasis(
 
 \item{avgtol}{A numeric for average tolerance used in indeMLE.}
 
-\item{maxK}{An integer of the maximum of K values.}
+\item{max_rank}{An integer of the maximum of K values.}
 
-\item{Kseq}{An array of K values}
+\item{sequence_rank}{An array of K values}
 
 \item{method}{A character of a list of characters.}
 
-\item{n.neighbor}{An integer.}
+\item{num_neighbors}{An integer.}
 
-\item{maxknot}{An integer for the maximum number of knots}
+\item{max_knot}{An integer for the maximum number of knots}
 
 \item{DfromLK}{A \emph{n} by \emph{n} diagonal matrix.}
 
