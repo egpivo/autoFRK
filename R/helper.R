@@ -151,7 +151,7 @@ selectBasis <- function(data,
     if (max(K) > max_rank) {
       stop("maximum of sequence_rank is larger than max_rank!")
     }
-    if (sum(K > d) == length(K)) {
+    if (sum(K > d) == 0) {
       stop("Not valid sequence_rank!")
     } else if (any(K < (d + 1))) {
       warning(

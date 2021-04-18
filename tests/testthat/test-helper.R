@@ -171,4 +171,5 @@ test_that("Basis functions selection", {
   expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 142))
   expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.0950111, tolerance)
   expect_warning(selectBasis(data, grids, sequence_rank = 1:10, max_knot = 1000), "The minimum of sequence_rank can not less than 3. Too small values will be ignored.")
+  expect_error(selectBasis(data, grids, sequence_rank = 1:2, max_knot = 1000), "Not valid sequence_rank!")
 })
