@@ -178,3 +178,7 @@ test_that("Estimate the parameter v", {
   expect_equal(estimateV(1:3, 2, 100, 20), 3)
   expect_lte(abs(estimateV(1:100, 2, 100, 20) -  59.875), tolerance)
 })
+
+test_that("Estimate the parameter eta", {
+  expect_equal(estimateEta(1:3, 0.1, 1), c(0.0, 0.9, 1.9))
+})

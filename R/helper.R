@@ -271,6 +271,19 @@ estimateV <- function(d, s, sample_covariance_trace, n) {
   return(max((sample_covariance_trace - cumulative_d_values[L]) / (n - L) - s, 0))
 }
 
+#'
+#' Internal function: estimate eta parameter
+#'
+#' @keywords internal.
+#' @param d An array of nonnegative values.
+#' @param s A positive numeric.
+#' @param v A positive numeric.
+#' @return A numeric.
+#'
+estimateEta <- function(d, s, v) {
+  pmax(d - s - v, 0)
+}
+
 cMLE <- function(Fk,
                  TT,
                  trS,
@@ -281,10 +294,9 @@ cMLE <- function(Fk,
                  wSave = FALSE,
                  onlylogLike = !wSave,
                  vfixed = NULL) {
-  sol.eta <- function(d, s, v) pmax(d - s - v, 0)
   neg2llik <- function(d, s, v, trS, n) {
     k <- length(d)
-    eta <- pmax(d - s - v, 0)
+    eta <- estimateEta(d, s, v)
     return(
       ifelse(max(eta / (s + v)) > 1e20,
         Inf,
@@ -306,7 +318,7 @@ cMLE <- function(Fk,
     v <- vfixed
   }
   dii <- pmax(d, 0)
-  dhat <- sol.eta(dii, s, v)
+  dhat <- estimateEta(dii, s, v)
   if (onlylogLike) {
     return(list(negloglik = neg2llik(dii, s, v, trS, n) *
       TT + ldet * TT))
