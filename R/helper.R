@@ -267,7 +267,7 @@ estimateV <- function(d, s, sample_covariance_trace, n) {
 
   eligible_indexs <- which(d > ((sample_covariance_trace - cumulative_d_values) / (n - ks)))
   L <- max(eligible_indexs)
-  if (L == n) L <- n - 1
+  if (L >= n) L <- n - 1
   return(max((sample_covariance_trace - cumulative_d_values[L]) / (n - L) - s, 0))
 }
 
@@ -284,13 +284,24 @@ estimateEta <- function(d, s, v) {
   pmax(d - s - v, 0)
 }
 
-neg2llik <- function(d, s, v, trS, n) {
+#'
+#' Internal function: estimate negative log-likelihood
+#'
+#' @keywords internal.
+#' @param d An array of nonnegative values.
+#' @param s A positive numeric.
+#' @param v A positive numeric.
+#' @param sample_covariance_trace A positive numeric.
+#' @param n An integer. Sample size.
+#' @return A numeric.
+#'
+neg2llik <- function(d, s, v, sample_covariance_trace, n) {
   k <- length(d)
   eta <- estimateEta(d, s, v)
   if (max(eta / (s + v)) > 1e20) {
     return(Inf)
   } else {
-    return(n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta + s + v)))
+    return(n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * sample_covariance_trace - 1 / (s + v) * sum(d * eta / (eta + s + v)))
   }
 }
 

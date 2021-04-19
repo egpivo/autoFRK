@@ -175,8 +175,8 @@ test_that("Basis functions selection", {
 })
 
 test_that("Estimate the parameter v", {
-  expect_equal(estimateV(1:3, 2, 100, 20), 3)
-  expect_lte(abs(estimateV(1:100, 2, 100, 20) -  59.875), tolerance)
+  expect_lte(abs(estimateV(1:3, 2, 100, 3) - 31.3333333), tolerance)
+  expect_equal(estimateV(1:100, 2, 30, 30), 0)
 })
 
 test_that("Estimate the parameter eta", {
