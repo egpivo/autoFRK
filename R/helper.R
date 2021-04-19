@@ -284,44 +284,36 @@ estimateEta <- function(d, s, v) {
   pmax(d - s - v, 0)
 }
 
+neg2llik <- function(d, s, v, trS, n) {
+  k <- length(d)
+  eta <- estimateEta(d, s, v)
+  if (max(eta / (s + v)) > 1e20) {
+    return(Inf)
+  } else {
+    return(n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta + s + v)))
+  }
+}
+
 cMLE <- function(Fk,
                  TT,
                  trS,
                  half,
                  JSJ = NULL,
                  s = 0,
-                 ldet = NULL,
+                 ldet = 0,
                  wSave = FALSE,
                  onlylogLike = !wSave,
                  vfixed = NULL) {
-  neg2llik <- function(d, s, v, trS, n) {
-    k <- length(d)
-    eta <- estimateEta(d, s, v)
-    return(
-      ifelse(max(eta / (s + v)) > 1e20,
-        Inf,
-        n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta + s + v))
-      )
-    )
-  }
-  if (is.null(ldet)) {
-    ldet <- 0
-  }
   n <- nrow(Fk)
   k <- ncol(Fk)
   eg <- eigen(JSJ)
   d <- eg$value[1:k]
   P <- eg$vector[, 1:k]
-  if (is.null(vfixed)) {
-    v <- estimateV(d, s, trS, n)
-  } else {
-    v <- vfixed
-  }
+  v <- ifelse(is.null(vfixed), estimateV(d, s, trS, n), vfixed)
   dii <- pmax(d, 0)
   dhat <- estimateEta(dii, s, v)
   if (onlylogLike) {
-    return(list(negloglik = neg2llik(dii, s, v, trS, n) *
-      TT + ldet * TT))
+    return(list(negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT))
   }
   M <- half %*% P %*% (dhat * t(P)) %*% half
   dimnames(M) <- NULL
@@ -338,7 +330,8 @@ cMLE <- function(Fk,
     v = v,
     M = M,
     s = s,
-    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT, L = L
+    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT,
+    L = L
   ))
 }
 
