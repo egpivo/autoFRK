@@ -182,3 +182,7 @@ test_that("Estimate the parameter v", {
 test_that("Estimate the parameter eta", {
   expect_equal(estimateEta(1:3, 0.1, 1), c(0.0, 0.9, 1.9))
 })
+
+test_that("Estimate negative log-likelihood", {
+  expect_lte(abs(neg2llik(1:3, 0.1, 1, 30, 30) - 84.32403), tolerance)
+})
