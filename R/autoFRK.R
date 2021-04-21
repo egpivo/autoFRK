@@ -203,34 +203,6 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
 }
 
 cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
-  sol.v <- function(d, s, trS, n) {
-    k <- length(d)
-    if (max(d) < max(trS / n, s)) {
-      return(max(trS / n - s, 0))
-    }
-    cumd <- cumsum(d)
-    ks <- 1:k
-    if (k == n) {
-      ks[n] <- n - 1
-    }
-    pick <- d > ((trS - cumd) / (n - ks))
-    L <- max(which(pick))
-    if (L == n) {
-      L <- n - 1
-    }
-    return(max((trS - cumd[L]) / (n - L) - s, 0))
-  }
-  sol.eta <- function(d, s, v) pmax(d - s - v, 0)
-  neg2llik <- function(d, s, v, trS, n) {
-    k <- length(d)
-    eta <- pmax(d - s - v, 0)
-    if (max(eta / (s + v)) > 10^20) {
-      return(Inf)
-    }
-    n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) *
-      (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta +
-      s + v))
-  }
   n <- nrow(Fk)
   k <- ncol(Fk)
   TT <- NCOL(Data)
@@ -247,20 +219,22 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
   eg <- eigen(JSJ)
   d <- eg$value[1:k]
   P <- eg$vector[, 1:k]
-  v <- sol.v(d, s, trS, n)
+  v <- estimateV(d, s, trS, n)
   dii <- pmax(d, 0)
+  negloglik <- neg2llik(dii, s, v, trS, n) * TT
   if (onlylogLike) {
-    return(list(negloglik = neg2llik(dii, s, v, trS, n) *
-      TT))
+    return(list(negloglik = negloglik))
   }
-  dhat <- sol.eta(dii, s, v)
+  dhat <- estimateEta(dii, s, v)
   M <- half %*% P %*% (dhat * t(P)) %*% half
   dimnames(M) <- NULL
   if (!wSave) {
-    return(list(v = v, M = M, s = s, negloglik = neg2llik(
-      dii,
-      s, v, trS, n
-    ) * TT))
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negloglik
+    ))
   } else {
     L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
     if (all(dhat == 0)) {
@@ -278,10 +252,14 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
       (s + v) * diag.spam(n),
       L, GM
     ))
-    return(list(v = v, M = M, s = s, negloglik = neg2llik(
-      dii,
-      s, v, trS, n
-    ) * TT, w = etatt, V = V))
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negloglik,
+      w = etatt,
+      V = V
+    ))
   }
 }
 
@@ -753,15 +731,29 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
     ihFiD <- half %*% t(iDFk)
     LSL <- tcrossprod(ihFiD %*% Data) / TT
     if (!full) {
-      cMLE(Fk, TT, trS, half, LSL,
-        s = 0, ldet = ldetD,
+      cMLE(
+        Fk,
+        TT,
+        trS,
+        half,
+        LSL,
+        s = 0,
+        ldet = ldetD,
         wSave = FALSE
       )$negloglik
     } else {
       llike <- ldetD - ldet(Qini) - sum(log(weights))
-      cMLE(Fk, TT, trS, half, LSL,
-        s = 0, ldet = llike,
-        wSave = TRUE, onlylogLike = FALSE, vfixed = NULL
+      cMLE(
+        Fk,
+        TT,
+        trS,
+        half,
+        LSL,
+        s = 0,
+        ldet = llike,
+        wSave = TRUE,
+        onlylogLike = FALSE,
+        vfixed = NULL
       )
     }
   }

@@ -281,7 +281,7 @@ estimateV <- function(d, s, sample_covariance_trace, n) {
 #' @return A numeric.
 #'
 estimateEta <- function(d, s, v) {
-  pmax(d - s - v, 0)
+  return(pmax(d - s - v, 0))
 }
 
 #'
@@ -317,31 +317,34 @@ cMLE <- function(Fk,
                  vfixed = NULL) {
   n <- nrow(Fk)
   k <- ncol(Fk)
-  eg <- eigen(JSJ)
+  eg <- eigenDecomposeInDecreasingOrder(JSJ)
   d <- eg$value[1:k]
   P <- eg$vector[, 1:k]
   v <- ifelse(is.null(vfixed), estimateV(d, s, trS, n), vfixed)
   dii <- pmax(d, 0)
-  dhat <- estimateEta(dii, s, v)
+  negloglik <- neg2llik(dii, s, v, trS, n) * TT + ldet * TT
+
   if (onlylogLike) {
-    return(list(negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT))
+    return(list(negloglik = negloglik))
   }
-  M <- half %*% P %*% (dhat * t(P)) %*% half
-  dimnames(M) <- NULL
+
   if (!wSave) {
     L <- NULL
   } else {
-    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
-    if (all(dhat == 0)) {
-      dhat[1] <- 0.1^10
+    dhat <- estimateEta(dii, s, v)
+    if (dhat[1] != 0) {
+      L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
+      L <- as.matrix(L[, dhat > 0])
+    } else {
+      L <- matrix(0, n, 1)
     }
-    L <- as.matrix(L[, dhat > 0])
   }
+
   return(list(
     v = v,
     M = M,
     s = s,
-    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT,
+    negloglik = negloglik,
     L = L
   ))
 }
