@@ -117,7 +117,7 @@ selectBasis <- function(data,
                         Fk = NULL) {
   data <- as.matrix(data)
   empty <- apply(!is.na(data), 2, sum) == 0
-  if (sum(empty) > 0) data <- data[, which(!empty)]
+  if (sum(empty) > 0) data <- as.matrix(data[, which(!empty)])
   if (is.null(D)) D <- diag.spam(NROW(data))
 
   loc <- as.matrix(loc)

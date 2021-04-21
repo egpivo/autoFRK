@@ -143,7 +143,7 @@ test_that("Negative log likelihood", {
 selected_basis <- selectBasis(data, grids)
 selected_basis_em <- selectBasis(data, grids, method = "EM")
 data[3:10] <- NA
-selected_basis_na <- selectBasis(data, grids)
+selected_basis_na <- selectBasis(cbind(data, NA), grids)
 
 test_that("Basis functions selection", {
   expect_equal(names(attributes(selected_basis)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
@@ -176,7 +176,7 @@ test_that("Basis functions selection", {
 
 test_that("Estimate the parameter v", {
   expect_lte(abs(estimateV(1:3, 2, 100, 3) - 31.3333333), tolerance)
-  expect_equal(estimateV(1:100, 2, 30, 30), 0)
+  expect_equal(estimateV(1:30, 2, 30, 30), 0)
 })
 
 test_that("Estimate the parameter eta", {
@@ -185,4 +185,5 @@ test_that("Estimate the parameter eta", {
 
 test_that("Estimate negative log-likelihood", {
   expect_lte(abs(neg2llik(1:3, 0.1, 1, 30, 30) - 84.32403), tolerance)
+  expect_equal(neg2llik(1:3, 0, 0, 30, 30), Inf)
 })
