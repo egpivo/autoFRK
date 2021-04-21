@@ -41,10 +41,9 @@ eigenDecomposeInDecreasingOrder <- function(mat) {
 #' @return A numeric.
 #'
 calculateLogDeterminant <- function(R, L, K) {
-  first_part_determinant <- spam::determinant(
-    diag(1, K) + t(L) %*% solve(R) %*% L,
-    logarithm = TRUE
-  )$modulus
+  first_part_determinant <- logDeterminant(
+    diag(1, K) + t(L) %*% solve(R) %*% L
+  )
   second_part_determinant <- spam::determinant(R, logarithm = TRUE)$modulus
   return(first_part_determinant + second_part_determinant)
 }
@@ -216,18 +215,18 @@ selectBasis <- function(data,
         as.matrix(Fk[pick, ]))
       iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
     }
-    trS <- sum(rowSums(as.matrix(iDZ) * data)) / num_data_columns
+    sample_covariance_trace <- sum(rowSums(as.matrix(iDZ) * data)) / num_data_columns
     for (k in 1:length(K)) {
-      half <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
-      ihFiD <- half %*% t(iDFk[, 1:K[k]])
-      JSJ <- tcrossprod(ihFiD %*% data) / num_data_columns
-      JSJ <- (JSJ + t(JSJ)) / 2
+      inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
+      ihFiD <- inverse_square_root_matrix %*% t(iDFk[, 1:K[k]])
+      matrix_JSJ <- tcrossprod(ihFiD %*% data) / num_data_columns
+      matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
       AIC_list[k] <- cMLE(
         Fk = Fk[pick, 1:K[k]],
-        TT = num_data_columns,
-        trS = trS,
-        half = half,
-        JSJ = JSJ
+        num_columns = num_data_columns,
+        sample_covariance_trace = sample_covariance_trace,
+        inverse_square_root_matrix = inverse_square_root_matrix,
+        matrix_JSJ = matrix_JSJ
       )$negloglik
     }
   }
@@ -292,24 +291,41 @@ estimateEta <- function(d, s, v) {
 #' @param s A positive numeric.
 #' @param v A positive numeric.
 #' @param sample_covariance_trace A positive numeric.
-#' @param n An integer. Sample size.
+#' @param sample_size An integer. Sample size.
 #' @return A numeric.
 #'
-neg2llik <- function(d, s, v, sample_covariance_trace, n) {
+neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
   k <- length(d)
   eta <- estimateEta(d, s, v)
   if (max(eta / (s + v)) > 1e20) {
     return(Inf)
   } else {
-    return(n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * sample_covariance_trace - 1 / (s + v) * sum(d * eta / (eta + s + v)))
+    return(sample_size * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (sample_size - k) + 1 / (s + v) * sample_covariance_trace - 1 / (s + v) * sum(d * eta / (eta + s + v)))
   }
 }
 
+#'
+#' Internal function: estimate negative log-likelihood
+#'
+#' @keywords internal.
+#' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param num_columns A positive numeric.
+#' @param sample_covariance_trace A positive numeric.
+#' @param inverse_square_root_matrix A matrix.
+#' @param matrix_JSJ A multiplication matrix
+#' @param s An integer. Sample size.
+#' @param ldet An integer. Sample size.
+#' @param wSave An integer. Sample size.
+#' @param onlylogLike An integer. Sample size.
+#' @param vfixed An integer. Sample size.
+#' @return A numeric.
+#'
 cMLE <- function(Fk,
-                 TT,
-                 trS,
-                 half,
-                 JSJ = NULL,
+                 num_columns,
+                 sample_covariance_trace,
+                 inverse_square_root_matrix,
+                 matrix_JSJ,
                  s = 0,
                  ldet = 0,
                  wSave = FALSE,
@@ -317,12 +333,12 @@ cMLE <- function(Fk,
                  vfixed = NULL) {
   n <- nrow(Fk)
   k <- ncol(Fk)
-  eg <- eigenDecomposeInDecreasingOrder(JSJ)
+  eg <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
   d <- eg$value[1:k]
   P <- eg$vector[, 1:k]
-  v <- ifelse(is.null(vfixed), estimateV(d, s, trS, n), vfixed)
+  v <- ifelse(is.null(vfixed), estimateV(d, s, sample_covariance_trace, n), vfixed)
   dii <- pmax(d, 0)
-  negloglik <- neg2llik(dii, s, v, trS, n) * TT + ldet * TT
+  negloglik <- neg2llik(dii, s, v, sample_covariance_trace, n) * num_columns + ldet * num_columns
 
   if (onlylogLike) {
     return(list(negloglik = negloglik))
@@ -333,7 +349,7 @@ cMLE <- function(Fk,
   } else {
     dhat <- estimateEta(dii, s, v)
     if (dhat[1] != 0) {
-      L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
+      L <- Fk %*% t((sqrt(dhat) * t(P)) %*% inverse_square_root_matrix)
       L <- as.matrix(L[, dhat > 0])
     } else {
       L <- matrix(0, n, 1)
@@ -1065,3 +1081,13 @@ fetchSystemRam <- function(os) {
 #' @return A character
 #'
 removeWhitespace <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
+
+
+#'
+#' Internal function: log-determinant of a sqaure matrix
+#'
+#' @keywords internal
+#' @param mat A sqaure matrix.
+#' @return A numeric.
+#'
+logDeterminant <- function(mat) spam::determinant(mat, logarithm = TRUE)$modulus[1]

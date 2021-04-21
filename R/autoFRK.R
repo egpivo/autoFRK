@@ -279,8 +279,7 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
   ihFiD <- half %*% t(iDFk)
   JSJ <- tcrossprod(ihFiD %*% Data) / TT
   JSJ <- (JSJ + t(JSJ)) / 2
-  ldet <- function(m) spam::determinant(m, logarithm = TRUE)$modulus
-  ldetD <- -nrow(DfromLK$Q) * log(lambda) + ldet(G) - ldet(DfromLK$Q) -
+  ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
     sum(log(weight))
   trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
   out <- cMLE(Fk, TT, trS, half, JSJ,
@@ -312,7 +311,7 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
 cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
   De <- toSparseMatrix(Depsilon)
   iD <- solve(De)
-  ldetD <- spam::determinant(De, logarithm = TRUE)$modulus
+  ldetD <- logDeterminant(De)
   iDFk <- iD %*% Fk
   half <- getInverseSquareRootMatrix(Fk, iDFk)
   ihFiD <- half %*% t(iDFk)
@@ -717,14 +716,13 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   wwX <- w %*% wX
   XwX <- t(wX) %*% wX
 
-  ldet <- function(m) spam::determinant(m, logarithm = TRUE)$modulus
   iniLike <- function(par, Data = z, full = FALSE) {
     lambda <- exp(par)
     G <- XwX + lambda * Qini
     wXiG <- (wwX) %*% solve(G)
     iDFk <- weights * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
     iDZ <- weights * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-    ldetD <- -nrow(Qini) * log(lambda) + ldet(G)
+    ldetD <- -nrow(Qini) * log(lambda) + logDeterminant(G)
     ldetD <- as.vector(ldetD)
     trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
     half <- getInverseSquareRootMatrix(Fk, iDFk)
@@ -742,7 +740,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
         wSave = FALSE
       )$negloglik
     } else {
-      llike <- ldetD - ldet(Qini) - sum(log(weights))
+      llike <- ldetD - logDeterminant(Qini) - sum(log(weights))
       cMLE(
         Fk,
         TT,

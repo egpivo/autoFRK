@@ -4,7 +4,7 @@
 \alias{neg2llik}
 \title{Internal function: estimate negative log-likelihood}
 \usage{
-neg2llik(d, s, v, sample_covariance_trace, n)
+neg2llik(d, s, v, sample_covariance_trace, sample_size)
 }
 \arguments{
 \item{d}{An array of nonnegative values.}
@@ -15,7 +15,7 @@ neg2llik(d, s, v, sample_covariance_trace, n)
 
 \item{sample_covariance_trace}{A positive numeric.}
 
-\item{n}{An integer. Sample size.}
+\item{sample_size}{An integer. Sample size.}
 }
 \value{
 A numeric.

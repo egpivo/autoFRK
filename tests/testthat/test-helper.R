@@ -187,3 +187,10 @@ test_that("Estimate negative log-likelihood", {
   expect_lte(abs(neg2llik(1:3, 0.1, 1, 30, 30) - 84.32403), tolerance)
   expect_equal(neg2llik(1:3, 0, 0, 30, 30), Inf)
 })
+
+test_that("Log determinant", {
+  set.seed(1234)
+  expect_lte(abs(logDeterminant(matrix(rnorm(4), 2, 2))[1] - 0.9284389), tolerance)
+  set.seed(1234)
+  expect_lte(abs(logDeterminant(matrix(rnorm(10000), 100, 100))[1] - 176.308193), tolerance)
+})
