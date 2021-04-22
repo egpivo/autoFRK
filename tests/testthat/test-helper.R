@@ -215,7 +215,15 @@ mle2 <- cMLE(Fk,
   diag(1, 5),
   test_matrix,
   wSave = FALSE,
-  onlylogLike = FALSE
+  onlylogLike = FALSE,
+)
+mle3 <- cMLE(Fk,
+  4,
+  5,
+  diag(1, 5),
+  test_matrix,
+  wSave = TRUE,
+  s = 10
 )
 test_that("cMLE", {
   expect_lte(abs(mle1$v - 0.003904234), tolerance)
@@ -224,4 +232,5 @@ test_that("cMLE", {
   expect_lte(abs(mle1$negloglik - -9710.933343), tolerance)
   expect_lte(abs(norm(mle1$L, "F") - 27.275983), tolerance)
   expect_null(mle2$L)
+  expect_true(all(mle3$L == 0))
 })
