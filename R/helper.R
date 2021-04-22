@@ -123,14 +123,14 @@ selectBasis <- function(data,
 
   loc <- as.matrix(loc)
   d <- NCOL(loc)
-  is_data_with_missing_values <- sum(is.na(data)) > 0
+  is_data_with_missing_values <- any(is.na(data))
   na_rows <- which(rowSums(as.matrix(!is.na(data))) == 0)
   pick <- 1:NROW(data)
   if (length(na_rows) > 0) {
     data <- as.matrix(data[-na_rows, ])
     D <- D[-na_rows, -na_rows]
     pick <- pick[-na_rows]
-    is_data_with_missing_values <- sum(is.na(data)) > 0
+    is_data_with_missing_values <- any(is.na(data))
   }
 
   N <- length(pick)
@@ -152,7 +152,7 @@ selectBasis <- function(data,
     if (max(K) > max_rank) {
       stop("maximum of sequence_rank is larger than max_rank!")
     }
-    if (sum(K > d) == 0) {
+    if (all(K <= d)) {
       stop("Not valid sequence_rank!")
     } else if (any(K < (d + 1))) {
       warning(
@@ -190,19 +190,19 @@ selectBasis <- function(data,
   } else {
     if (is_data_with_missing_values) {
       for (tt in 1:num_data_columns) {
-        is_row_missing <- is.na(data[, tt])
-        if (sum(is_row_missing) == 0) {
+        is_cell_missing_in_a_column <- is.na(data[, tt])
+        if (!any(is_cell_missing_in_a_column)) {
           next
         }
-        cidx <- which(!is_row_missing)
+        cidx <- which(!is_cell_missing_in_a_column)
         nnidx <- FNN::get.knnx(
           loc[cidx, ],
-          matrix(loc[is_row_missing, ], ncol=dim(loc)[2]),
+          matrix(loc[is_cell_missing_in_a_column, ], ncol = dim(loc)[2]),
           k = num_neighbors
         )
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
         nnval <- array((data[, tt])[nnidx], dim(nnidx))
-        data[is_row_missing, tt] <- rowMeans(nnval)
+        data[is_cell_missing_in_a_column, tt] <- rowMeans(nnval)
       }
     }
     if (is.null(DfromLK)) {
@@ -311,7 +311,7 @@ neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
 }
 
 #'
-#' Internal function: estimate negative log-likelihood
+#' Internal function: maximum likelihood estimate with the likelihood
 #'
 #' @keywords internal.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
@@ -321,10 +321,10 @@ neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
 #' @param inverse_square_root_matrix A matrix.
 #' @param matrix_JSJ A multiplication matrix
 #' @param s An integer. Sample size.
-#' @param ldet An integer. Sample size.
-#' @param wSave An integer. Sample size.
-#' @param onlylogLike An integer. Sample size.
-#' @param vfixed An integer. Sample size.
+#' @param ldet A numeric. A log determinant.
+#' @param wSave A logic.
+#' @param onlylogLike A logic.
+#' @param vfixed A numeric
 #' @return A numeric.
 #'
 cMLE <- function(Fk,
@@ -344,18 +344,20 @@ cMLE <- function(Fk,
   P <- eg$vector[, 1:k]
   v <- ifelse(is.null(vfixed), estimateV(d, s, sample_covariance_trace, n), vfixed)
   dii <- pmax(d, 0)
-  negloglik <- neg2llik(dii, s, v, sample_covariance_trace, n) * num_columns + ldet * num_columns
+  neg_log_likelihood <- neg2llik(dii, s, v, sample_covariance_trace, n) * num_columns + ldet * num_columns
 
   if (onlylogLike) {
-    return(list(negloglik = negloglik))
+    return(list(negloglik = neg_log_likelihood))
   }
 
+  dhat <- estimateEta(dii, s, v)
+  M <- inverse_square_root_matrix %*% P %*% (dhat * t(P)) %*% inverse_square_root_matrix
+  dimnames(M) <- NULL
   if (!wSave) {
     L <- NULL
   } else {
-    dhat <- estimateEta(dii, s, v)
     if (dhat[1] != 0) {
-      L <- Fk %*% t((sqrt(dhat) * t(P)) %*% inverse_square_root_matrix)
+      L <- Fk %*% ((sqrt(dhat) * t(P)) %*% inverse_square_root_matrix)
       L <- as.matrix(L[, dhat > 0])
     } else {
       L <- matrix(0, n, 1)
@@ -366,7 +368,7 @@ cMLE <- function(Fk,
     v = v,
     M = M,
     s = s,
-    negloglik = negloglik,
+    negloglik = neg_log_likelihood,
     L = L
   ))
 }

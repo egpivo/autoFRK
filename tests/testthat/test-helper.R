@@ -198,3 +198,30 @@ test_that("Log determinant", {
   set.seed(1234)
   expect_lte(abs(logDeterminant(matrix(rnorm(10000), 100, 100))[1] - 176.308193), tolerance)
 })
+
+set.seed(1234)
+test_matrix <- matrix(rnorm(25), 5, 5)
+test_matrix <- (test_matrix + t(test_matrix)) / 2
+mle1 <- cMLE(Fk,
+  4,
+  5,
+  diag(1, 5),
+  test_matrix,
+  wSave = TRUE
+)
+mle2 <- cMLE(Fk,
+  4,
+  5,
+  diag(1, 5),
+  test_matrix,
+  wSave = FALSE,
+  onlylogLike = FALSE
+)
+test_that("cMLE", {
+  expect_lte(abs(mle1$v - 0.003904234), tolerance)
+  expect_lte(abs(norm(mle1$M, "F") - 1.373454), tolerance)
+  expect_equal(mle1$s, 0)
+  expect_lte(abs(mle1$negloglik - -9710.933343), tolerance)
+  expect_lte(abs(norm(mle1$L, "F") - 27.275983), tolerance)
+  expect_null(mle2$L)
+})

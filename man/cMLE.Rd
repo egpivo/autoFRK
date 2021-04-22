@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{cMLE}
 \alias{cMLE}
-\title{Internal function: estimate negative log-likelihood}
+\title{Internal function: maximum likelihood estimate with the likelihood}
 \usage{
 cMLE(
   Fk,
@@ -31,18 +31,18 @@ each column being a basis function taken values at \code{loc}.}
 
 \item{s}{An integer. Sample size.}
 
-\item{ldet}{An integer. Sample size.}
+\item{ldet}{A numeric. A log determinant.}
 
-\item{wSave}{An integer. Sample size.}
+\item{wSave}{A logic.}
 
-\item{onlylogLike}{An integer. Sample size.}
+\item{onlylogLike}{A logic.}
 
-\item{vfixed}{An integer. Sample size.}
+\item{vfixed}{A numeric}
 }
 \value{
 A numeric.
 }
 \description{
-Internal function: estimate negative log-likelihood
+Internal function: maximum likelihood estimate with the likelihood
 }
 \keyword{internal.}
