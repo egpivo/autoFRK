@@ -43,6 +43,7 @@ test_that("Is an object diagonal", {
   expect_false(isDiagonal(matrix))
 })
 
+set.seed(1234)
 grid <- seq(0, 1, l = 30)
 z <- sample(30, 10)
 test_that("nc for LkrigInfo", {
@@ -97,6 +98,7 @@ test_that("Print mrts", {
   expect_equal(sum(print.mrts(mrts(matrix(1:10, 2), 6))), 2)
 })
 
+set.seed(1234)
 FRK_message <- capture_output(print.FRK(autoFRK(Data = rnorm(10), loc = 1:10, maxK = 3)))
 test_that("Print FRK", {
   expect_error(print.FRK(1), "Invalid object! Please enter an `FRK` object")
@@ -116,6 +118,7 @@ test_that("Shift an array", {
   expect_error(shiftArray(array(1:10, 2), c(-100, 0, 0)), "shift exceeds array dimensions")
 })
 
+set.seed(1234)
 n <- 150
 s <- 5
 grid1 <- grid2 <- seq(0, 1, l = 30)
@@ -128,6 +131,7 @@ y <- Fk %*% w
 obs <- sample(900, n)
 epsilon <- rexp(n) * sqrt(s)
 data <- y[obs] + epsilon
+data_2D <- y[obs, ] + epsilon
 M <- matrix(rnorm(4), 2, 2)
 M <- (M + t(M)) / 2
 
@@ -142,8 +146,8 @@ test_that("Negative log likelihood", {
 
 selected_basis <- selectBasis(data, grids)
 selected_basis_em <- selectBasis(data, grids, method = "EM")
-data[3:10] <- NA
-selected_basis_na <- selectBasis(data, grids)
+data_2D[sample(1:200, 15)] <- NA
+selected_basis_na <- selectBasis(cbind(data_2D, NA), grids[obs, ])
 
 test_that("Basis functions selection", {
   expect_equal(names(attributes(selected_basis)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
@@ -163,12 +167,70 @@ test_that("Basis functions selection", {
   expect_lte(sum(attributes(selected_basis_em)$nconst - c(0.29846350, 0.04876598)), tolerance)
   expect_equal(dim(attributes(selected_basis_em)$BBBH), c(3, 150))
   expect_lte(norm(attributes(selected_basis_em)$BBBH, "F") - 0.09683313, tolerance)
-  expect_equal(dim(selected_basis_na), c(900, 111))
-  expect_lte(norm(attributes(selected_basis_na)$UZ, "F") - 2552476, tolerance)
-  expect_equal(dim(attributes(selected_basis_na)$Xu), c(142, 2))
-  expect_lte(norm(attributes(selected_basis_na)$Xu, "F") - 7.182933, tolerance)
-  expect_lte(sum(attributes(selected_basis_na)$nconst - 0.3438869), tolerance)
-  expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 142))
-  expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.0950111, tolerance)
+  expect_equal(dim(selected_basis_na), c(150, 13))
+  expect_lte(norm(attributes(selected_basis_na)$UZ, "F") - 669565.8, tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$Xu), c(149, 2))
+  expect_lte(norm(attributes(selected_basis_na)$Xu, "F") - 10.21243, tolerance)
+  expect_lte(sum(attributes(selected_basis_na)$nconst - c(0.3217056, 0.2795377)), tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 149))
+  expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.07779111, tolerance)
   expect_warning(selectBasis(data, grids, sequence_rank = 1:10, max_knot = 1000), "The minimum of sequence_rank can not less than 3. Too small values will be ignored.")
+  expect_error(selectBasis(data, grids, sequence_rank = 1:2, max_knot = 1000), "Not valid sequence_rank!")
+})
+
+test_that("Estimate the parameter v", {
+  expect_lte(abs(estimateV(1:3, 2, 100, 3) - 31.3333333), tolerance)
+  expect_equal(estimateV(1:30, 2, 30, 30), 0)
+})
+
+test_that("Estimate the parameter eta", {
+  expect_equal(estimateEta(1:3, 0.1, 1), c(0.0, 0.9, 1.9))
+})
+
+test_that("Estimate negative log-likelihood", {
+  expect_lte(abs(neg2llik(1:3, 0.1, 1, 30, 30) - 84.32403), tolerance)
+  expect_equal(neg2llik(1:3, 0, 0, 30, 30), Inf)
+})
+
+test_that("Log determinant", {
+  set.seed(1234)
+  expect_lte(abs(logDeterminant(matrix(rnorm(4), 2, 2))[1] - 0.9284389), tolerance)
+  set.seed(1234)
+  expect_lte(abs(logDeterminant(matrix(rnorm(10000), 100, 100))[1] - 176.308193), tolerance)
+})
+
+set.seed(1234)
+test_matrix <- matrix(rnorm(25), 5, 5)
+test_matrix <- (test_matrix + t(test_matrix)) / 2
+mle1 <- cMLE(Fk,
+  4,
+  5,
+  diag(1, 5),
+  test_matrix,
+  wSave = TRUE
+)
+mle2 <- cMLE(Fk,
+  4,
+  5,
+  diag(1, 5),
+  test_matrix,
+  wSave = FALSE,
+  onlylogLike = FALSE,
+)
+mle3 <- cMLE(Fk,
+  4,
+  5,
+  diag(1, 5),
+  test_matrix,
+  wSave = TRUE,
+  s = 10
+)
+test_that("cMLE", {
+  expect_lte(abs(mle1$v - 0.003904234), tolerance)
+  expect_lte(abs(norm(mle1$M, "F") - 1.373454), tolerance)
+  expect_equal(mle1$s, 0)
+  expect_lte(abs(mle1$negloglik - -9710.933343), tolerance)
+  expect_lte(abs(norm(mle1$L, "F") - 27.275983), tolerance)
+  expect_null(mle2$L)
+  expect_true(all(mle3$L == 0))
 })

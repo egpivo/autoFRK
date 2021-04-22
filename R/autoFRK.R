@@ -202,103 +202,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
   }
 }
 
-cMLE <- function(Fk, TT, trS, half, JSJ = NULL, s = 0, ldet = NULL,
-                 wSave = FALSE, onlylogLike = !wSave, vfixed = NULL) {
-  sol.v <- function(d, s, trS, n) {
-    k <- length(d)
-    if (max(d) < max(trS / n, s)) {
-      return(max(trS / n - s, 0))
-    }
-    cumd <- cumsum(d)
-    ks <- 1:k
-    if (k == n) {
-      ks[n] <- n - 1
-    }
-    pick <- d > ((trS - cumd) / (n - ks))
-    L <- max(which(pick))
-    if (L == n) {
-      L <- n - 1
-    }
-    return(max((trS - cumd[L]) / (n - L) - s, 0))
-  }
-  sol.eta <- function(d, s, v) pmax(d - s - v, 0)
-  neg2llik <- function(d, s, v, trS, n) {
-    k <- length(d)
-    eta <- pmax(d - s - v, 0)
-    return(
-      ifelse(max(eta / (s + v)) > 1e20,
-        Inf,
-        n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta + s + v))
-      )
-    )
-  }
-  if (is.null(ldet)) {
-    ldet <- 0
-  }
-  n <- nrow(Fk)
-  k <- ncol(Fk)
-  eg <- eigen(JSJ)
-  d <- eg$value[1:k]
-  P <- eg$vector[, 1:k]
-  if (is.null(vfixed)) {
-    v <- sol.v(d, s, trS, n)
-  } else {
-    v <- vfixed
-  }
-  dii <- pmax(d, 0)
-  dhat <- sol.eta(dii, s, v)
-  if (onlylogLike) {
-    return(list(negloglik = neg2llik(dii, s, v, trS, n) *
-      TT + ldet * TT))
-  }
-  M <- half %*% P %*% (dhat * t(P)) %*% half
-  dimnames(M) <- NULL
-  if (!wSave) {
-    L <- NULL
-  } else {
-    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
-    if (all(dhat == 0)) {
-      dhat[1] <- 0.1^10
-    }
-    L <- as.matrix(L[, dhat > 0])
-  }
-  return(list(
-    v = v,
-    M = M,
-    s = s,
-    negloglik = neg2llik(dii, s, v, trS, n) * TT + ldet * TT, L = L
-  ))
-}
-
 cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
-  sol.v <- function(d, s, trS, n) {
-    k <- length(d)
-    if (max(d) < max(trS / n, s)) {
-      return(max(trS / n - s, 0))
-    }
-    cumd <- cumsum(d)
-    ks <- 1:k
-    if (k == n) {
-      ks[n] <- n - 1
-    }
-    pick <- d > ((trS - cumd) / (n - ks))
-    L <- max(which(pick))
-    if (L == n) {
-      L <- n - 1
-    }
-    return(max((trS - cumd[L]) / (n - L) - s, 0))
-  }
-  sol.eta <- function(d, s, v) pmax(d - s - v, 0)
-  neg2llik <- function(d, s, v, trS, n) {
-    k <- length(d)
-    eta <- pmax(d - s - v, 0)
-    if (max(eta / (s + v)) > 10^20) {
-      return(Inf)
-    }
-    n * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) *
-      (n - k) + 1 / (s + v) * trS - 1 / (s + v) * sum(d * eta / (eta +
-      s + v))
-  }
   n <- nrow(Fk)
   k <- ncol(Fk)
   TT <- NCOL(Data)
@@ -315,20 +219,22 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
   eg <- eigen(JSJ)
   d <- eg$value[1:k]
   P <- eg$vector[, 1:k]
-  v <- sol.v(d, s, trS, n)
+  v <- estimateV(d, s, trS, n)
   dii <- pmax(d, 0)
+  negloglik <- neg2llik(dii, s, v, trS, n) * TT
   if (onlylogLike) {
-    return(list(negloglik = neg2llik(dii, s, v, trS, n) *
-      TT))
+    return(list(negloglik = negloglik))
   }
-  dhat <- sol.eta(dii, s, v)
+  dhat <- estimateEta(dii, s, v)
   M <- half %*% P %*% (dhat * t(P)) %*% half
   dimnames(M) <- NULL
   if (!wSave) {
-    return(list(v = v, M = M, s = s, negloglik = neg2llik(
-      dii,
-      s, v, trS, n
-    ) * TT))
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negloglik
+    ))
   } else {
     L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
     if (all(dhat == 0)) {
@@ -346,10 +252,14 @@ cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
       (s + v) * diag.spam(n),
       L, GM
     ))
-    return(list(v = v, M = M, s = s, negloglik = neg2llik(
-      dii,
-      s, v, trS, n
-    ) * TT, w = etatt, V = V))
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negloglik,
+      w = etatt,
+      V = V
+    ))
   }
 }
 
@@ -369,8 +279,7 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
   ihFiD <- half %*% t(iDFk)
   JSJ <- tcrossprod(ihFiD %*% Data) / TT
   JSJ <- (JSJ + t(JSJ)) / 2
-  ldet <- function(m) spam::determinant(m, logarithm = TRUE)$modulus
-  ldetD <- -nrow(DfromLK$Q) * log(lambda) + ldet(G) - ldet(DfromLK$Q) -
+  ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
     sum(log(weight))
   trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
   out <- cMLE(Fk, TT, trS, half, JSJ,
@@ -402,7 +311,7 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
 cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
   De <- toSparseMatrix(Depsilon)
   iD <- solve(De)
-  ldetD <- spam::determinant(De, logarithm = TRUE)$modulus
+  ldetD <- logDeterminant(De)
   iDFk <- iD %*% Fk
   half <- getInverseSquareRootMatrix(Fk, iDFk)
   ihFiD <- half %*% t(iDFk)
@@ -807,29 +716,42 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   wwX <- w %*% wX
   XwX <- t(wX) %*% wX
 
-  ldet <- function(m) spam::determinant(m, logarithm = TRUE)$modulus
   iniLike <- function(par, Data = z, full = FALSE) {
     lambda <- exp(par)
     G <- XwX + lambda * Qini
     wXiG <- (wwX) %*% solve(G)
     iDFk <- weights * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
     iDZ <- weights * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-    ldetD <- -nrow(Qini) * log(lambda) + ldet(G)
+    ldetD <- -nrow(Qini) * log(lambda) + logDeterminant(G)
     ldetD <- as.vector(ldetD)
     trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
     half <- getInverseSquareRootMatrix(Fk, iDFk)
     ihFiD <- half %*% t(iDFk)
     LSL <- tcrossprod(ihFiD %*% Data) / TT
     if (!full) {
-      cMLE(Fk, TT, trS, half, LSL,
-        s = 0, ldet = ldetD,
+      cMLE(
+        Fk,
+        TT,
+        trS,
+        half,
+        LSL,
+        s = 0,
+        ldet = ldetD,
         wSave = FALSE
       )$negloglik
     } else {
-      llike <- ldetD - ldet(Qini) - sum(log(weights))
-      cMLE(Fk, TT, trS, half, LSL,
-        s = 0, ldet = llike,
-        wSave = TRUE, onlylogLike = FALSE, vfixed = NULL
+      llike <- ldetD - logDeterminant(Qini) - sum(log(weights))
+      cMLE(
+        Fk,
+        TT,
+        trS,
+        half,
+        LSL,
+        s = 0,
+        ldet = llike,
+        wSave = TRUE,
+        onlylogLike = FALSE,
+        vfixed = NULL
       )
     }
   }
