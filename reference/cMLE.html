@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>internal function — cMLE • autoFRK</title>
+<title>Internal function: maximum likelihood estimate with the likelihood — cMLE • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="internal function — cMLE" />
-<meta property="og:description" content="internal function" />
+<meta property="og:title" content="Internal function: maximum likelihood estimate with the likelihood — cMLE" />
+<meta property="og:description" content="Internal function: maximum likelihood estimate with the likelihood" />
 
 
 
@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.7</span>
       </span>
     </div>
 
@@ -106,17 +106,77 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>internal function</h1>
+    <h1>Internal function: maximum likelihood estimate with the likelihood</h1>
     
     <div class="hidden name"><code>cMLE.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>internal function</p>
+    <p>Internal function: maximum likelihood estimate with the likelihood</p>
     </div>
 
+    <pre class="usage"><span class='fu'>cMLE</span><span class='op'>(</span>
+  <span class='va'>Fk</span>,
+  <span class='va'>num_columns</span>,
+  <span class='va'>sample_covariance_trace</span>,
+  <span class='va'>inverse_square_root_matrix</span>,
+  <span class='va'>matrix_JSJ</span>,
+  s <span class='op'>=</span> <span class='fl'>0</span>,
+  ldet <span class='op'>=</span> <span class='fl'>0</span>,
+  wSave <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  onlylogLike <span class='op'>=</span> <span class='op'>!</span><span class='va'>wSave</span>,
+  vfixed <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>Fk</th>
+      <td><p>A  <em>n</em> by <em>K</em> matrix of basis function values with
+each column being a basis function taken values at <code>loc</code>.</p></td>
+    </tr>
+    <tr>
+      <th>num_columns</th>
+      <td><p>A positive numeric.</p></td>
+    </tr>
+    <tr>
+      <th>sample_covariance_trace</th>
+      <td><p>A positive numeric.</p></td>
+    </tr>
+    <tr>
+      <th>inverse_square_root_matrix</th>
+      <td><p>A matrix.</p></td>
+    </tr>
+    <tr>
+      <th>matrix_JSJ</th>
+      <td><p>A multiplication matrix</p></td>
+    </tr>
+    <tr>
+      <th>s</th>
+      <td><p>An integer. Sample size.</p></td>
+    </tr>
+    <tr>
+      <th>ldet</th>
+      <td><p>A numeric. A log determinant.</p></td>
+    </tr>
+    <tr>
+      <th>wSave</th>
+      <td><p>A logic.</p></td>
+    </tr>
+    <tr>
+      <th>onlylogLike</th>
+      <td><p>A logic.</p></td>
+    </tr>
+    <tr>
+      <th>vfixed</th>
+      <td><p>A numeric</p></td>
+    </tr>
+    </table>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>A numeric.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

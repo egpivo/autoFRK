@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Internal function: compute a negative log-likelihood (-2*log(likelihood)) — computeLikelihood • autoFRK</title>
+<title>Internal function: estimate eta parameter — estimateEta • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Internal function: compute a negative log-likelihood (-2*log(likelihood)) — computeLikelihood" />
-<meta property="og:description" content="Internal function: compute a negative log-likelihood (-2*log(likelihood))" />
+<meta property="og:title" content="Internal function: estimate eta parameter — estimateEta" />
+<meta property="og:description" content="Internal function: estimate eta parameter" />
 
 
 
@@ -106,41 +106,31 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Internal function: compute a negative log-likelihood (-2*log(likelihood))</h1>
+    <h1>Internal function: estimate eta parameter</h1>
     
-    <div class="hidden name"><code>computeLikelihood.Rd</code></div>
+    <div class="hidden name"><code>estimateEta.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Internal function: compute a negative log-likelihood (-2*log(likelihood))</p>
+    <p>Internal function: estimate eta parameter</p>
     </div>
 
-    <pre class="usage"><span class='fu'>computeLikelihood</span><span class='op'>(</span><span class='va'>data</span>, <span class='va'>Fk</span>, <span class='va'>M</span>, <span class='va'>s</span>, <span class='va'>Depsilon</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>estimateEta</span><span class='op'>(</span><span class='va'>d</span>, <span class='va'>s</span>, <span class='va'>v</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>data</th>
-      <td><p>A <em>n</em> by <em>T</em> data matrix (NA allowed) with
-\(z[t]\) as the <em>t</em>-th column.</p></td>
-    </tr>
-    <tr>
-      <th>Fk</th>
-      <td><p>A  <em>n</em> by <em>K</em> matrix of basis function values with
-each column being a basis function taken values at <code>loc</code>.</p></td>
-    </tr>
-    <tr>
-      <th>M</th>
-      <td><p>A <em>K</em> by <em>K</em> symmetric matrix.</p></td>
+      <th>d</th>
+      <td><p>An array of nonnegative values.</p></td>
     </tr>
     <tr>
       <th>s</th>
-      <td><p>A scalar.</p></td>
+      <td><p>A positive numeric.</p></td>
     </tr>
     <tr>
-      <th>Depsilon</th>
-      <td><p>A <em>n</em> by <em>n</em> diagonal matrix.</p></td>
+      <th>v</th>
+      <td><p>A positive numeric.</p></td>
     </tr>
     </table>
 
