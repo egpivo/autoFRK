@@ -43,6 +43,7 @@ test_that("Is an object diagonal", {
   expect_false(isDiagonal(matrix))
 })
 
+set.seed(1234)
 grid <- seq(0, 1, l = 30)
 z <- sample(30, 10)
 test_that("nc for LkrigInfo", {
@@ -97,6 +98,7 @@ test_that("Print mrts", {
   expect_equal(sum(print.mrts(mrts(matrix(1:10, 2), 6))), 2)
 })
 
+set.seed(1234)
 FRK_message <- capture_output(print.FRK(autoFRK(Data = rnorm(10), loc = 1:10, maxK = 3)))
 test_that("Print FRK", {
   expect_error(print.FRK(1), "Invalid object! Please enter an `FRK` object")
@@ -116,6 +118,7 @@ test_that("Shift an array", {
   expect_error(shiftArray(array(1:10, 2), c(-100, 0, 0)), "shift exceeds array dimensions")
 })
 
+set.seed(1234)
 n <- 150
 s <- 5
 grid1 <- grid2 <- seq(0, 1, l = 30)
@@ -128,6 +131,7 @@ y <- Fk %*% w
 obs <- sample(900, n)
 epsilon <- rexp(n) * sqrt(s)
 data <- y[obs] + epsilon
+data_2D <- y[obs, ] + epsilon
 M <- matrix(rnorm(4), 2, 2)
 M <- (M + t(M)) / 2
 
@@ -142,8 +146,8 @@ test_that("Negative log likelihood", {
 
 selected_basis <- selectBasis(data, grids)
 selected_basis_em <- selectBasis(data, grids, method = "EM")
-data[3:10] <- NA
-selected_basis_na <- selectBasis(cbind(data, NA), grids)
+data_2D[sample(1:200, 15)] <- NA
+selected_basis_na <- selectBasis(cbind(data_2D, NA), grids[obs, ])
 
 test_that("Basis functions selection", {
   expect_equal(names(attributes(selected_basis)), c("dim", "UZ", "Xu", "nconst", "BBBH", "class"))
@@ -163,13 +167,13 @@ test_that("Basis functions selection", {
   expect_lte(sum(attributes(selected_basis_em)$nconst - c(0.29846350, 0.04876598)), tolerance)
   expect_equal(dim(attributes(selected_basis_em)$BBBH), c(3, 150))
   expect_lte(norm(attributes(selected_basis_em)$BBBH, "F") - 0.09683313, tolerance)
-  expect_equal(dim(selected_basis_na), c(900, 111))
-  expect_lte(norm(attributes(selected_basis_na)$UZ, "F") - 2552476, tolerance)
-  expect_equal(dim(attributes(selected_basis_na)$Xu), c(142, 2))
-  expect_lte(norm(attributes(selected_basis_na)$Xu, "F") - 7.182933, tolerance)
-  expect_lte(sum(attributes(selected_basis_na)$nconst - 0.3438869), tolerance)
-  expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 142))
-  expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.0950111, tolerance)
+  expect_equal(dim(selected_basis_na), c(150, 13))
+  expect_lte(norm(attributes(selected_basis_na)$UZ, "F") - 669565.8, tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$Xu), c(149, 2))
+  expect_lte(norm(attributes(selected_basis_na)$Xu, "F") - 10.21243, tolerance)
+  expect_lte(sum(attributes(selected_basis_na)$nconst - c(0.3217056, 0.2795377)), tolerance)
+  expect_equal(dim(attributes(selected_basis_na)$BBBH), c(3, 149))
+  expect_lte(norm(attributes(selected_basis_na)$BBBH, "F") - 0.07779111, tolerance)
   expect_warning(selectBasis(data, grids, sequence_rank = 1:10, max_knot = 1000), "The minimum of sequence_rank can not less than 3. Too small values will be ignored.")
   expect_error(selectBasis(data, grids, sequence_rank = 1:2, max_knot = 1000), "Not valid sequence_rank!")
 })

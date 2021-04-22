@@ -44,7 +44,7 @@ calculateLogDeterminant <- function(R, L, K) {
   first_part_determinant <- logDeterminant(
     diag(1, K) + t(L) %*% solve(R) %*% L
   )
-  second_part_determinant <- spam::determinant(R, logarithm = TRUE)$modulus
+  second_part_determinant <- logDeterminant(R)
   return(first_part_determinant + second_part_determinant)
 }
 
@@ -115,20 +115,22 @@ selectBasis <- function(data,
                         DfromLK = NULL,
                         Fk = NULL) {
   data <- as.matrix(data)
-  empty <- apply(!is.na(data), 2, sum) == 0
-  if (sum(empty) > 0) data <- as.matrix(data[, which(!empty)])
+  are_all_missing_in_columns <- apply(!is.na(data), 2, sum) == 0
+  if (any(are_all_missing_in_columns)) {
+    data <- as.matrix(data[, !are_all_missing_in_columns])
+  }
   if (is.null(D)) D <- diag.spam(NROW(data))
 
   loc <- as.matrix(loc)
   d <- NCOL(loc)
-  does_data_exist_missing_values <- sum(is.na(data)) > 0
+  is_data_with_missing_values <- sum(is.na(data)) > 0
   na_rows <- which(rowSums(as.matrix(!is.na(data))) == 0)
   pick <- 1:NROW(data)
   if (length(na_rows) > 0) {
-    data <- data[-na_rows, ]
+    data <- as.matrix(data[-na_rows, ])
     D <- D[-na_rows, -na_rows]
     pick <- pick[-na_rows]
-    does_data_exist_missing_values <- sum(is.na(data)) > 0
+    is_data_with_missing_values <- sum(is.na(data)) > 0
   }
 
   N <- length(pick)
@@ -186,14 +188,18 @@ selectBasis <- function(data,
       )$negloglik
     }
   } else {
-    if (does_data_exist_missing_values) {
+    if (is_data_with_missing_values) {
       for (tt in 1:num_data_columns) {
         is_row_missing <- is.na(data[, tt])
         if (sum(is_row_missing) == 0) {
           next
         }
         cidx <- which(!is_row_missing)
-        nnidx <- FNN::get.knnx(loc[cidx, ], as.matrix(loc[is_row_missing, ]), k = num_neighbors)
+        nnidx <- FNN::get.knnx(
+          loc[cidx, ],
+          matrix(loc[is_row_missing, ], ncol=dim(loc)[2]),
+          k = num_neighbors
+        )
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
         nnval <- array((data[, tt])[nnidx], dim(nnidx))
         data[is_row_missing, tt] <- rowMeans(nnval)
