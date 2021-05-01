@@ -254,7 +254,7 @@ selectBasis <- function(data,
 #'
 #' @keywords internal.
 #' @param d An array of nonnegative values.
-#' @param s A positive numeric. 
+#' @param s A positive numeric.
 #' @param sample_covariance_trace A positive numeric.
 #' @param n An integer. Sample size.
 #' @return A numeric.
@@ -438,7 +438,7 @@ cMLE <- function(Fk,
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
 #' @param s A positive numeric.
 #' @param wSave A logic.
-#' @param S An \emph{n} by \emph{n} matrix 
+#' @param S An \emph{n} by \emph{n} matrix
 #' @param onlylogLike A logic.
 #' @return A list.
 #'
@@ -837,7 +837,6 @@ setUpKrigInfo <- function(x = NULL,
     setupArgs = setupArgs,
     dense = FALSE
   )
-
   LKinfo$basisInfo <- list(
     BasisType = "Radial",
     BasisFunction = "wendland",
@@ -858,8 +857,11 @@ setUpKrigInfo <- function(x = NULL,
     )
   )
 
-  LKinfo$a.wght <- setDefaultAwght(LKinfo)
-
+  if (LKGeometry == "LKRectangle") {
+    LKinfo$a.wght <- setRectangleAwght(LKinfo)
+  } else {
+    LKinfo$a.wght <- setDefaultAwght(LKinfo)
+  }
   LKinfo$call <- NULL
   LKinfoCheck(LKinfo)
 
@@ -895,6 +897,87 @@ setDefaultAwght <- function(LKinfo) {
   attr(a_wght, "fastNormalize") <- FALSE
   attr(a_wght, "isotropic") <- isotropic
   return(a_wght)
+}
+
+#'
+#' Internal function: A wrapper of LatticeKrig::LKrigSetupAwght.LKRectangle
+#'
+#' @keywords internal
+#' @param LKinfo LKinfo object
+#' @param ... Not used directly.
+#' @return list
+#'
+setRectangleAwght <- function(LKinfo, ...) {
+  is_awght_object <- !is.null(LKinfo$a.wghtObject)
+  if (is_awght_object) {
+    LKinfo$a.wght <- setDefaultAwght(LKinfo)
+  }
+  a.wght <- LKinfo$a.wght
+  nlevel <- LKinfo$nlevel
+  mx <- LKinfo$latticeInfo$mx
+
+  if (length(a.wght) == 1) {
+    a.wght <- as.list(rep(a.wght, nlevel))
+  }
+
+  stationary <- rep(NA, nlevel)
+  first.order <- rep(NA, nlevel)
+  isotropic <- rep(NA, nlevel)
+
+  for (k in 1:length(a.wght)) {
+    NAwght <- length(a.wght[[k]])
+    nDim <- dim(a.wght[[k]])
+
+    stationaryLevel <- !is.matrix(a.wght[[k]])
+    stationary[k] <- stationaryLevel
+    isotropic[k] <- ifelse(stationaryLevel,
+      NAwght == 1,
+      nDim[2] == 1
+    )
+    if (stationaryLevel) {
+      first.order[k] <- NAwght == 1
+    }
+    else {
+      nDim <- dim(a.wght[[k]])
+      dimOK <- (length(nDim) == 2) &
+        (nDim[1] == mx[k, 1] * mx[k, 2]) &
+        ((nDim[2] == 1) | (nDim[2] == 9))
+      if (!dimOK) {
+        cat("a.wght matrix at level ", k,
+          " has  dimensions:", nDim,
+          " compare to lattice: ", mx[k, ],
+          fill = TRUE
+        )
+        stop("There is a mismatch")
+      }
+      first.order[k] <- nDim[2] == 1
+    }
+  }
+
+  RBF <- LKinfo$basisInfo$BasisFunction
+
+  fastNormalization <- all(stationary) &
+    all(first.order) &
+    all(!is.na(unlist(a.wght))) &
+    (RBF == "WendlandFunction") &
+    (LKinfo$basisInfo$BasisType == "Radial")
+  if (!is.null(LKinfo$setupArgs$BCHook)) {
+    fastNormalization <- FALSE
+  }
+  if (fastNormalization) {
+    attr(a.wght, which = "fastNormDecomp") <- LKRectangleSetupNormalization(
+      mx,
+      a.wght
+    )
+  }
+
+  attr(a.wght, which = "fastNormalize") <- fastNormalization
+  attr(a.wght, which = "first.order") <- first.order
+  attr(a.wght, which = "stationary") <- stationary
+  attr(a.wght, which = "isotropic") <- isotropic
+  attr(a.wght, which = "a.wghtAsObject") <- is_awght_object
+
+  return(a.wght)
 }
 
 #'

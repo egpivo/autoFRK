@@ -164,6 +164,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         nlevel <- 3
       }
       iniobj <- initializeLKnFRK(
+        Data = Data,
         loc = loc,
         nlevel = nlevel,
         weights = 1 / diag(D),
@@ -568,7 +569,6 @@ initializeLKnFRK <- function(Data, loc, nlevel = 3, weights = NULL, n.neighbor =
   if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
   empty <- apply(!is.na(Data), 2, sum) == 0
   if (sum(empty) > 0) Data <- Data[, which(!empty)]
-  if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
 
   loc <- as.matrix(loc)
   N <- NROW(Data)
@@ -637,17 +637,15 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
 
   if (is.null(nc)) nc <- setNC(z, x, nlevel)
   if (is.null(a.wght)) a.wght <- 2 * NCOL(x) + 0.01
-
   info <- setUpKrigInfo(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
     NC = nc,
-    alpha = alpha,
+    alpha = as.list(alpha),
     LKGeometry = gtype,
     lambda = 1
   )
-
   loc <- x
   phi <- calculateLatticeKrigBasis(loc, info)
   w <- diag.spam(sqrt(weights))
