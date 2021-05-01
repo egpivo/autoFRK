@@ -7,7 +7,7 @@
 computeNegativeLikelihood(
   nrow_Fk,
   ncol_Fk,
-  n,
+  s,
   p,
   matrix_JSJ,
   sample_covariance_trace,
@@ -20,7 +20,7 @@ computeNegativeLikelihood(
 
 \item{ncol_Fk}{An integer. The number of columns of Fk.}
 
-\item{n}{An integer. Sample size.}
+\item{s}{An integer.}
 
 \item{p}{A positive integers. The number of columns of data.}
 

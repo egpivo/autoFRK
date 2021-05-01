@@ -29,7 +29,7 @@ each column being a basis function taken values at \code{loc}.}
 
 \item{matrix_JSJ}{A multiplication matrix}
 
-\item{s}{An integer. Sample size.}
+\item{s}{An integer. Sigma.}
 
 \item{ldet}{A numeric. A log determinant.}
 
