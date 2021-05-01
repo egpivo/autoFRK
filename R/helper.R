@@ -52,13 +52,13 @@ calculateLogDeterminant <- function(R, L, K) {
 #' Internal function: compute a negative log-likelihood (-2*log(likelihood))
 #'
 #' @keywords internal.
-#' @param data  A \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param M A \emph{K} by \emph{K} symmetric matrix.
 #' @param s A scalar.
-#' @param Depsilon A \emph{n} by \emph{n} diagonal matrix.
+#' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @return A numeric.
 #'
 computeLikelihood <- function(data, Fk, M, s, Depsilon) {
@@ -86,7 +86,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' Internal function: select basis functions
 #'
 #' @keywords internal.
-#' @param data  A \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param loc \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
 #' @param D A diagonal matrix.
@@ -97,7 +97,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' @param method A character of a list of characters.
 #' @param num_neighbors An integer.
 #' @param max_knot An integer for the maximum number of knots
-#' @param DfromLK A \emph{n} by \emph{n} diagonal matrix.
+#' @param DfromLK An \emph{n} by \emph{n} diagonal matrix.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @return An mrts object with 6 attributes
@@ -429,6 +429,19 @@ cMLE <- function(Fk,
   ))
 }
 
+#'
+#' Internal function: maximum likelihood estimate with the likelihood
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param s A positive numeric.
+#' @param wSave A logic.
+#' @param S An \emph{n} by \emph{n} matrix 
+#' @param onlylogLike A logic.
+#' @return A list.
+#'
 cMLEimat <- function(Fk,
                      data,
                      s,
