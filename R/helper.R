@@ -249,7 +249,6 @@ selectBasis <- function(data,
   return(out)
 }
 
-
 #'
 #' Internal function: solve v parameter
 #'
@@ -308,6 +307,50 @@ neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
   } else {
     return(sample_size * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (sample_size - k) + 1 / (s + v) * sample_covariance_trace - 1 / (s + v) * sum(d * eta / (eta + s + v)))
   }
+}
+
+#'
+#' Internal function: compute a negative likelihood
+#'
+#' @keywords internal.
+#' @param nrow_Fk An integer. The number of rows of Fk.
+#' @param ncol_Fk An integer. The number of columns of Fk.
+#' @param n An integer. Sample size.
+#' @param p A positive integers. The number of columns of data.
+#' @param matrix_JSJ A multiplication matrix
+#' @param sample_covariance_trace A positive numeric.
+#' @param vfixed A numeric
+#' @param ldet A numeric. A log determinant.
+#' @return A list.
+#'
+computeNegativeLikelihood <- function(nrow_Fk,
+                                      ncol_Fk,
+                                      n,
+                                      p,
+                                      matrix_JSJ,
+                                      sample_covariance_trace,
+                                      vfixed=NULL,
+                                      ldet=0) {
+  if(!isSymmetric.matrix(matrix_JSJ)){
+    stop("Please input a symmetric matrix")
+  }
+  if(ncol(matrix_JSJ) < ncol_Fk){
+    stop(paste0("Please input the rank of a matrix larger than ncol_Fk = ", ncol_Fk))
+  }
+  decomposed_JSJ <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
+  eigenvalues_JSJ <- decomposed_JSJ$value[1:ncol_Fk]
+  eigenvectors_JSJ <- decomposed_JSJ$vector[, 1:ncol_Fk]
+  v <- ifelse(is.null(vfixed),
+              estimateV(eigenvalues_JSJ,
+                        n,
+                        sample_covariance_trace,
+                        nrow_Fk),
+              vfixed)
+  dii <- pmax(eigenvalues_JSJ, 0)
+  return(list(
+    negloglik=neg2llik(dii, n, v, sample_covariance_trace, nrow_Fk) * p + ldet * p,
+    P=eigenvectors_JSJ
+  ))
 }
 
 #'
@@ -371,6 +414,74 @@ cMLE <- function(Fk,
     negloglik = neg_log_likelihood,
     L = L
   ))
+}
+
+cMLEimat <- function(Fk,
+                     Data,
+                     s,
+                     wSave = FALSE,
+                     S = NULL,
+                     onlylogLike = !wSave) {
+  n <- nrow(Fk)
+  k <- ncol(Fk)
+  num_columns <- NCOL(data)
+  inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk, Fk)
+  ihF <- inverse_square_root_matrix %*% t(Fk)
+  if (is.null(S)) {
+    JSJ <- tcrossprod(ihF %*% Data) / num_columns
+  }
+  else {
+    JSJ <- (ihF %*% S) %*% t(ihF)
+  }
+  JSJ <- (JSJ + t(JSJ)) / 2
+
+  sample_covariance_trace <- sum(rowSums(as.matrix(Data)^2)) / num_columns
+  eg <- eigen(JSJ)
+
+  d <- eg$value[1:k]
+  P <- eg$vector[, 1:k]
+  v <- estimateV(d, s, sample_covariance_trace, n)
+  dii <- pmax(d, 0)
+  negloglik <- neg2llik(dii, s, v, sample_covariance_trace, n) * num_columns
+  if (onlylogLike) {
+    return(list(negloglik = negloglik))
+  }
+  
+  dhat <- estimateEta(dii, s, v)
+  M <- inverse_square_root_matrix %*% P %*% (dhat * t(P)) %*% inverse_square_root_matrix
+  dimnames(M) <- NULL
+  if (!wSave) {
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negloglik
+    ))
+  } else {
+    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% inverse_square_root_matrix)
+    if (all(dhat == 0)) {
+      dhat[1] <- 1e-10
+    }
+    L <- L[, dhat > 0]
+    invD <- rep(1, n) / (s + v)
+    iDZ <- invD * Data
+    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
+    INVtZ <- iDZ - invD * right
+    etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
+    GM <- Fk %*% M
+    V <- as.matrix(M - t(GM) %*% invCz(
+      (s + v) * diag.spam(n),
+      L, GM
+    ))
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negloglik,
+      w = etatt,
+      V = V
+    ))
+  }
 }
 
 #'

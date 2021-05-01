@@ -234,3 +234,16 @@ test_that("cMLE", {
   expect_null(mle2$L)
   expect_true(all(mle3$L == 0))
 })
+
+likeilihood_result <- computeNegativeLikelihood(100, 10, 1000, 4, diag(1,10), 1)
+test_that("helper function for cMLE", {
+  expect_error(
+    computeNegativeLikelihood(100, 10, 1000, 4, matrix(c(1, 2)), 1),
+    "Please input a symmetric matrix"           
+  )
+  expect_error(
+    computeNegativeLikelihood(100, 10, 1000, 4, diag(1,4), 1),
+    "Please input the rank of a matrix larger than ncol_Fk = 10"           
+  )
+  expect_lte(abs(likeilihood_result$negloglik - 3498.2569382), tolerance)
+})
