@@ -248,11 +248,9 @@ test_that("helper function for cMLE", {
   expect_lte(abs(likeilihood_result$negative_log_likelihood - 3498.2569382), tolerance)
 })
 
-test_cmle_object <- cMLEimat(Fk[obs], data, s, TRUE)
+test_cmle_object <- cMLEimat(Fk[obs], data, s, FALSE, diag(150), onlylogLike=FALSE)
 test_that("cMLEimat", {
-  expect_lte(abs(test_cmle_object$M[1] - 49.029416), tolerance)
-  expect_lte(abs(test_cmle_object$v - 6.091153), tolerance)
-  expect_lte(abs(test_cmle_object$w - -6.993191), tolerance)
-  expect_lte(abs(test_cmle_object$negloglik - 792.577979), tolerance)
-  expect_lte(abs(test_cmle_object$V - 0.1247005), tolerance)
+  expect_lte(abs(test_cmle_object$M[1] - 0), tolerance)
+  expect_lte(abs(test_cmle_object$v - 35.089146), tolerance)
+  expect_lte(abs(test_cmle_object$negloglik - 979.347403), tolerance)
 })
