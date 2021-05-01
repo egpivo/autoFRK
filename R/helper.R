@@ -254,7 +254,7 @@ selectBasis <- function(data,
 #'
 #' @keywords internal.
 #' @param d An array of nonnegative values.
-#' @param s A positive numeric.
+#' @param s A positive numeric. 
 #' @param sample_covariance_trace A positive numeric.
 #' @param n An integer. Sample size.
 #' @return A numeric.
@@ -315,7 +315,7 @@ neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
 #' @keywords internal.
 #' @param nrow_Fk An integer. The number of rows of Fk.
 #' @param ncol_Fk An integer. The number of columns of Fk.
-#' @param n An integer. Sample size.
+#' @param s An integer.
 #' @param p A positive integers. The number of columns of data.
 #' @param matrix_JSJ A multiplication matrix
 #' @param sample_covariance_trace A positive numeric.
@@ -325,7 +325,7 @@ neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
 #'
 computeNegativeLikelihood <- function(nrow_Fk,
                                       ncol_Fk,
-                                      n,
+                                      s,
                                       p,
                                       matrix_JSJ,
                                       sample_covariance_trace,
@@ -343,15 +343,15 @@ computeNegativeLikelihood <- function(nrow_Fk,
   v <- ifelse(is.null(vfixed),
     estimateV(
       eigenvalues_JSJ,
-      n,
+      s,
       sample_covariance_trace,
       nrow_Fk
     ),
     vfixed
   )
   d <- pmax(eigenvalues_JSJ, 0)
-  d_hat <- estimateEta(d, n, v)
-  negative_log_likelihood <- neg2llik(d, n, v, sample_covariance_trace, nrow_Fk) * p + ldet * p
+  d_hat <- estimateEta(d, s, v)
+  negative_log_likelihood <- neg2llik(d, s, v, sample_covariance_trace, nrow_Fk) * p + ldet * p
   return(list(
     negative_log_likelihood = negative_log_likelihood,
     P = eigenvectors_JSJ,
@@ -370,7 +370,7 @@ computeNegativeLikelihood <- function(nrow_Fk,
 #' @param sample_covariance_trace A positive numeric.
 #' @param inverse_square_root_matrix A matrix.
 #' @param matrix_JSJ A multiplication matrix
-#' @param s An integer. Sample size.
+#' @param s An integer. Sigma.
 #' @param ldet A numeric. A log determinant.
 #' @param wSave A logic.
 #' @param onlylogLike A logic.
@@ -392,7 +392,7 @@ cMLE <- function(Fk,
   likelihood_object <- computeNegativeLikelihood(
     nrow_Fk = nrow_Fk,
     ncol_Fk = ncol(Fk),
-    n = s,
+    s = s,
     p = num_columns,
     matrix_JSJ = matrix_JSJ,
     sample_covariance_trace = sample_covariance_trace,
@@ -456,7 +456,7 @@ cMLEimat <- function(Fk,
   likelihood_object <- computeNegativeLikelihood(
     nrow_Fk = nrow_Fk,
     ncol_Fk = ncol_Fk,
-    n = s,
+    s = s,
     p = num_columns,
     matrix_JSJ = matrix_JSJ,
     sample_covariance_trace = sample_covariance_trace

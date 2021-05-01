@@ -202,67 +202,6 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
   }
 }
 
-cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
-  n <- nrow(Fk)
-  k <- ncol(Fk)
-  TT <- NCOL(Data)
-  trS <- sum(rowSums(as.matrix(Data)^2)) / TT
-  half <- getInverseSquareRootMatrix(Fk, Fk)
-  ihF <- half %*% t(Fk)
-  if (is.null(S)) {
-    JSJ <- tcrossprod(ihF %*% Data) / TT
-  }
-  else {
-    JSJ <- (ihF %*% S) %*% t(ihF)
-  }
-  JSJ <- (JSJ + t(JSJ)) / 2
-  eg <- eigen(JSJ)
-  d <- eg$value[1:k]
-  P <- eg$vector[, 1:k]
-  v <- estimateV(d, s, trS, n)
-  dii <- pmax(d, 0)
-  negloglik <- neg2llik(dii, s, v, trS, n) * TT
-  if (onlylogLike) {
-    return(list(negloglik = negloglik))
-  }
-  dhat <- estimateEta(dii, s, v)
-  M <- half %*% P %*% (dhat * t(P)) %*% half
-  dimnames(M) <- NULL
-  if (!wSave) {
-    return(list(
-      v = v,
-      M = M,
-      s = s,
-      negloglik = negloglik
-    ))
-  } else {
-    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
-    if (all(dhat == 0)) {
-      dhat[1] <- 0.1^10
-    }
-    L <- L[, dhat > 0]
-    invD <- rep(1, n) / (s + v)
-    iDZ <- invD * Data
-    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD *
-      L)) %*% (t(L) %*% iDZ))
-    INVtZ <- iDZ - invD * right
-    etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
-    GM <- Fk %*% M
-    V <- as.matrix(M - t(GM) %*% invCz(
-      (s + v) * diag.spam(n),
-      L, GM
-    ))
-    return(list(
-      v = v,
-      M = M,
-      s = s,
-      negloglik = negloglik,
-      w = etatt,
-      V = V
-    ))
-  }
-}
-
 cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
   TT <- NCOL(Data)
   N <- NROW(Data)
