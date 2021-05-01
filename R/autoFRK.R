@@ -425,7 +425,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   cnt <- 0
   Z0 <- Data
   Z0[is.na(Z0)] <- 0
-  old <- cMLEimat(Fk, Z0, s = 0, wSave = T)
+  old <- cMLEimat(Fk, Z0, s = 0, wSave = TRUE)
   if (is.null(vfixed)) old$s <- old$v else old$s <- vfixed
   old$M <- convertToPositiveDefinite(old$M)
   Ptt1 <- old$M

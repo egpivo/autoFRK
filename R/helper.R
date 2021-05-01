@@ -339,7 +339,7 @@ computeNegativeLikelihood <- function(nrow_Fk,
   }
   decomposed_JSJ <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
   eigenvalues_JSJ <- decomposed_JSJ$value[1:ncol_Fk]
-  eigenvectors_JSJ <- decomposed_JSJ$vector[, 1:ncol_Fk]
+  eigenvectors_JSJ <- as.matrix(decomposed_JSJ$vector)[, 1:ncol_Fk]
   v <- ifelse(is.null(vfixed),
     estimateV(
       eigenvalues_JSJ,
@@ -430,29 +430,32 @@ cMLE <- function(Fk,
 }
 
 cMLEimat <- function(Fk,
-                     Data,
+                     data,
                      s,
                      wSave = FALSE,
                      S = NULL,
                      onlylogLike = !wSave) {
-  nrow_Fk <- nrow(Fk)
-  k <- ncol(Fk)
+  data <- as.matrix(data)
+  Fk <- as.matrix(Fk)
+
   num_columns <- NCOL(data)
+  nrow_Fk <- nrow(Fk)
+  ncol_Fk <- ncol(Fk)
+
   inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk, Fk)
   ihF <- inverse_square_root_matrix %*% t(Fk)
   if (is.null(S)) {
-    matrix_JSJ <- tcrossprod(ihF %*% Data) / num_columns
+    matrix_JSJ <- tcrossprod(ihF %*% data) / num_columns
   }
   else {
     matrix_JSJ <- (ihF %*% S) %*% t(ihF)
   }
   matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
-
-  sample_covariance_trace <- sum(rowSums(as.matrix(Data)^2)) / num_columns
+  sample_covariance_trace <- sum(rowSums(data^2)) / num_columns
 
   likelihood_object <- computeNegativeLikelihood(
     nrow_Fk = nrow_Fk,
-    ncol_Fk = ncol(Fk),
+    ncol_Fk = ncol_Fk,
     n = s,
     p = num_columns,
     matrix_JSJ = matrix_JSJ,
@@ -477,12 +480,14 @@ cMLEimat <- function(Fk,
     ))
   } else {
     L <- Fk %*% t((sqrt(d_hat) * t(P)) %*% inverse_square_root_matrix)
-    if (all(d_hat == 0)) {
-      d_hat[1] <- 1e-10
+    if (ncol_Fk > 2) {
+      reduced_columns <- c(1, which(d_hat[2:ncol_Fk] > 0))
+    } else {
+      reduced_columns <- ncol_Fk
     }
-    L <- L[, d_hat > 0]
+    L <- L[, reduced_columns]
     invD <- rep(1, nrow_Fk) / (s + v)
-    iDZ <- invD * Data
+    iDZ <- invD * data
     right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
     INVtZ <- iDZ - invD * right
     etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
