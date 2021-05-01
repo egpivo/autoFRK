@@ -329,27 +329,34 @@ computeNegativeLikelihood <- function(nrow_Fk,
                                       p,
                                       matrix_JSJ,
                                       sample_covariance_trace,
-                                      vfixed=NULL,
-                                      ldet=0) {
-  if(!isSymmetric.matrix(matrix_JSJ)){
+                                      vfixed = NULL,
+                                      ldet = 0) {
+  if (!isSymmetric.matrix(matrix_JSJ)) {
     stop("Please input a symmetric matrix")
   }
-  if(ncol(matrix_JSJ) < ncol_Fk){
+  if (ncol(matrix_JSJ) < ncol_Fk) {
     stop(paste0("Please input the rank of a matrix larger than ncol_Fk = ", ncol_Fk))
   }
   decomposed_JSJ <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
   eigenvalues_JSJ <- decomposed_JSJ$value[1:ncol_Fk]
   eigenvectors_JSJ <- decomposed_JSJ$vector[, 1:ncol_Fk]
   v <- ifelse(is.null(vfixed),
-              estimateV(eigenvalues_JSJ,
-                        n,
-                        sample_covariance_trace,
-                        nrow_Fk),
-              vfixed)
-  dii <- pmax(eigenvalues_JSJ, 0)
+    estimateV(
+      eigenvalues_JSJ,
+      n,
+      sample_covariance_trace,
+      nrow_Fk
+    ),
+    vfixed
+  )
+  d <- pmax(eigenvalues_JSJ, 0)
+  d_hat <- estimateEta(d, n, v)
+  negative_log_likelihood <- neg2llik(d, n, v, sample_covariance_trace, nrow_Fk) * p + ldet * p
   return(list(
-    negloglik=neg2llik(dii, n, v, sample_covariance_trace, nrow_Fk) * p + ldet * p,
-    P=eigenvectors_JSJ
+    negative_log_likelihood = negative_log_likelihood,
+    P = eigenvectors_JSJ,
+    v = v,
+    d_hat = d_hat
   ))
 }
 
@@ -380,38 +387,44 @@ cMLE <- function(Fk,
                  wSave = FALSE,
                  onlylogLike = !wSave,
                  vfixed = NULL) {
-  n <- nrow(Fk)
-  k <- ncol(Fk)
-  eg <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
-  d <- eg$value[1:k]
-  P <- eg$vector[, 1:k]
-  v <- ifelse(is.null(vfixed), estimateV(d, s, sample_covariance_trace, n), vfixed)
-  dii <- pmax(d, 0)
-  neg_log_likelihood <- neg2llik(dii, s, v, sample_covariance_trace, n) * num_columns + ldet * num_columns
+  nrow_Fk <- nrow(Fk)
 
+  likelihood_object <- computeNegativeLikelihood(
+    nrow_Fk = nrow_Fk,
+    ncol_Fk = ncol(Fk),
+    n = s,
+    p = num_columns,
+    matrix_JSJ = matrix_JSJ,
+    sample_covariance_trace = sample_covariance_trace,
+    vfixed = vfixed,
+    ldet = ldet
+  )
+  negative_log_likelihood <- likelihood_object$negative_log_likelihood
   if (onlylogLike) {
-    return(list(negloglik = neg_log_likelihood))
+    return(list(negloglik = negative_log_likelihood))
   }
 
-  dhat <- estimateEta(dii, s, v)
-  M <- inverse_square_root_matrix %*% P %*% (dhat * t(P)) %*% inverse_square_root_matrix
+  P <- likelihood_object$P
+  d_hat <- likelihood_object$d_hat
+
+  M <- inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
   dimnames(M) <- NULL
   if (!wSave) {
     L <- NULL
   } else {
-    if (dhat[1] != 0) {
-      L <- Fk %*% ((sqrt(dhat) * t(P)) %*% inverse_square_root_matrix)
-      L <- as.matrix(L[, dhat > 0])
+    if (d_hat[1] != 0) {
+      L <- Fk %*% ((sqrt(d_hat) * t(P)) %*% inverse_square_root_matrix)
+      L <- as.matrix(L[, d_hat > 0])
     } else {
-      L <- matrix(0, n, 1)
+      L <- matrix(0, nrow_Fk, 1)
     }
   }
 
   return(list(
-    v = v,
+    v = likelihood_object$v,
     M = M,
     s = s,
-    negloglik = neg_log_likelihood,
+    negloglik = negative_log_likelihood,
     L = L
   ))
 }
@@ -422,62 +435,67 @@ cMLEimat <- function(Fk,
                      wSave = FALSE,
                      S = NULL,
                      onlylogLike = !wSave) {
-  n <- nrow(Fk)
+  nrow_Fk <- nrow(Fk)
   k <- ncol(Fk)
   num_columns <- NCOL(data)
   inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk, Fk)
   ihF <- inverse_square_root_matrix %*% t(Fk)
   if (is.null(S)) {
-    JSJ <- tcrossprod(ihF %*% Data) / num_columns
+    matrix_JSJ <- tcrossprod(ihF %*% Data) / num_columns
   }
   else {
-    JSJ <- (ihF %*% S) %*% t(ihF)
+    matrix_JSJ <- (ihF %*% S) %*% t(ihF)
   }
-  JSJ <- (JSJ + t(JSJ)) / 2
+  matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
 
   sample_covariance_trace <- sum(rowSums(as.matrix(Data)^2)) / num_columns
-  eg <- eigen(JSJ)
 
-  d <- eg$value[1:k]
-  P <- eg$vector[, 1:k]
-  v <- estimateV(d, s, sample_covariance_trace, n)
-  dii <- pmax(d, 0)
-  negloglik <- neg2llik(dii, s, v, sample_covariance_trace, n) * num_columns
+  likelihood_object <- computeNegativeLikelihood(
+    nrow_Fk = nrow_Fk,
+    ncol_Fk = ncol(Fk),
+    n = s,
+    p = num_columns,
+    matrix_JSJ = matrix_JSJ,
+    sample_covariance_trace = sample_covariance_trace
+  )
+  negative_log_likelihood <- likelihood_object$negative_log_likelihood
   if (onlylogLike) {
-    return(list(negloglik = negloglik))
+    return(list(negloglik = negative_log_likelihood))
   }
-  
-  dhat <- estimateEta(dii, s, v)
-  M <- inverse_square_root_matrix %*% P %*% (dhat * t(P)) %*% inverse_square_root_matrix
+
+  P <- likelihood_object$P
+  d_hat <- likelihood_object$d_hat
+  v <- likelihood_object$v
+  M <- inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
   dimnames(M) <- NULL
   if (!wSave) {
     return(list(
       v = v,
       M = M,
       s = s,
-      negloglik = negloglik
+      negloglik = negative_log_likelihood
     ))
   } else {
-    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% inverse_square_root_matrix)
-    if (all(dhat == 0)) {
-      dhat[1] <- 1e-10
+    L <- Fk %*% t((sqrt(d_hat) * t(P)) %*% inverse_square_root_matrix)
+    if (all(d_hat == 0)) {
+      d_hat[1] <- 1e-10
     }
-    L <- L[, dhat > 0]
-    invD <- rep(1, n) / (s + v)
+    L <- L[, d_hat > 0]
+    invD <- rep(1, nrow_Fk) / (s + v)
     iDZ <- invD * Data
     right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
     INVtZ <- iDZ - invD * right
     etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
     GM <- Fk %*% M
     V <- as.matrix(M - t(GM) %*% invCz(
-      (s + v) * diag.spam(n),
+      (s + v) * diag.spam(nrow_Fk),
       L, GM
     ))
     return(list(
       v = v,
       M = M,
       s = s,
-      negloglik = negloglik,
+      negloglik = negative_log_likelihood,
       w = etatt,
       V = V
     ))
