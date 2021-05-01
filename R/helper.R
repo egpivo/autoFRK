@@ -912,72 +912,71 @@ setRectangleAwght <- function(LKinfo, ...) {
   if (is_awght_object) {
     LKinfo$a.wght <- setDefaultAwght(LKinfo)
   }
-  a.wght <- LKinfo$a.wght
-  nlevel <- LKinfo$nlevel
+  a_wght <- LKinfo$a.wght
+  n_level <- LKinfo$nlevel
   mx <- LKinfo$latticeInfo$mx
 
-  if (length(a.wght) == 1) {
-    a.wght <- as.list(rep(a.wght, nlevel))
+  if (length(a_wght) == 1) {
+    a_wght <- as.list(rep(a_wght, n_level))
   }
 
-  stationary <- rep(NA, nlevel)
-  first.order <- rep(NA, nlevel)
-  isotropic <- rep(NA, nlevel)
+  stationary <- rep(NA, n_level)
+  first_order <- rep(NA, n_level)
+  isotropic <- rep(NA, n_level)
 
-  for (k in 1:length(a.wght)) {
-    NAwght <- length(a.wght[[k]])
-    nDim <- dim(a.wght[[k]])
+  for (k in 1:length(a_wght)) {
+    length_awght <- length(a_wght[[k]])
+    dim_a_wght <- dim(a_wght[[k]])
 
-    stationaryLevel <- !is.matrix(a.wght[[k]])
-    stationary[k] <- stationaryLevel
-    isotropic[k] <- ifelse(stationaryLevel,
-      NAwght == 1,
-      nDim[2] == 1
+    is_a_wght_matrix <- !is.matrix(a_wght[[k]])
+    stationary[k] <- is_a_wght_matrix
+    isotropic[k] <- ifelse(is_a_wght_matrix,
+      length_awght == 1,
+      dim_a_wght[2] == 1
     )
-    if (stationaryLevel) {
-      first.order[k] <- NAwght == 1
+    if (is_a_wght_matrix) {
+      first_order[k] <- length_awght == 1
     }
     else {
-      nDim <- dim(a.wght[[k]])
-      dimOK <- (length(nDim) == 2) &
-        (nDim[1] == mx[k, 1] * mx[k, 2]) &
-        ((nDim[2] == 1) | (nDim[2] == 9))
-      if (!dimOK) {
-        cat("a.wght matrix at level ", k,
-          " has  dimensions:", nDim,
-          " compare to lattice: ", mx[k, ],
-          fill = TRUE
-        )
-        stop("There is a mismatch")
+      is_dimenstion_matched <- (length(dim_a_wght) == 2) &
+        (dim_a_wght[1] == mx[k, 1] * mx[k, 2]) &
+        ((dim_a_wght[2] == 1) | (dim_a_wght[2] == 9))
+      if (!is_dimenstion_matched) {
+        stop(paste0(
+          "Mismatched: a.wght matrix at level ",
+          k,
+          " has  dimensions:", dim_a_wght,
+          " compare to lattice: ", mx[k, ]
+        ))
       }
-      first.order[k] <- nDim[2] == 1
+      first_order[k] <- dim_a_wght[2] == 1
     }
   }
 
   RBF <- LKinfo$basisInfo$BasisFunction
 
-  fastNormalization <- all(stationary) &
-    all(first.order) &
-    all(!is.na(unlist(a.wght))) &
+  is_fast_normalization <- all(stationary) &
+    all(first_order) &
+    all(!is.na(unlist(a_wght))) &
     (RBF == "WendlandFunction") &
     (LKinfo$basisInfo$BasisType == "Radial")
   if (!is.null(LKinfo$setupArgs$BCHook)) {
-    fastNormalization <- FALSE
+    is_fast_normalization <- FALSE
   }
-  if (fastNormalization) {
-    attr(a.wght, which = "fastNormDecomp") <- LKRectangleSetupNormalization(
+  if (is_fast_normalization) {
+    attr(a_wght, which = "fastNormDecomp") <- LKRectangleSetupNormalization(
       mx,
-      a.wght
+      a_wght
     )
   }
 
-  attr(a.wght, which = "fastNormalize") <- fastNormalization
-  attr(a.wght, which = "first.order") <- first.order
-  attr(a.wght, which = "stationary") <- stationary
-  attr(a.wght, which = "isotropic") <- isotropic
-  attr(a.wght, which = "a.wghtAsObject") <- is_awght_object
+  attr(a_wght, which = "fastNormalize") <- is_fast_normalization
+  attr(a_wght, which = "first.order") <- first_order
+  attr(a_wght, which = "stationary") <- stationary
+  attr(a_wght, which = "isotropic") <- isotropic
+  attr(a_wght, which = "a.wghtAsObject") <- is_awght_object
 
-  return(a.wght)
+  return(a_wght)
 }
 
 #'
