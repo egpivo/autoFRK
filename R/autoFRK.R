@@ -203,7 +203,12 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
   }
 }
 
-cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
+cMLElk <- function(Fk,
+                   Data,
+                   Depsilon,
+                   wSave = FALSE,
+                   DfromLK,
+                   vfixed = NULL) {
   TT <- NCOL(Data)
   N <- NROW(Data)
   lambda <- DfromLK$lambda
@@ -222,9 +227,17 @@ cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
   ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
     sum(log(weight))
   trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
-  out <- cMLE(Fk, TT, trS, half, JSJ,
-    s = 0, ldet = as.vector(ldetD),
-    wSave = TRUE, onlylogLike = FALSE, vfixed = vfixed
+  out <- cMLE(
+    Fk, 
+    TT,
+    trS,
+    half,
+    JSJ,
+    s = 0,
+    ldet = as.vector(ldetD),
+    wSave = TRUE,
+    onlylogLike = FALSE,
+    vfixed = vfixed
   )
   L <- out$L
   out$s <- out$v

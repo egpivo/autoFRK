@@ -370,7 +370,7 @@ computeNegativeLikelihood <- function(nrow_Fk,
 #' @param sample_covariance_trace A positive numeric.
 #' @param inverse_square_root_matrix A matrix.
 #' @param matrix_JSJ A multiplication matrix
-#' @param s An integer. Sigma.
+#' @param s A numeric.
 #' @param ldet A numeric. A log determinant.
 #' @param wSave A logic.
 #' @param onlylogLike A logic.
@@ -433,6 +433,37 @@ cMLE <- function(Fk,
 #' Internal function: maximum likelihood estimate with the likelihood
 #'
 #' @keywords internal.
+#' @param Fk1 An \emph{n} by \emph{K} matrix
+#' @param Fk2 An \emph{n} by \emph{K} matrix
+#' @param data  An \emph{n} by \emph{T} data matrix
+#' @param S An \emph{n} by \emph{n} matrix
+#' @return A list.
+#'
+computeProjectionMatrix <- function(Fk1,
+                                    Fk2,
+                                    data,
+                                    S = NULL){
+  num_columns <- NCOL(data)
+  inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk1, Fk2)
+  inverse_square_root_on_Fk2 <- inverse_square_root_matrix %*% t(Fk2)
+  if (is.null(S)) {
+    matrix_JSJ <- tcrossprod(inverse_square_root_on_Fk2 %*% data) / num_columns
+  }
+  else {
+    matrix_JSJ <- (inverse_square_root_on_Fk2 %*% S) %*% t(inverse_square_root_on_Fk2)
+  }
+  matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
+  return(list(
+    inverse_square_root_matrix = inverse_square_root_matrix,
+    matrix_JSJ = matrix_JSJ
+  ))
+  
+}
+
+#'
+#' Internal function: maximum likelihood estimate with the likelihood
+#'
+#' @keywords internal.
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
@@ -455,15 +486,10 @@ cMLEimat <- function(Fk,
   nrow_Fk <- nrow(Fk)
   ncol_Fk <- ncol(Fk)
 
-  inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk, Fk)
-  ihF <- inverse_square_root_matrix %*% t(Fk)
-  if (is.null(S)) {
-    matrix_JSJ <- tcrossprod(ihF %*% data) / num_columns
-  }
-  else {
-    matrix_JSJ <- (ihF %*% S) %*% t(ihF)
-  }
-  matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
+  projection <- computeProjectionMatrix(Fk, Fk, data, S)
+  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  matrix_JSJ <- projection$matrix_JSJ
+  
   sample_covariance_trace <- sum(rowSums(data^2)) / num_columns
 
   likelihood_object <- computeNegativeLikelihood(
@@ -1318,7 +1344,6 @@ fetchSystemRam <- function(os) {
 #' @return A character
 #'
 removeWhitespace <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
-
 
 #'
 #' Internal function: log-determinant of a sqaure matrix

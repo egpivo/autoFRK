@@ -254,3 +254,12 @@ test_that("cMLEimat", {
   expect_lte(abs(test_cmle_object$v - 35.089146), tolerance)
   expect_lte(abs(test_cmle_object$negloglik - 979.347403), tolerance)
 })
+
+cpm_example1 <- computeProjectionMatrix(Fk[obs], Fk[obs], data)
+cpm_example2 <- computeProjectionMatrix(Fk[obs], Fk[obs], data, diag(NROW(data)))
+
+test_that("compute projection matrices", {
+  expect_lte(abs(cpm_example1$inverse_square_root_matrix - 0.1061693), tolerance)
+  expect_lte(abs(cpm_example1$matrix_JSJ[1] - 4360.790139), tolerance)
+  expect_lte(abs(cpm_example2$matrix_JSJ[1] - 1), tolerance)
+})
