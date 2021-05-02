@@ -442,7 +442,7 @@ cMLE <- function(Fk,
 computeProjectionMatrix <- function(Fk1,
                                     Fk2,
                                     data,
-                                    S = NULL){
+                                    S = NULL) {
   num_columns <- NCOL(data)
   inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk1, Fk2)
   inverse_square_root_on_Fk2 <- inverse_square_root_matrix %*% t(Fk2)
@@ -457,7 +457,6 @@ computeProjectionMatrix <- function(Fk1,
     inverse_square_root_matrix = inverse_square_root_matrix,
     matrix_JSJ = matrix_JSJ
   ))
-  
 }
 
 #'
@@ -489,7 +488,7 @@ cMLEimat <- function(Fk,
   projection <- computeProjectionMatrix(Fk, Fk, data, S)
   inverse_square_root_matrix <- projection$inverse_square_root_matrix
   matrix_JSJ <- projection$matrix_JSJ
-  
+
   sample_covariance_trace <- sum(rowSums(data^2)) / num_columns
 
   likelihood_object <- computeNegativeLikelihood(
@@ -544,6 +543,103 @@ cMLEimat <- function(Fk,
       V = V
     ))
   }
+}
+
+
+cMLElk <- function(Fk,
+                   data,
+                   Depsilon,
+                   wSave = FALSE,
+                   DfromLK,
+                   vfixed = NULL) {
+  num_columns <- NCOL(data)
+  N <- NROW(data)
+  lambda <- DfromLK$lambda
+  pick <- DfromLK$pick
+  wX <- DfromLK$wX[pick, ]
+  G <- t(wX) %*% wX + lambda * DfromLK$Q
+  weight <- DfromLK$weights[pick]
+  wwX <- diag.spam(sqrt(weight)) %*% wX
+  wXiG <- (wwX) %*% solve(G)
+  iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
+
+  projection <- computeProjectionMatrix(Fk, iDFk, data)
+  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  matrix_JSJ <- projection$matrix_JSJ
+
+  iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
+  trS <- sum(rowSums(as.matrix(iDZ) * data)) / num_columns
+
+  ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
+    sum(log(weight))
+  out <- cMLE(
+    Fk,
+    num_columns,
+    trS,
+    inverse_square_root_matrix,
+    matrix_JSJ,
+    s = 0,
+    ldet = as.vector(ldetD),
+    wSave = TRUE,
+    onlylogLike = FALSE,
+    vfixed = vfixed
+  )
+  L <- out$L
+  out$s <- out$v
+  out <- out[-which(names(out) == "v")]
+  out <- out[-which(names(out) == "L")]
+  if (!wSave) {
+    return(out)
+  } else {
+    iDL <- weight * L - wXiG %*% (t(wwX) %*% L)
+    itmp <- solve(diag(1, NCOL(L)) + t(L) %*% iDL / out$s)
+    iiLiD <- itmp %*% t(iDL / out$s)
+    MFiS11 <- out$M %*% t(iDFk) / out$s - ((out$M %*% t(iDFk / out$s)) %*%
+      L) %*% iiLiD
+    out$w <- MFiS11 %*% data
+    out$V <- MFiS11 %*% (Fk %*% out$M)
+    wlk <- t(wXiG) %*% data - t(wXiG) %*% L %*% (iiLiD %*%
+      data)
+    ihL <- chol(itmp) %*% t(L)
+    attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
+    return(out)
+  }
+}
+
+cMLEsp <- function(Fk,
+                   data,
+                   Depsilon,
+                   wSave = FALSE) {
+  De <- toSparseMatrix(Depsilon)
+  iD <- solve(De)
+  ldetD <- logDeterminant(De)
+  iDFk <- iD %*% Fk
+  num_columns <- NCOL(data)
+
+  projection <- computeProjectionMatrix(Fk, iDFk, data)
+  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  matrix_JSJ <- projection$matrix_JSJ
+
+  trS <- sum(rowSums(as.matrix(iD %*% data) * data)) / num_columns
+  out <- cMLE(Fk, num_columns, trS, inverse_square_root_matrix, matrix_JSJ, s = 0, ldet = ldetD, wSave)
+  if (wSave) {
+    L <- as.matrix(out$L)
+    invD <- iD / (out$s + out$v)
+    iDZ <- invD %*% data
+    right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
+      L))
+    INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
+    etatt <- out$M %*% t(Fk) %*% INVtZ
+    out$w <- as.matrix(etatt)
+    GM <- Fk %*% out$M
+    iDGM <- invD %*% GM
+    out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
+      right0 %*% (t(L) %*% iDGM)))
+  }
+  out$s <- out$v
+  out <- out[-which(names(out) == "v")]
+  out <- out[-which(names(out) == "L")]
+  return(out)
 }
 
 #'
