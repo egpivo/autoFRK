@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Internal function: convert to a sparse matrix — fetchNonZeroIndexs • autoFRK</title>
+<title>Internal function: compute a negative likelihood — computeNegativeLikelihood • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Internal function: convert to a sparse matrix — fetchNonZeroIndexs" />
-<meta property="og:description" content="Internal function: convert to a sparse matrix" />
+<meta property="og:title" content="Internal function: compute a negative likelihood — computeNegativeLikelihood" />
+<meta property="og:description" content="Internal function: compute a negative likelihood" />
 
 
 
@@ -106,29 +106,66 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Internal function: convert to a sparse matrix</h1>
+    <h1>Internal function: compute a negative likelihood</h1>
     
-    <div class="hidden name"><code>fetchNonZeroIndexs.Rd</code></div>
+    <div class="hidden name"><code>computeNegativeLikelihood.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Internal function: convert to a sparse matrix</p>
+    <p>Internal function: compute a negative likelihood</p>
     </div>
 
-    <pre class="usage"><span class='fu'>fetchNonZeroIndexs</span><span class='op'>(</span><span class='va'>mat</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>computeNegativeLikelihood</span><span class='op'>(</span>
+  <span class='va'>nrow_Fk</span>,
+  <span class='va'>ncol_Fk</span>,
+  <span class='va'>s</span>,
+  <span class='va'>p</span>,
+  <span class='va'>matrix_JSJ</span>,
+  <span class='va'>sample_covariance_trace</span>,
+  vfixed <span class='op'>=</span> <span class='cn'>NULL</span>,
+  ldet <span class='op'>=</span> <span class='fl'>0</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>mat</th>
-      <td><p>A matrix</p></td>
+      <th>nrow_Fk</th>
+      <td><p>An integer. The number of rows of Fk.</p></td>
+    </tr>
+    <tr>
+      <th>ncol_Fk</th>
+      <td><p>An integer. The number of columns of Fk.</p></td>
+    </tr>
+    <tr>
+      <th>s</th>
+      <td><p>An integer.</p></td>
+    </tr>
+    <tr>
+      <th>p</th>
+      <td><p>A positive integers. The number of columns of data.</p></td>
+    </tr>
+    <tr>
+      <th>matrix_JSJ</th>
+      <td><p>A multiplication matrix</p></td>
+    </tr>
+    <tr>
+      <th>sample_covariance_trace</th>
+      <td><p>A positive numeric.</p></td>
+    </tr>
+    <tr>
+      <th>vfixed</th>
+      <td><p>A numeric</p></td>
+    </tr>
+    <tr>
+      <th>ldet</th>
+      <td><p>A numeric. A log determinant.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An array of indeces</p>
+    <p>A list.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

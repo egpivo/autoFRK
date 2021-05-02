@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Internal function: convert to a sparse matrix — fetchNonZeroIndexs • autoFRK</title>
+<title>Internal function: maximum likelihood estimate with the likelihood — computeProjectionMatrix • autoFRK</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Internal function: convert to a sparse matrix — fetchNonZeroIndexs" />
-<meta property="og:description" content="Internal function: convert to a sparse matrix" />
+<meta property="og:title" content="Internal function: maximum likelihood estimate with the likelihood — computeProjectionMatrix" />
+<meta property="og:description" content="Internal function: maximum likelihood estimate with the likelihood" />
 
 
 
@@ -106,29 +106,41 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Internal function: convert to a sparse matrix</h1>
+    <h1>Internal function: maximum likelihood estimate with the likelihood</h1>
     
-    <div class="hidden name"><code>fetchNonZeroIndexs.Rd</code></div>
+    <div class="hidden name"><code>computeProjectionMatrix.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Internal function: convert to a sparse matrix</p>
+    <p>Internal function: maximum likelihood estimate with the likelihood</p>
     </div>
 
-    <pre class="usage"><span class='fu'>fetchNonZeroIndexs</span><span class='op'>(</span><span class='va'>mat</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>computeProjectionMatrix</span><span class='op'>(</span><span class='va'>Fk1</span>, <span class='va'>Fk2</span>, <span class='va'>data</span>, S <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>mat</th>
-      <td><p>A matrix</p></td>
+      <th>Fk1</th>
+      <td><p>An <em>n</em> by <em>K</em> matrix</p></td>
+    </tr>
+    <tr>
+      <th>Fk2</th>
+      <td><p>An <em>n</em> by <em>K</em> matrix</p></td>
+    </tr>
+    <tr>
+      <th>data</th>
+      <td><p>An <em>n</em> by <em>T</em> data matrix</p></td>
+    </tr>
+    <tr>
+      <th>S</th>
+      <td><p>An <em>n</em> by <em>n</em> matrix</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An array of indeces</p>
+    <p>A list.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
