@@ -36,6 +36,8 @@ X <- grids[obs, ]
 multi_realization_object <- autoFRK(Data = zt, loc = X, maxK = 15)
 yhat_example3 <- predict(multi_realization_object$G, newx = grids)
 
+#multi_realization_object <- autoFRK(Data = zt, loc = X, maxK = 15, finescale=TRUE)
+
 tolerance <- 1e-4
 # Test
 test_that("Automatic selection and prediction", {

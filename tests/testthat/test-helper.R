@@ -234,3 +234,32 @@ test_that("cMLE", {
   expect_null(mle2$L)
   expect_true(all(mle3$L == 0))
 })
+
+likeilihood_result <- computeNegativeLikelihood(100, 10, 1000, 4, diag(1, 10), 1)
+test_that("helper function for cMLE", {
+  expect_error(
+    computeNegativeLikelihood(100, 10, 1000, 4, matrix(c(1, 2)), 1),
+    "Please input a symmetric matrix"
+  )
+  expect_error(
+    computeNegativeLikelihood(100, 10, 1000, 4, diag(1, 4), 1),
+    "Please input the rank of a matrix larger than ncol_Fk = 10"
+  )
+  expect_lte(abs(likeilihood_result$negative_log_likelihood - 3498.2569382), tolerance)
+})
+
+test_cmle_object <- cMLEimat(Fk[obs], data, s, FALSE, diag(150), onlylogLike=FALSE)
+test_that("cMLEimat", {
+  expect_lte(abs(test_cmle_object$M[1] - 0), tolerance)
+  expect_lte(abs(test_cmle_object$v - 35.089146), tolerance)
+  expect_lte(abs(test_cmle_object$negloglik - 979.347403), tolerance)
+})
+
+cpm_example1 <- computeProjectionMatrix(Fk[obs], Fk[obs], data)
+cpm_example2 <- computeProjectionMatrix(Fk[obs], Fk[obs], data, diag(NROW(data)))
+
+test_that("compute projection matrices", {
+  expect_lte(abs(cpm_example1$inverse_square_root_matrix - 0.1061693), tolerance)
+  expect_lte(abs(cpm_example1$matrix_JSJ[1] - 4360.790139), tolerance)
+  expect_lte(abs(cpm_example2$matrix_JSJ[1] - 1), tolerance)
+})

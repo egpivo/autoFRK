@@ -52,13 +52,13 @@ calculateLogDeterminant <- function(R, L, K) {
 #' Internal function: compute a negative log-likelihood (-2*log(likelihood))
 #'
 #' @keywords internal.
-#' @param data  A \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param M A \emph{K} by \emph{K} symmetric matrix.
 #' @param s A scalar.
-#' @param Depsilon A \emph{n} by \emph{n} diagonal matrix.
+#' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @return A numeric.
 #'
 computeLikelihood <- function(data, Fk, M, s, Depsilon) {
@@ -86,7 +86,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' Internal function: select basis functions
 #'
 #' @keywords internal.
-#' @param data  A \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param loc \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
 #' @param D A diagonal matrix.
@@ -97,7 +97,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' @param method A character of a list of characters.
 #' @param num_neighbors An integer.
 #' @param max_knot An integer for the maximum number of knots
-#' @param DfromLK A \emph{n} by \emph{n} diagonal matrix.
+#' @param DfromLK An \emph{n} by \emph{n} diagonal matrix.
 #' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @return An mrts object with 6 attributes
@@ -249,7 +249,6 @@ selectBasis <- function(data,
   return(out)
 }
 
-
 #'
 #' Internal function: solve v parameter
 #'
@@ -311,6 +310,57 @@ neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
 }
 
 #'
+#' Internal function: compute a negative likelihood
+#'
+#' @keywords internal.
+#' @param nrow_Fk An integer. The number of rows of Fk.
+#' @param ncol_Fk An integer. The number of columns of Fk.
+#' @param s An integer.
+#' @param p A positive integers. The number of columns of data.
+#' @param matrix_JSJ A multiplication matrix
+#' @param sample_covariance_trace A positive numeric.
+#' @param vfixed A numeric
+#' @param ldet A numeric. A log determinant.
+#' @return A list.
+#'
+computeNegativeLikelihood <- function(nrow_Fk,
+                                      ncol_Fk,
+                                      s,
+                                      p,
+                                      matrix_JSJ,
+                                      sample_covariance_trace,
+                                      vfixed = NULL,
+                                      ldet = 0) {
+  if (!isSymmetric.matrix(matrix_JSJ)) {
+    stop("Please input a symmetric matrix")
+  }
+  if (ncol(matrix_JSJ) < ncol_Fk) {
+    stop(paste0("Please input the rank of a matrix larger than ncol_Fk = ", ncol_Fk))
+  }
+  decomposed_JSJ <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
+  eigenvalues_JSJ <- decomposed_JSJ$value[1:ncol_Fk]
+  eigenvectors_JSJ <- as.matrix(decomposed_JSJ$vector)[, 1:ncol_Fk]
+  v <- ifelse(is.null(vfixed),
+    estimateV(
+      eigenvalues_JSJ,
+      s,
+      sample_covariance_trace,
+      nrow_Fk
+    ),
+    vfixed
+  )
+  d <- pmax(eigenvalues_JSJ, 0)
+  d_hat <- estimateEta(d, s, v)
+  negative_log_likelihood <- neg2llik(d, s, v, sample_covariance_trace, nrow_Fk) * p + ldet * p
+  return(list(
+    negative_log_likelihood = negative_log_likelihood,
+    P = eigenvectors_JSJ,
+    v = v,
+    d_hat = d_hat
+  ))
+}
+
+#'
 #' Internal function: maximum likelihood estimate with the likelihood
 #'
 #' @keywords internal.
@@ -320,7 +370,7 @@ neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
 #' @param sample_covariance_trace A positive numeric.
 #' @param inverse_square_root_matrix A matrix.
 #' @param matrix_JSJ A multiplication matrix
-#' @param s An integer. Sample size.
+#' @param s A numeric.
 #' @param ldet A numeric. A log determinant.
 #' @param wSave A logic.
 #' @param onlylogLike A logic.
@@ -337,40 +387,259 @@ cMLE <- function(Fk,
                  wSave = FALSE,
                  onlylogLike = !wSave,
                  vfixed = NULL) {
-  n <- nrow(Fk)
-  k <- ncol(Fk)
-  eg <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
-  d <- eg$value[1:k]
-  P <- eg$vector[, 1:k]
-  v <- ifelse(is.null(vfixed), estimateV(d, s, sample_covariance_trace, n), vfixed)
-  dii <- pmax(d, 0)
-  neg_log_likelihood <- neg2llik(dii, s, v, sample_covariance_trace, n) * num_columns + ldet * num_columns
+  nrow_Fk <- nrow(Fk)
 
+  likelihood_object <- computeNegativeLikelihood(
+    nrow_Fk = nrow_Fk,
+    ncol_Fk = ncol(Fk),
+    s = s,
+    p = num_columns,
+    matrix_JSJ = matrix_JSJ,
+    sample_covariance_trace = sample_covariance_trace,
+    vfixed = vfixed,
+    ldet = ldet
+  )
+  negative_log_likelihood <- likelihood_object$negative_log_likelihood
   if (onlylogLike) {
-    return(list(negloglik = neg_log_likelihood))
+    return(list(negloglik = negative_log_likelihood))
   }
 
-  dhat <- estimateEta(dii, s, v)
-  M <- inverse_square_root_matrix %*% P %*% (dhat * t(P)) %*% inverse_square_root_matrix
+  P <- likelihood_object$P
+  d_hat <- likelihood_object$d_hat
+
+  M <- inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
   dimnames(M) <- NULL
   if (!wSave) {
     L <- NULL
   } else {
-    if (dhat[1] != 0) {
-      L <- Fk %*% ((sqrt(dhat) * t(P)) %*% inverse_square_root_matrix)
-      L <- as.matrix(L[, dhat > 0])
+    if (d_hat[1] != 0) {
+      L <- Fk %*% ((sqrt(d_hat) * t(P)) %*% inverse_square_root_matrix)
+      L <- as.matrix(L[, d_hat > 0])
     } else {
-      L <- matrix(0, n, 1)
+      L <- matrix(0, nrow_Fk, 1)
     }
   }
 
   return(list(
-    v = v,
+    v = likelihood_object$v,
     M = M,
     s = s,
-    negloglik = neg_log_likelihood,
+    negloglik = negative_log_likelihood,
     L = L
   ))
+}
+
+#'
+#' Internal function: maximum likelihood estimate with the likelihood
+#'
+#' @keywords internal.
+#' @param Fk1 An \emph{n} by \emph{K} matrix
+#' @param Fk2 An \emph{n} by \emph{K} matrix
+#' @param data  An \emph{n} by \emph{T} data matrix
+#' @param S An \emph{n} by \emph{n} matrix
+#' @return A list.
+#'
+computeProjectionMatrix <- function(Fk1,
+                                    Fk2,
+                                    data,
+                                    S = NULL) {
+  num_columns <- NCOL(data)
+  inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk1, Fk2)
+  inverse_square_root_on_Fk2 <- inverse_square_root_matrix %*% t(Fk2)
+  if (is.null(S)) {
+    matrix_JSJ <- tcrossprod(inverse_square_root_on_Fk2 %*% data) / num_columns
+  }
+  else {
+    matrix_JSJ <- (inverse_square_root_on_Fk2 %*% S) %*% t(inverse_square_root_on_Fk2)
+  }
+  matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
+  return(list(
+    inverse_square_root_matrix = inverse_square_root_matrix,
+    matrix_JSJ = matrix_JSJ
+  ))
+}
+
+#'
+#' Internal function: maximum likelihood estimate with the likelihood
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param s A positive numeric.
+#' @param wSave A logic.
+#' @param S An \emph{n} by \emph{n} matrix
+#' @param onlylogLike A logic.
+#' @return A list.
+#'
+cMLEimat <- function(Fk,
+                     data,
+                     s,
+                     wSave = FALSE,
+                     S = NULL,
+                     onlylogLike = !wSave) {
+  data <- as.matrix(data)
+  Fk <- as.matrix(Fk)
+
+  num_columns <- NCOL(data)
+  nrow_Fk <- nrow(Fk)
+  ncol_Fk <- ncol(Fk)
+
+  projection <- computeProjectionMatrix(Fk, Fk, data, S)
+  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  matrix_JSJ <- projection$matrix_JSJ
+
+  sample_covariance_trace <- sum(rowSums(data^2)) / num_columns
+
+  likelihood_object <- computeNegativeLikelihood(
+    nrow_Fk = nrow_Fk,
+    ncol_Fk = ncol_Fk,
+    s = s,
+    p = num_columns,
+    matrix_JSJ = matrix_JSJ,
+    sample_covariance_trace = sample_covariance_trace
+  )
+  negative_log_likelihood <- likelihood_object$negative_log_likelihood
+  if (onlylogLike) {
+    return(list(negloglik = negative_log_likelihood))
+  }
+
+  P <- likelihood_object$P
+  d_hat <- likelihood_object$d_hat
+  v <- likelihood_object$v
+  M <- inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
+  dimnames(M) <- NULL
+  if (!wSave) {
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negative_log_likelihood
+    ))
+  } else {
+    L <- Fk %*% t((sqrt(d_hat) * t(P)) %*% inverse_square_root_matrix)
+    if (ncol_Fk > 2) {
+      reduced_columns <- c(1, which(d_hat[2:ncol_Fk] > 0))
+    } else {
+      reduced_columns <- ncol_Fk
+    }
+    L <- L[, reduced_columns]
+    invD <- rep(1, nrow_Fk) / (s + v)
+    iDZ <- invD * data
+    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
+    INVtZ <- iDZ - invD * right
+    etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
+    GM <- Fk %*% M
+    V <- as.matrix(M - t(GM) %*% invCz(
+      (s + v) * diag.spam(nrow_Fk),
+      L, GM
+    ))
+    return(list(
+      v = v,
+      M = M,
+      s = s,
+      negloglik = negative_log_likelihood,
+      w = etatt,
+      V = V
+    ))
+  }
+}
+
+
+cMLElk <- function(Fk,
+                   data,
+                   Depsilon,
+                   wSave = FALSE,
+                   DfromLK,
+                   vfixed = NULL) {
+  num_columns <- NCOL(data)
+  N <- NROW(data)
+  lambda <- DfromLK$lambda
+  pick <- DfromLK$pick
+  wX <- DfromLK$wX[pick, ]
+  G <- t(wX) %*% wX + lambda * DfromLK$Q
+  weight <- DfromLK$weights[pick]
+  wwX <- diag.spam(sqrt(weight)) %*% wX
+  wXiG <- (wwX) %*% solve(G)
+  iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
+
+  projection <- computeProjectionMatrix(Fk, iDFk, data)
+  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  matrix_JSJ <- projection$matrix_JSJ
+
+  iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
+  trS <- sum(rowSums(as.matrix(iDZ) * data)) / num_columns
+
+  ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
+    sum(log(weight))
+  out <- cMLE(
+    Fk,
+    num_columns,
+    trS,
+    inverse_square_root_matrix,
+    matrix_JSJ,
+    s = 0,
+    ldet = as.vector(ldetD),
+    wSave = TRUE,
+    onlylogLike = FALSE,
+    vfixed = vfixed
+  )
+  L <- out$L
+  out$s <- out$v
+  out <- out[-which(names(out) == "v")]
+  out <- out[-which(names(out) == "L")]
+  if (!wSave) {
+    return(out)
+  } else {
+    iDL <- weight * L - wXiG %*% (t(wwX) %*% L)
+    itmp <- solve(diag(1, NCOL(L)) + t(L) %*% iDL / out$s)
+    iiLiD <- itmp %*% t(iDL / out$s)
+    MFiS11 <- out$M %*% t(iDFk) / out$s - ((out$M %*% t(iDFk / out$s)) %*%
+      L) %*% iiLiD
+    out$w <- MFiS11 %*% data
+    out$V <- MFiS11 %*% (Fk %*% out$M)
+    wlk <- t(wXiG) %*% data - t(wXiG) %*% L %*% (iiLiD %*%
+      data)
+    ihL <- chol(itmp) %*% t(L)
+    attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
+    return(out)
+  }
+}
+
+cMLEsp <- function(Fk,
+                   data,
+                   Depsilon,
+                   wSave = FALSE) {
+  De <- toSparseMatrix(Depsilon)
+  iD <- solve(De)
+  ldetD <- logDeterminant(De)
+  iDFk <- iD %*% Fk
+  num_columns <- NCOL(data)
+
+  projection <- computeProjectionMatrix(Fk, iDFk, data)
+  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  matrix_JSJ <- projection$matrix_JSJ
+
+  trS <- sum(rowSums(as.matrix(iD %*% data) * data)) / num_columns
+  out <- cMLE(Fk, num_columns, trS, inverse_square_root_matrix, matrix_JSJ, s = 0, ldet = ldetD, wSave)
+  if (wSave) {
+    L <- as.matrix(out$L)
+    invD <- iD / (out$s + out$v)
+    iDZ <- invD %*% data
+    right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
+      L))
+    INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
+    etatt <- out$M %*% t(Fk) %*% INVtZ
+    out$w <- as.matrix(etatt)
+    GM <- Fk %*% out$M
+    iDGM <- invD %*% GM
+    out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
+      right0 %*% (t(L) %*% iDGM)))
+  }
+  out$s <- out$v
+  out <- out[-which(names(out) == "v")]
+  out <- out[-which(names(out) == "L")]
+  return(out)
 }
 
 #'
@@ -690,7 +959,6 @@ setUpKrigInfo <- function(x = NULL,
     setupArgs = setupArgs,
     dense = FALSE
   )
-
   LKinfo$basisInfo <- list(
     BasisType = "Radial",
     BasisFunction = "wendland",
@@ -711,8 +979,11 @@ setUpKrigInfo <- function(x = NULL,
     )
   )
 
-  LKinfo$a.wght <- setDefaultAwght(LKinfo)
-
+  if (LKGeometry == "LKRectangle") {
+    LKinfo$a.wght <- setRectangleAwght(LKinfo)
+  } else {
+    LKinfo$a.wght <- setDefaultAwght(LKinfo)
+  }
   LKinfo$call <- NULL
   LKinfoCheck(LKinfo)
 
@@ -747,6 +1018,86 @@ setDefaultAwght <- function(LKinfo) {
   }
   attr(a_wght, "fastNormalize") <- FALSE
   attr(a_wght, "isotropic") <- isotropic
+  return(a_wght)
+}
+
+#'
+#' Internal function: A wrapper of LatticeKrig::LKrigSetupAwght.LKRectangle
+#'
+#' @keywords internal
+#' @param LKinfo LKinfo object
+#' @param ... Not used directly.
+#' @return list
+#'
+setRectangleAwght <- function(LKinfo, ...) {
+  is_awght_object <- !is.null(LKinfo$a.wghtObject)
+  if (is_awght_object) {
+    LKinfo$a.wght <- setDefaultAwght(LKinfo)
+  }
+  a_wght <- LKinfo$a.wght
+  n_level <- LKinfo$nlevel
+  mx <- LKinfo$latticeInfo$mx
+
+  if (length(a_wght) == 1) {
+    a_wght <- as.list(rep(a_wght, n_level))
+  }
+
+  stationary <- rep(NA, n_level)
+  first_order <- rep(NA, n_level)
+  isotropic <- rep(NA, n_level)
+
+  for (k in 1:length(a_wght)) {
+    length_awght <- length(a_wght[[k]])
+    dim_a_wght <- dim(a_wght[[k]])
+
+    is_a_wght_matrix <- !is.matrix(a_wght[[k]])
+    stationary[k] <- is_a_wght_matrix
+    isotropic[k] <- ifelse(is_a_wght_matrix,
+      length_awght == 1,
+      dim_a_wght[2] == 1
+    )
+    if (is_a_wght_matrix) {
+      first_order[k] <- length_awght == 1
+    }
+    else {
+      is_dimenstion_matched <- (length(dim_a_wght) == 2) &
+        (dim_a_wght[1] == mx[k, 1] * mx[k, 2]) &
+        ((dim_a_wght[2] == 1) | (dim_a_wght[2] == 9))
+      if (!is_dimenstion_matched) {
+        stop(paste0(
+          "Mismatched: a.wght matrix at level ",
+          k,
+          " has  dimensions:", dim_a_wght,
+          " compare to lattice: ", mx[k, ]
+        ))
+      }
+      first_order[k] <- dim_a_wght[2] == 1
+    }
+  }
+
+  RBF <- LKinfo$basisInfo$BasisFunction
+
+  is_fast_normalization <- all(stationary) &
+    all(first_order) &
+    all(!is.na(unlist(a_wght))) &
+    (RBF == "WendlandFunction") &
+    (LKinfo$basisInfo$BasisType == "Radial")
+  if (!is.null(LKinfo$setupArgs$BCHook)) {
+    is_fast_normalization <- FALSE
+  }
+  if (is_fast_normalization) {
+    attr(a_wght, which = "fastNormDecomp") <- LKRectangleSetupNormalization(
+      mx,
+      a_wght
+    )
+  }
+
+  attr(a_wght, which = "fastNormalize") <- is_fast_normalization
+  attr(a_wght, which = "first.order") <- first_order
+  attr(a_wght, which = "stationary") <- stationary
+  attr(a_wght, which = "isotropic") <- isotropic
+  attr(a_wght, which = "a.wghtAsObject") <- is_awght_object
+
   return(a_wght)
 }
 
@@ -1089,7 +1440,6 @@ fetchSystemRam <- function(os) {
 #' @return A character
 #'
 removeWhitespace <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
-
 
 #'
 #' Internal function: log-determinant of a sqaure matrix

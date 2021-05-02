@@ -164,6 +164,7 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         nlevel <- 3
       }
       iniobj <- initializeLKnFRK(
+        Data = Data,
         loc = loc,
         nlevel = nlevel,
         weights = 1 / diag(D),
@@ -200,144 +201,6 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
     class(obj) <- "FRK"
     return(obj)
   }
-}
-
-cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
-  n <- nrow(Fk)
-  k <- ncol(Fk)
-  TT <- NCOL(Data)
-  trS <- sum(rowSums(as.matrix(Data)^2)) / TT
-  half <- getInverseSquareRootMatrix(Fk, Fk)
-  ihF <- half %*% t(Fk)
-  if (is.null(S)) {
-    JSJ <- tcrossprod(ihF %*% Data) / TT
-  }
-  else {
-    JSJ <- (ihF %*% S) %*% t(ihF)
-  }
-  JSJ <- (JSJ + t(JSJ)) / 2
-  eg <- eigen(JSJ)
-  d <- eg$value[1:k]
-  P <- eg$vector[, 1:k]
-  v <- estimateV(d, s, trS, n)
-  dii <- pmax(d, 0)
-  negloglik <- neg2llik(dii, s, v, trS, n) * TT
-  if (onlylogLike) {
-    return(list(negloglik = negloglik))
-  }
-  dhat <- estimateEta(dii, s, v)
-  M <- half %*% P %*% (dhat * t(P)) %*% half
-  dimnames(M) <- NULL
-  if (!wSave) {
-    return(list(
-      v = v,
-      M = M,
-      s = s,
-      negloglik = negloglik
-    ))
-  } else {
-    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
-    if (all(dhat == 0)) {
-      dhat[1] <- 0.1^10
-    }
-    L <- L[, dhat > 0]
-    invD <- rep(1, n) / (s + v)
-    iDZ <- invD * Data
-    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD *
-      L)) %*% (t(L) %*% iDZ))
-    INVtZ <- iDZ - invD * right
-    etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
-    GM <- Fk %*% M
-    V <- as.matrix(M - t(GM) %*% invCz(
-      (s + v) * diag.spam(n),
-      L, GM
-    ))
-    return(list(
-      v = v,
-      M = M,
-      s = s,
-      negloglik = negloglik,
-      w = etatt,
-      V = V
-    ))
-  }
-}
-
-cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
-  TT <- NCOL(Data)
-  N <- NROW(Data)
-  lambda <- DfromLK$lambda
-  pick <- DfromLK$pick
-  wX <- DfromLK$wX[pick, ]
-  G <- t(wX) %*% wX + lambda * DfromLK$Q
-  weight <- DfromLK$weights[pick]
-  wwX <- diag.spam(sqrt(weight)) %*% wX
-  wXiG <- (wwX) %*% solve(G)
-  iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
-  iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-  half <- getInverseSquareRootMatrix(Fk, iDFk)
-  ihFiD <- half %*% t(iDFk)
-  JSJ <- tcrossprod(ihFiD %*% Data) / TT
-  JSJ <- (JSJ + t(JSJ)) / 2
-  ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
-    sum(log(weight))
-  trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
-  out <- cMLE(Fk, TT, trS, half, JSJ,
-    s = 0, ldet = as.vector(ldetD),
-    wSave = TRUE, onlylogLike = FALSE, vfixed = vfixed
-  )
-  L <- out$L
-  out$s <- out$v
-  out <- out[-which(names(out) == "v")]
-  out <- out[-which(names(out) == "L")]
-  if (!wSave) {
-    return(out)
-  } else {
-    iDL <- weight * L - wXiG %*% (t(wwX) %*% L)
-    itmp <- solve(diag(1, NCOL(L)) + t(L) %*% iDL / out$s)
-    iiLiD <- itmp %*% t(iDL / out$s)
-    MFiS11 <- out$M %*% t(iDFk) / out$s - ((out$M %*% t(iDFk / out$s)) %*%
-      L) %*% iiLiD
-    out$w <- MFiS11 %*% Data
-    out$V <- MFiS11 %*% (Fk %*% out$M)
-    wlk <- t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*%
-      Data)
-    ihL <- chol(itmp) %*% t(L)
-    attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
-    return(out)
-  }
-}
-
-cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
-  De <- toSparseMatrix(Depsilon)
-  iD <- solve(De)
-  ldetD <- logDeterminant(De)
-  iDFk <- iD %*% Fk
-  half <- getInverseSquareRootMatrix(Fk, iDFk)
-  ihFiD <- half %*% t(iDFk)
-  TT <- NCOL(Data)
-  JSJ <- tcrossprod(ihFiD %*% Data) / TT
-  JSJ <- (JSJ + t(JSJ)) / 2
-  trS <- sum(rowSums(as.matrix(iD %*% Data) * Data)) / TT
-  out <- cMLE(Fk, TT, trS, half, JSJ, s = 0, ldet = ldetD, wSave)
-  if (wSave) {
-    L <- as.matrix(out$L)
-    invD <- iD / (out$s + out$v)
-    iDZ <- invD %*% Data
-    right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
-      L))
-    INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
-    etatt <- out$M %*% t(Fk) %*% INVtZ
-    out$w <- as.matrix(etatt)
-    GM <- Fk %*% out$M
-    iDGM <- invD %*% GM
-    out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
-      right0 %*% (t(L) %*% iDGM)))
-  }
-  out$s <- out$v
-  out <- out[-which(names(out) == "v")]
-  out <- out[-which(names(out) == "L")]
-  out
 }
 
 EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external = FALSE,
@@ -425,7 +288,7 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   cnt <- 0
   Z0 <- Data
   Z0[is.na(Z0)] <- 0
-  old <- cMLEimat(Fk, Z0, s = 0, wSave = T)
+  old <- cMLEimat(Fk, Z0, s = 0, wSave = TRUE)
   if (is.null(vfixed)) old$s <- old$v else old$s <- vfixed
   old$M <- convertToPositiveDefinite(old$M)
   Ptt1 <- old$M
@@ -629,7 +492,6 @@ initializeLKnFRK <- function(Data, loc, nlevel = 3, weights = NULL, n.neighbor =
   if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
   empty <- apply(!is.na(Data), 2, sum) == 0
   if (sum(empty) > 0) Data <- Data[, which(!empty)]
-  if ("numeric" %in% class(Data)) Data <- as.matrix(Data)
 
   loc <- as.matrix(loc)
   N <- NROW(Data)
@@ -698,17 +560,15 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
 
   if (is.null(nc)) nc <- setNC(z, x, nlevel)
   if (is.null(a.wght)) a.wght <- 2 * NCOL(x) + 0.01
-
   info <- setUpKrigInfo(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
     NC = nc,
-    alpha = alpha,
+    alpha = as.list(alpha),
     LKGeometry = gtype,
     lambda = 1
   )
-
   loc <- x
   phi <- calculateLatticeKrigBasis(loc, info)
   w <- diag.spam(sqrt(weights))
