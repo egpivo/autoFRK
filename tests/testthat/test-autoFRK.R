@@ -33,7 +33,10 @@ yt <- fn %*% wt
 obs <- sample(900, n)
 zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
 X <- grids[obs, ]
-multi_realization_object <- autoFRK(Data = zt, loc = X, maxK = 15)
+multi_realization_object <- autoFRK(Data = zt,
+                                    loc = X,
+                                    maxK = 15,
+                                    finescale=TRUE)
 yhat_example3 <- predict(multi_realization_object$G, newx = grids)
 
 #multi_realization_object <- autoFRK(Data = zt, loc = X, maxK = 15, finescale=TRUE)

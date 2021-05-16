@@ -946,7 +946,7 @@ setUpKrigInfo <- function(x = NULL,
     rho.object = NULL,
     LKGeometry = LKGeometry,
     distance.type = "Euclidean",
-    BasisFunction = "wendland",
+    BasisFunction = "WendlandFunction",
     overlap = 2.5,
     V = NULL,
     BasisType = "Radial",
@@ -961,7 +961,7 @@ setUpKrigInfo <- function(x = NULL,
   )
   LKinfo$basisInfo <- list(
     BasisType = "Radial",
-    BasisFunction = "wendland",
+    BasisFunction = "WendlandFunction",
     overlap = 2.5,
     max.points = NULL,
     mean.neighbor = 50,
@@ -1330,6 +1330,8 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
 #'
 shiftArray <- function(array_object, shift_index) {
   shape <- dim(array_object)
+  print(shape)
+  print(array_object)
   reshaped_array <- array(NA, shape)
   if (any(abs(shift_index) > shape)) {
     stop("shift exceeds array dimensions")
