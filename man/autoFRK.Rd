@@ -12,7 +12,7 @@ autoFRK(
   G = NULL,
   finescale = FALSE,
   maxit = 50,
-  tolerance = 0.1^6,
+  tolerance = 1e-06,
   maxK = NULL,
   Kseq = NULL,
   method = c("fast", "EM"),

@@ -460,7 +460,7 @@ computeProjectionMatrix <- function(Fk1,
 }
 
 #'
-#' Internal function: maximum likelihood estimate with the likelihood
+#' Internal function: cMLEimat
 #'
 #' @keywords internal.
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
@@ -545,7 +545,18 @@ cMLEimat <- function(Fk,
   }
 }
 
-
+#'
+#' Internal function: cMLElk
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param wSave A logic.
+#' @param DfromLK An \emph{n} by \emph{n} matrix
+#' @param vfixed A numeric
+#' @return A list.
+#'
 cMLElk <- function(Fk,
                    data,
                    Depsilon,
@@ -606,6 +617,17 @@ cMLElk <- function(Fk,
   }
 }
 
+#'
+#' Internal function: cMLEsp
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
+#' @param wSave A logic.
+#' @return A list.
+#'
 cMLEsp <- function(Fk,
                    data,
                    Depsilon,
