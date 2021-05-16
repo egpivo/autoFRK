@@ -118,9 +118,19 @@
 #' par(originalPar)
 #' #### end of independent multi-realization simulation example
 #' @author ShengLi Tzeng and Hsin-Cheng Huang.
-autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
-                    finescale = FALSE, maxit = 50, tolerance = 0.1^6, maxK = NULL,
-                    Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3, maxknot = 5000) {
+autoFRK <- function(Data,
+                    loc,
+                    mu = 0,
+                    D = diag.spam(NROW(Data)),
+                    G = NULL,
+                    finescale = FALSE,
+                    maxit = 50,
+                    tolerance = 1e-6,
+                    maxK = NULL,
+                    Kseq = NULL,
+                    method = c("fast", "EM"),
+                    n.neighbor = 3,
+                    maxknot = 5000) {
   method <- match.arg(method)
   Data <- Data - mu
   if (!is.null(G)) {
@@ -148,9 +158,14 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
   }
   {
     if (!finescale) {
-      obj <- indeMLE(Data, Fk[, 1:K], D, maxit,
+      obj <- indeMLE(
+        Data = Data,
+        Fk = Fk[, 1:K],
+        D = D,
+        maxit = maxit,
         avgtol = tolerance,
-        wSave = TRUE, DfromLK = NULL
+        wSave = TRUE,
+        DfromLK = NULL
       )
     } else {
       nu <- .Options$LKinfoSetup$nu
@@ -179,10 +194,10 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         length(iniobj$weight[iniobj$pick])
       )
       obj <- indeMLE(
-        Data,
-        Fk[, 1:K],
-        D,
-        maxit,
+        Data = Data,
+        Fk = Fk[, 1:K],
+        D = D,
+        maxit = maxit,
         avgtol = tolerance,
         wSave = TRUE,
         DfromLK = DfromLK,
@@ -200,112 +215,6 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
     }
     class(obj) <- "FRK"
     return(obj)
-  }
-}
-
-cMLEimat <- function(Fk, Data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave) {
-  n <- nrow(Fk)
-  k <- ncol(Fk)
-  TT <- NCOL(Data)
-  trS <- sum(rowSums(as.matrix(Data)^2)) / TT
-  half <- getInverseSquareRootMatrix(Fk, Fk)
-  ihF <- half %*% t(Fk)
-  if (is.null(S)) {
-    JSJ <- tcrossprod(ihF %*% Data) / TT
-  }
-  else {
-    JSJ <- (ihF %*% S) %*% t(ihF)
-  }
-  JSJ <- (JSJ + t(JSJ)) / 2
-  eg <- eigen(JSJ)
-  d <- eg$value[1:k]
-  P <- eg$vector[, 1:k]
-  v <- estimateV(d, s, trS, n)
-  dii <- pmax(d, 0)
-  negloglik <- neg2llik(dii, s, v, trS, n) * TT
-  if (onlylogLike) {
-    return(list(negloglik = negloglik))
-  }
-  dhat <- estimateEta(dii, s, v)
-  M <- half %*% P %*% (dhat * t(P)) %*% half
-  dimnames(M) <- NULL
-  if (!wSave) {
-    return(list(
-      v = v,
-      M = M,
-      s = s,
-      negloglik = negloglik
-    ))
-  } else {
-    L <- Fk %*% t((sqrt(dhat) * t(P)) %*% half)
-    if (all(dhat == 0)) {
-      dhat[1] <- 0.1^10
-    }
-    L <- L[, dhat > 0]
-    invD <- rep(1, n) / (s + v)
-    iDZ <- invD * Data
-    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD *
-      L)) %*% (t(L) %*% iDZ))
-    INVtZ <- iDZ - invD * right
-    etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
-    GM <- Fk %*% M
-    V <- as.matrix(M - t(GM) %*% invCz(
-      (s + v) * diag.spam(n),
-      L, GM
-    ))
-    return(list(
-      v = v,
-      M = M,
-      s = s,
-      negloglik = negloglik,
-      w = etatt,
-      V = V
-    ))
-  }
-}
-
-cMLElk <- function(Fk, Data, Depsilon, wSave = FALSE, DfromLK, vfixed = NULL) {
-  TT <- NCOL(Data)
-  N <- NROW(Data)
-  lambda <- DfromLK$lambda
-  pick <- DfromLK$pick
-  wX <- DfromLK$wX[pick, ]
-  G <- t(wX) %*% wX + lambda * DfromLK$Q
-  weight <- DfromLK$weights[pick]
-  wwX <- diag.spam(sqrt(weight)) %*% wX
-  wXiG <- (wwX) %*% solve(G)
-  iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
-  iDZ <- weight * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
-  half <- getInverseSquareRootMatrix(Fk, iDFk)
-  ihFiD <- half %*% t(iDFk)
-  JSJ <- tcrossprod(ihFiD %*% Data) / TT
-  JSJ <- (JSJ + t(JSJ)) / 2
-  ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
-    sum(log(weight))
-  trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
-  out <- cMLE(Fk, TT, trS, half, JSJ,
-    s = 0, ldet = as.vector(ldetD),
-    wSave = TRUE, onlylogLike = FALSE, vfixed = vfixed
-  )
-  L <- out$L
-  out$s <- out$v
-  out <- out[-which(names(out) == "v")]
-  out <- out[-which(names(out) == "L")]
-  if (!wSave) {
-    return(out)
-  } else {
-    iDL <- weight * L - wXiG %*% (t(wwX) %*% L)
-    itmp <- solve(diag(1, NCOL(L)) + t(L) %*% iDL / out$s)
-    iiLiD <- itmp %*% t(iDL / out$s)
-    MFiS11 <- out$M %*% t(iDFk) / out$s - ((out$M %*% t(iDFk / out$s)) %*%
-      L) %*% iiLiD
-    out$w <- MFiS11 %*% Data
-    out$V <- MFiS11 %*% (Fk %*% out$M)
-    wlk <- t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*%
-      Data)
-    ihL <- chol(itmp) %*% t(L)
-    attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
-    return(out)
   }
 }
 
@@ -520,8 +429,15 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   }
 }
 
-indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.1^6,
-                    wSave = FALSE, DfromLK = NULL, vfixed = NULL, num.report = TRUE) {
+indeMLE <- function(Data,
+                    Fk,
+                    D = diag.spam(NROW(Data)),
+                    maxit = 50,
+                    avgtol = 1e-6,
+                    wSave = FALSE,
+                    DfromLK = NULL,
+                    vfixed = NULL,
+                    num.report = TRUE) {
   withNA <- sum(is.na(Data)) > 0
   if (is(Data, "vector")) {
     Data <- as.matrix(Data)
