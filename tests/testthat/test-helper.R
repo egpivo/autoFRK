@@ -144,6 +144,17 @@ test_that("Negative log likelihood", {
   expect_lte(estimeated_log_likelihood_K_1 - true_log_likelihood_K_1, tolerance)
 })
 
+cMLEsp_result <- cMLEsp(Fk[obs, ], data, diag(epsilon), TRUE)
+
+test_that("cMLEsp", {
+  expect_lte(abs(norm(cMLEsp_result$M, "F") - 46.896965660), tolerance)
+  expect_lte(abs(cMLEsp_result$s - 2.088664), tolerance)
+  expect_lte(abs(cMLEsp_result$negloglik - 592.7296927), tolerance)
+  expect_lte(abs(sum(cMLEsp_result$w) + 436.4577698), tolerance)
+  expect_lte(abs(norm(cMLEsp_result$V, "F") - 3890.7169745), tolerance)
+  
+})
+
 selected_basis <- selectBasis(data, grids)
 selected_basis_em <- selectBasis(data, grids, method = "EM")
 data_2D[sample(1:200, 15)] <- NA

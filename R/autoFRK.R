@@ -118,9 +118,19 @@
 #' par(originalPar)
 #' #### end of independent multi-realization simulation example
 #' @author ShengLi Tzeng and Hsin-Cheng Huang.
-autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
-                    finescale = FALSE, maxit = 50, tolerance = 0.1^6, maxK = NULL,
-                    Kseq = NULL, method = c("fast", "EM"), n.neighbor = 3, maxknot = 5000) {
+autoFRK <- function(Data,
+                    loc,
+                    mu = 0,
+                    D = diag.spam(NROW(Data)),
+                    G = NULL,
+                    finescale = FALSE,
+                    maxit = 50,
+                    tolerance = 1e-6,
+                    maxK = NULL,
+                    Kseq = NULL,
+                    method = c("fast", "EM"),
+                    n.neighbor = 3,
+                    maxknot = 5000) {
   method <- match.arg(method)
   Data <- Data - mu
   if (!is.null(G)) {
@@ -148,9 +158,14 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
   }
   {
     if (!finescale) {
-      obj <- indeMLE(Data, Fk[, 1:K], D, maxit,
+      obj <- indeMLE(
+        Data = Data,
+        Fk = Fk[, 1:K],
+        D = D,
+        maxit = maxit,
         avgtol = tolerance,
-        wSave = TRUE, DfromLK = NULL
+        wSave = TRUE,
+        DfromLK = NULL
       )
     } else {
       nu <- .Options$LKinfoSetup$nu
@@ -179,10 +194,10 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
         length(iniobj$weight[iniobj$pick])
       )
       obj <- indeMLE(
-        Data,
-        Fk[, 1:K],
-        D,
-        maxit,
+        Data = Data,
+        Fk = Fk[, 1:K],
+        D = D,
+        maxit = maxit,
         avgtol = tolerance,
         wSave = TRUE,
         DfromLK = DfromLK,
@@ -201,6 +216,38 @@ autoFRK <- function(Data, loc, mu = 0, D = diag.spam(NROW(Data)), G = NULL,
     class(obj) <- "FRK"
     return(obj)
   }
+}
+
+cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
+  De <- toSparseMatrix(Depsilon)
+  iD <- solve(De)
+  ldetD <- logDeterminant(De)
+  iDFk <- iD %*% Fk
+  half <- getInverseSquareRootMatrix(Fk, iDFk)
+  ihFiD <- half %*% t(iDFk)
+  TT <- NCOL(Data)
+  JSJ <- tcrossprod(ihFiD %*% Data) / TT
+  JSJ <- (JSJ + t(JSJ)) / 2
+  trS <- sum(rowSums(as.matrix(iD %*% Data) * Data)) / TT
+  out <- cMLE(Fk, TT, trS, half, JSJ, s = 0, ldet = ldetD, wSave)
+  if (wSave) {
+    L <- as.matrix(out$L)
+    invD <- iD / (out$s + out$v)
+    iDZ <- invD %*% Data
+    right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
+      L))
+    INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
+    etatt <- out$M %*% t(Fk) %*% INVtZ
+    out$w <- as.matrix(etatt)
+    GM <- Fk %*% out$M
+    iDGM <- invD %*% GM
+    out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
+      right0 %*% (t(L) %*% iDGM)))
+  }
+  out$s <- out$v
+  out <- out[-which(names(out) == "v")]
+  out <- out[-which(names(out) == "L")]
+  out
 }
 
 EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external = FALSE,
@@ -382,8 +429,15 @@ EM0miss <- function(Fk, Data, Depsilon, maxit, avgtol, wSave = FALSE, external =
   }
 }
 
-indeMLE <- function(Data, Fk, D = diag.spam(NROW(Data)), maxit = 50, avgtol = 0.1^6,
-                    wSave = FALSE, DfromLK = NULL, vfixed = NULL, num.report = TRUE) {
+indeMLE <- function(Data,
+                    Fk,
+                    D = diag.spam(NROW(Data)),
+                    maxit = 50,
+                    avgtol = 1e-6,
+                    wSave = FALSE,
+                    DfromLK = NULL,
+                    vfixed = NULL,
+                    num.report = TRUE) {
   withNA <- sum(is.na(Data)) > 0
   if (is(Data, "vector")) {
     Data <- as.matrix(Data)
@@ -560,17 +614,19 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
 
   if (is.null(nc)) nc <- setNC(z, x, nlevel)
   if (is.null(a.wght)) a.wght <- 2 * NCOL(x) + 0.01
-  info <- setUpKrigInfo(
+
+  info <- LKrigSetup(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
     NC = nc,
-    alpha = as.list(alpha),
+    alpha = alpha,
     LKGeometry = gtype,
     lambda = 1
   )
+
   loc <- x
-  phi <- calculateLatticeKrigBasis(loc, info)
+  phi <- LKrig.basis(loc, info)
   w <- diag.spam(sqrt(weights))
   wX <- w %*% phi
   wwX <- w %*% wX
@@ -621,7 +677,7 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   lambda.MLE <- sol$minimum
   out <- iniLike(sol$minimum, z, full = TRUE)
   llike <- out$negloglik
-  info.MLE <- setUpKrigInfo(
+  info.MLE <- LKrigSetup(
     x = x,
     a.wght = a.wght,
     nlevel = nlevel,
@@ -983,7 +1039,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       }
       miss <- attr(object, "missing")
       info <- object$LKobj$LKinfo.MLE
-      phi0 <- calculateLatticeKrigBasis(newloc, info)
+      phi0 <- LKrig.basis(newloc, info)
       pinfo <- attr(object, "pinfo")
       yhat <- basis %*% object$w + phi0 %*% pinfo$wlk
       if (se.report) {
@@ -999,7 +1055,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
           0
         )), NROW(M))
         L <- as.matrix(L)
-        phi1 <- calculateLatticeKrigBasis(as.matrix(loc)[pick, ], info)
+        phi1 <- LKrig.basis(as.matrix(loc)[pick, ], info)
         Q <- LKrig.precision(info)
         weight <- pinfo$weights[pick]
         s <- object$s
@@ -1055,11 +1111,11 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
       )), NROW(M))
       L <- as.matrix(L)
       info <- object$LKobj$LKinfo.MLE
-      phi1 <- calculateLatticeKrigBasis(as.matrix(obsloc)[pick, ], info)
+      phi1 <- LKrig.basis(as.matrix(obsloc)[pick, ], info)
       Q <- LKrig.precision(info)
       weight <- rep(1, length(pick))
       s <- object$s
-      phi0 <- calculateLatticeKrigBasis(newloc, info)
+      phi0 <- LKrig.basis(newloc, info)
       phi0P <- phi0 %*% solve(Q)
       lambda <- object$LKobj$lambda.MLE
       pred <- LKpeon(M, s, G, basis, weight, phi1, phi0,

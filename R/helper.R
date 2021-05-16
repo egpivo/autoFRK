@@ -460,7 +460,7 @@ computeProjectionMatrix <- function(Fk1,
 }
 
 #'
-#' Internal function: maximum likelihood estimate with the likelihood
+#' Internal function: cMLEimat
 #'
 #' @keywords internal.
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
@@ -545,7 +545,18 @@ cMLEimat <- function(Fk,
   }
 }
 
-
+#'
+#' Internal function: cMLElk
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param wSave A logic.
+#' @param DfromLK An \emph{n} by \emph{n} matrix
+#' @param vfixed A numeric
+#' @return A list.
+#'
 cMLElk <- function(Fk,
                    data,
                    Depsilon,
@@ -606,6 +617,17 @@ cMLElk <- function(Fk,
   }
 }
 
+#'
+#' Internal function: cMLEsp
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
+#' @param wSave A logic.
+#' @return A list.
+#'
 cMLEsp <- function(Fk,
                    data,
                    Depsilon,
@@ -946,7 +968,7 @@ setUpKrigInfo <- function(x = NULL,
     rho.object = NULL,
     LKGeometry = LKGeometry,
     distance.type = "Euclidean",
-    BasisFunction = "wendland",
+    BasisFunction = "WendlandFunction",
     overlap = 2.5,
     V = NULL,
     BasisType = "Radial",
@@ -961,7 +983,7 @@ setUpKrigInfo <- function(x = NULL,
   )
   LKinfo$basisInfo <- list(
     BasisType = "Radial",
-    BasisFunction = "wendland",
+    BasisFunction = "WendlandFunction",
     overlap = 2.5,
     max.points = NULL,
     mean.neighbor = 50,
@@ -1330,6 +1352,8 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
 #'
 shiftArray <- function(array_object, shift_index) {
   shape <- dim(array_object)
+  print(shape)
+  print(array_object)
   reshaped_array <- array(NA, shape)
   if (any(abs(shift_index) > shape)) {
     stop("shift exceeds array dimensions")

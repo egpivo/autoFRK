@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{cMLEimat}
 \alias{cMLEimat}
-\title{Internal function: maximum likelihood estimate with the likelihood}
+\title{Internal function: cMLEimat}
 \usage{
 cMLEimat(Fk, data, s, wSave = FALSE, S = NULL, onlylogLike = !wSave)
 }
@@ -24,6 +24,6 @@ each column being a basis function taken values at \code{loc}.}
 A list.
 }
 \description{
-Internal function: maximum likelihood estimate with the likelihood
+Internal function: cMLEimat
 }
 \keyword{internal.}
