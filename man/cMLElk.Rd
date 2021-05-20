@@ -12,6 +12,8 @@ each column being a basis function taken values at \code{loc}.}
 
 \item{data}{An \emph{n} by \emph{T} data matrix (NA allowed) with}
 
+\item{Depsilon}{An \emph{n} by \emph{n} diagonal matrix.}
+
 \item{wSave}{A logic.}
 
 \item{DfromLK}{An \emph{n} by \emph{n} matrix}

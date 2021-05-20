@@ -552,6 +552,7 @@ cMLEimat <- function(Fk,
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @param wSave A logic.
 #' @param DfromLK An \emph{n} by \emph{n} matrix
 #' @param vfixed A numeric
