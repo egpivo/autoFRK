@@ -1407,3 +1407,78 @@ removeWhitespace <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
 #' @return A numeric.
 #'
 logDeterminant <- function(mat) spam::determinant(mat, logarithm = TRUE)$modulus[1]
+
+
+
+#'
+#' Internal function: LKpeon
+#'
+#' @keywords internal
+#' @param M
+#' @param s
+#' @param Fk
+#' @param basis
+#' @param weight
+#' @param phi1
+#' @param phi0
+#' @param Q
+#' @param lambda
+#' @param phi0P
+#' @param L
+#' @param Data
+#' @param only.wlk
+#' @param only.se
+#' @return A numeric.
+#'
+LKpeon <- function(M, s, Fk, basis, weight, phi1, phi0,
+                   Q, lambda, phi0P, L = NULL, Data = NULL, only.wlk = FALSE,
+                   only.se = FALSE) {
+  wwX <- diag.spam(weight) %*% phi1
+  wXiG <- (wwX) %*% solve(t(wwX) %*% phi1 + lambda *
+                            Q)
+  fM <- Fk %*% M
+  if (is.null(L)) {
+    dec <- eigen(M)
+    L <- Fk %*% dec$vector %*% diag.spam(sqrt(pmax(
+      dec$value,
+      0
+    )), NROW(M))
+    L <- as.matrix(L)
+  }
+  iDL <- weight * L - wXiG %*% (t(wwX) %*% L)
+  iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
+  itmp <- solve(diag(1, NCOL(L)) + t(L) %*% iDL / s)
+  ihL <- chol(itmp) %*% t(L)
+  iiLiD <- itmp %*% t(iDL / s)
+  if (only.wlk) {
+    LiiLiDZ <- L %*% (iiLiD %*% Data)
+    w <- M %*% t(iDFk) %*% Data / s - (M %*% t(iDFk / s)) %*%
+      (LiiLiDZ)
+    wlk <- t(wXiG) %*% Data - t(wXiG) %*% (LiiLiDZ)
+    return(list(w = w, wlk = wlk))
+  }
+  MFiS11 <- M %*% t(iDFk) / s - ((M %*% t(iDFk / s)) %*%
+                                   L) %*% iiLiD
+  FMfi <- basis %*% MFiS11
+  p0Pp1 <- as.matrix(phi0P %*% t(phi1))
+  se0 <- rowSums((basis %*% M) * basis) + rowSums(as.matrix(phi0P *
+                                                              phi0)) / lambda * s
+  se11 <- rowSums((FMfi %*% fM) * basis)
+  se12 <- rowSums(p0Pp1 * (FMfi)) * s / lambda
+  se13 <- se12
+  se14 <- rowSums(as.matrix(phi0 %*% t(wXiG)) * p0Pp1) *
+    s / lambda - colSums((ihL %*% wXiG %*% t(phi0))^2)
+  se <- sqrt(pmax(
+    se0 - (se11 + se12 + se13 + se14),
+    0
+  ))
+  if (only.se) {
+    return(se)
+  } else {
+    return(list(
+      se = se,
+      w = MFiS11 %*% Data,
+      wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
+    ))
+  }
+}
