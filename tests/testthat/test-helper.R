@@ -21,16 +21,6 @@ test_that("Calculate the log determinant for the likelihood use", {
   expect_lte(abs(calculateLogDeterminant(diag(2), matrix(1:6, 2, 3), 3) - 4.75359), tolerance)
 })
 
-test_that("Convert value to bytes", {
-  expect_equal(toBytes(c("1", "gb")), 1073741824)
-  expect_equal(toBytes(c("1", "KBytes")), 1)
-  expect_equal(toBytes(c("1", "megabytes")), 1048576)
-})
-
-test_that("Fetch system RAM", {
-  expect_true(any("numeric" %in% class(fetchSystemRam(R.Version()$platform))))
-})
-
 test_that("Remove white space", {
   expect_equal(removeWhitespace(" test test "), "test test")
 })
