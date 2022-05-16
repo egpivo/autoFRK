@@ -84,6 +84,7 @@ test_that("User-specified basis function with kstar = 0", {
   expect_lte(abs(sum(yhat_example4$pred.value) + 2689.9299), tolerance)
   expect_null(yhat_example4$se)
   expect_equal(length(yhat_example4$pred.value), 900)
+  expect_equal(predict(G), G)
 })
 
 test_that("mrts", {
