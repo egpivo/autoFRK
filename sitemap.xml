@@ -91,9 +91,6 @@
     <loc>/reference/fetchNonZeroIndexs.html</loc>
   </url>
   <url>
-    <loc>/reference/fetchSystemRam.html</loc>
-  </url>
-  <url>
     <loc>/reference/getInverseSquareRootMatrix.html</loc>
   </url>
   <url>
@@ -179,9 +176,6 @@
   </url>
   <url>
     <loc>/reference/subknot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/toBytes.html</loc>
   </url>
   <url>
     <loc>/reference/toSparseMatrix.html</loc>
