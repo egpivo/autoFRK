@@ -65,7 +65,7 @@ an object of class \code{FRK} is returned, which is a list of the following comp
 \item{V}{\emph{K} by \emph{K} matrix of the prediction error covariance matrix of \eqn{w[t]}.}
 \item{G}{user specified basis function matrix or an automatically generated \code{mrts} object.}
 \item{LKobj}{a list from calling \code{LKrig.MLE} in \code{LatticeKrig} package if \code{useLK=TRUE};
- otherwise \code{NULL}. See that package for details.}
+otherwise \code{NULL}. See that package for details.}
 }
 \description{
 This function performs resolution adaptive fixed rank kriging based on
