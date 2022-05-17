@@ -65,7 +65,7 @@ an object of class \code{FRK} is returned, which is a list of the following comp
 \item{V}{\emph{K} by \emph{K} matrix of the prediction error covariance matrix of \eqn{w[t]}.}
 \item{G}{user specified basis function matrix or an automatically generated \code{mrts} object.}
 \item{LKobj}{a list from calling \code{LKrig.MLE} in \code{LatticeKrig} package if \code{useLK=TRUE};
- otherwise \code{NULL}. See that package for details.}
+otherwise \code{NULL}. See that package for details.}
 }
 \description{
 This function performs resolution adaptive fixed rank kriging based on
@@ -155,10 +155,11 @@ par(originalPar)
 }
 \references{
 Tzeng, S., & Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R \url{https://doi.org/10.5065/D6HD7T1R}, R package version 8.4, \url{https://github.com/NCAR/LatticeKrig}.
 }
 \seealso{
 \code{\link{predict.FRK}}
 }
 \author{
-ShengLi Tzeng and Hsin-Cheng Huang.
+ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
 }

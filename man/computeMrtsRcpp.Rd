@@ -23,4 +23,7 @@ A list of objects
 \description{
 Internal function: Compute MRTS method
 }
+\author{
+Wen-Ting Wang
+}
 \keyword{internal}

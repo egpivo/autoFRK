@@ -17,4 +17,7 @@ A list of objects
 \description{
 Internal function: Eigen-decompose a matrix
 }
+\author{
+Wen-Ting Wang
+}
 \keyword{internal}

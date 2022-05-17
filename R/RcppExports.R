@@ -7,6 +7,7 @@
 #' @return A list of objects
 #' \item{value}{A vector of eigenvalues}
 #' \item{vector}{A matrix of eigenvectors}
+#' @author Wen-Ting Wang
 eigenDecompose <- function(matrix) {
     .Call(`_autoFRK_eigenDecompose`, matrix)
 }
@@ -15,6 +16,7 @@ eigenDecompose <- function(matrix) {
 #' @keywords internal
 #' @param matrix A matrix
 #' @return A matrix
+#' @author Wen-Ting Wang
 getSquareRootMatrix <- function(matrix) {
     .Call(`_autoFRK_getSquareRootMatrix`, matrix)
 }
@@ -24,6 +26,7 @@ getSquareRootMatrix <- function(matrix) {
 #' @param left_matrix A matrix
 #' @param right_matrix A matrix
 #' @return A matrix
+#' @author Wen-Ting Wang
 getInverseSquareRootMatrix <- function(left_matrix, right_matrix) {
     .Call(`_autoFRK_getInverseSquareRootMatrix`, left_matrix, right_matrix)
 }
@@ -38,6 +41,7 @@ getInverseSquareRootMatrix <- function(left_matrix, right_matrix) {
 #' \item{UZ}{A matrix}
 #' \item{BBBH}{A matrix}
 #' \item{nconst}{A vector of column means}
+#' @author Wen-Ting Wang
 computeMrtsRcpp <- function(s, xobs_diag, k) {
     .Call(`_autoFRK_computeMrtsRcpp`, s, xobs_diag, k)
 }
@@ -54,6 +58,7 @@ computeMrtsRcpp <- function(s, xobs_diag, k) {
 #' \item{BBBH}{A matrix}
 #' \item{nconst}{A vector of column means}
 #' \item{X1}{A matrix}
+#' @author Wen-Ting Wang
 predictMrtsRcpp <- function(s, xobs_diag, s_new, k) {
     .Call(`_autoFRK_predictMrtsRcpp`, s, xobs_diag, s_new, k)
 }
@@ -73,6 +78,7 @@ predictMrtsRcpp <- function(s, xobs_diag, s_new, k) {
 #' \item{BBBH}{A matrix}
 #' \item{nconst}{A vector of column means}
 #' \item{X1}{A matrix}
+#' @author Wen-Ting Wang
 predictMrtsRcppWithBasis <- function(s, xobs_diag, s_new, BBBH, UZ, nconst, k) {
     .Call(`_autoFRK_predictMrtsRcppWithBasis`, s, xobs_diag, s_new, BBBH, UZ, nconst, k)
 }
