@@ -15,4 +15,7 @@ A matrix
 \description{
 Internal function: A wrapper function of 'MatrixBase::sqrt()'
 }
+\author{
+Wen-Ting Wang
+}
 \keyword{internal}

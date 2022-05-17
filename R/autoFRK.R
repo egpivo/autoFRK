@@ -54,6 +54,7 @@
 #' @seealso \code{\link{predict.FRK}}
 #' @references
 #' Tzeng, S., & Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+#' Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R <https://doi.org/10.5065/D6HD7T1R>, R package version 8.4, <https://github.com/NCAR/LatticeKrig>.
 #' @examples
 #' #### generating data from two eigenfunctions
 #' originalPar <- par(no.readonly = TRUE)
@@ -117,7 +118,7 @@
 #' image.plot(matrix(fhat[, 2], 30, 30), main = "Estimated Eigenfn 2")
 #' par(originalPar)
 #' #### end of independent multi-realization simulation example
-#' @author ShengLi Tzeng and Hsin-Cheng Huang.
+#' @author ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
 autoFRK <- function(Data,
                     loc,
                     mu = 0,
@@ -746,9 +747,9 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
 #' par(originalPar)
 #' @references
 #' Tzeng, S., & Huang, H. C. (2018). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
-#' Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models
-#' for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
-#' @author ShengLi Tzeng and Hsin-Cheng Huang.
+#' Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
+#' Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R <https://doi.org/10.5065/D6HD7T1R>, R package version 8.4, <https://github.com/NCAR/LatticeKrig>.
+#' @author ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
 #
 mrts <- function(knot, k, x = NULL, maxknot = 5000) {
   is64bit <- length(grep("64-bit", sessionInfo()$platform)) > 0
@@ -867,7 +868,7 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
 #' @param ... not used but needed for the S3 generic/method compatibility.
 #' @export
 #' @seealso \code{\link{autoFRK}}
-#' @author ShengLi Tzeng and Hsin-Cheng Huang.
+#' @author ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
 #' @return A list with the components described below.
 #' \item{pred.value}{a matrix with the \emph{(i,t)} element being the predicted value at \emph{i}-th location and time \emph{t}.}
 #' \item{se}{a vector with the \emph{i}-th element being the standard error of the predicted value at the \emph{i}-th location.}
@@ -1148,7 +1149,7 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
 #' @return an \emph{n} by \emph{k} matrix of the \emph{k} basis function in \code{object} taken values at \code{newx}.
 #' @export
 #' @seealso \code{\link{mrts}}
-#' @author ShengLi Tzeng and Hsin-Cheng Huang.
+#' @author ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
 #
 predict.mrts <- function(object, newx, ...) {
   if (missing(newx)) {

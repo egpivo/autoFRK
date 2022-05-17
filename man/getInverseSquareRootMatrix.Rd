@@ -17,4 +17,7 @@ A matrix
 \description{
 Internal function: Inverse square root matrix of  A^t * B
 }
+\author{
+Wen-Ting Wang
+}
 \keyword{internal}

@@ -22,6 +22,7 @@ using namespace Spectra;
 //' @return A list of objects
 //' \item{value}{A vector of eigenvalues}
 //' \item{vector}{A matrix of eigenvectors}
+//' @author Wen-Ting Wang
 // [[Rcpp::export]]
 Rcpp::List eigenDecompose(const Eigen::Map<Eigen::MatrixXd> matrix) {
   SelfAdjointEigenSolver<Eigen::MatrixXd> es(matrix);
@@ -39,6 +40,7 @@ Rcpp::List eigenDecompose(const Eigen::Map<Eigen::MatrixXd> matrix) {
 //' @keywords internal
 //' @param matrix A matrix
 //' @return A matrix
+//' @author Wen-Ting Wang
 // [[Rcpp::export]]
 Eigen::MatrixXd getSquareRootMatrix(Eigen::MatrixXd matrix) {
   return(matrix.sqrt());
@@ -49,6 +51,7 @@ Eigen::MatrixXd getSquareRootMatrix(Eigen::MatrixXd matrix) {
 //' @param left_matrix A matrix
 //' @param right_matrix A matrix
 //' @return A matrix
+//' @author Wen-Ting Wang
 // [[Rcpp::export]]
 Eigen::MatrixXd getInverseSquareRootMatrix(const Eigen::Map<Eigen::MatrixXd> left_matrix,
                                            const Eigen::Map<Eigen::MatrixXd> right_matrix) {
@@ -243,6 +246,7 @@ void updateMrtsCoreComponentUZ(const Eigen::MatrixXd s,
 //' \item{UZ}{A matrix}
 //' \item{BBBH}{A matrix}
 //' \item{nconst}{A vector of column means}
+//' @author Wen-Ting Wang
 // [[Rcpp::export]]
 Rcpp::List computeMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
                            const Eigen::Map<Eigen::MatrixXd> xobs_diag,
@@ -274,6 +278,7 @@ Rcpp::List computeMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
 //' \item{BBBH}{A matrix}
 //' \item{nconst}{A vector of column means}
 //' \item{X1}{A matrix}
+//' @author Wen-Ting Wang
 // [[Rcpp::export]]
 Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
                            const Eigen::Map<Eigen::MatrixXd> xobs_diag,
@@ -320,6 +325,7 @@ Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
 //' \item{BBBH}{A matrix}
 //' \item{nconst}{A vector of column means}
 //' \item{X1}{A matrix}
+//' @author Wen-Ting Wang
 // [[Rcpp::export]]
 Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> s,
                                     const Eigen::Map<Eigen::MatrixXd> xobs_diag,

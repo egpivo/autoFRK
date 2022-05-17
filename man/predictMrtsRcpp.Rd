@@ -26,4 +26,7 @@ A list of objects
 \description{
 Internal function: Predict on new locatoins by MRTS method
 }
+\author{
+Wen-Ting Wang
+}
 \keyword{internal}
