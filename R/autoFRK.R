@@ -1,5 +1,7 @@
-#' Automatic Fixed Rank Kriging
 #'
+#' @title Automatic Fixed Rank Kriging
+#'
+#' @description
 #' This function performs resolution adaptive fixed rank kriging based on
 #' spatial data observed at one or multiple time points via the following
 #' spatial random-effects model:
@@ -53,8 +55,8 @@
 #' @export
 #' @seealso \code{\link{predict.FRK}}
 #' @references
-#' Tzeng, S., & Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
-#' Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R <https://doi.org/10.5065/D6HD7T1R>, R package version 8.4, <https://github.com/NCAR/LatticeKrig>.
+#' - Tzeng, S., & Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+#' - Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R <https://doi.org/10.5065/D6HD7T1R>, R package version 8.4, <https://github.com/NCAR/LatticeKrig>.
 #' @examples
 #' #### generating data from two eigenfunctions
 #' originalPar <- par(no.readonly = TRUE)
@@ -714,9 +716,10 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
   ))
 }
 
-#' Multi-Resolution Thin-plate Spline Basis Functions
 #'
-#' This function generates multi-resolution thin-plate spline basis functions.
+#' @title Multi-Resolution Thin-plate Spline Basis Functions
+#'
+#' @description This function generates multi-resolution thin-plate spline basis functions.
 #' The basis functions are (descendingly) ordered
 #' in terms of their degrees of smoothness with a higher-order function corresponding
 #' to larger-scale features and a lower-order one corresponding to smaller-scale details.
@@ -746,9 +749,9 @@ setLKnFRKOption <- function(iniobj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
 #' }
 #' par(originalPar)
 #' @references
-#' Tzeng, S., & Huang, H. C. (2018). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
-#' Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
-#' Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R <https://doi.org/10.5065/D6HD7T1R>, R package version 8.4, <https://github.com/NCAR/LatticeKrig>.
+#' - Tzeng, S., & Huang, H. C. (2018). Resolution Adaptive Fixed Rank Kriging. Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+#' - Tzeng, S., & Huang, H. C. (2015). Multi-Resolution Spatial Random-Effects Models for Irregularly Spaced Data. arXiv preprint arXiv:1504.05659.
+#' - Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R <https://doi.org/10.5065/D6HD7T1R>, R package version 8.4, <https://github.com/NCAR/LatticeKrig>.
 #' @author ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
 #
 mrts <- function(knot, k, x = NULL, maxknot = 5000) {
@@ -847,9 +850,10 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
   }
 }
 
-#' Predict method for Fixed Rank Kriging
 #'
-#' Predicted values and estimate of standard errors based on an "\code{autoFRK}" model object.
+#' @title Predict method for Fixed Rank Kriging
+#'
+#' @description Predicted values and estimate of standard errors based on an "\code{autoFRK}" model object.
 #' @param object  a model object obtained from "\code{autoFRK}".
 #' @param obsData a vector with observed data used for prediction.
 #' Default is \code{NULL}, which uses the \code{Data} input from \code{object}.
@@ -1137,9 +1141,10 @@ predict.FRK <- function(object, obsData = NULL, obsloc = NULL, mu.obs = 0,
   }
 }
 
-#' Multi-Resolution Thin-plate Spline Basis Functions
 #'
-#' Evaluate multi-resolution thin-plate spline basis  functions at given locations.
+#' @title Multi-Resolution Thin-plate Spline Basis Functions
+#'
+#' @description Evaluate multi-resolution thin-plate spline basis  functions at given locations.
 #' This function provides a generic prediction method for \code{mrts} objects,
 #' in a similar way as \code{predict.ns} and \code{predict.bs} in \code{splines} package.
 #'
