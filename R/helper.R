@@ -41,9 +41,8 @@ eigenDecomposeInDecreasingOrder <- function(mat) {
 #' @return A numeric.
 #'
 calculateLogDeterminant <- function(R, L, K) {
-  first_part_determinant <- logDeterminant(
-    diag(1, K) + t(L) %*% solve(R) %*% L
-  )
+  first_part_determinant <-
+    logDeterminant(diag(1, K) + t(L) %*% solve(R) %*% L)
   second_part_determinant <- logDeterminant(R)
   return(first_part_determinant + second_part_determinant)
 }
@@ -65,19 +64,22 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
   data <- as.matrix(data)
   non_missing_points_matrix <- as.matrix(!is.na(data))
   num_columns <- NCOL(data)
-
+  
   n2loglik <- sum(non_missing_points_matrix) * log(2 * pi)
   R <- toSparseMatrix(s * Depsilon)
   eg <- eigenDecompose(M)
-
+  
   K <- NCOL(Fk)
-  L <- Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0)), K) %*% t(eg$vector)
-
+  L <-
+    Fk %*% eg$vector %*% diag(sqrt(pmax(eg$value, 0)), K) %*% t(eg$vector)
+  
   for (t in 1:num_columns) {
     zt <- data[non_missing_points_matrix[, t], t]
-    Rt <- R[non_missing_points_matrix[, t], non_missing_points_matrix[, t]]
+    Rt <-
+      R[non_missing_points_matrix[, t], non_missing_points_matrix[, t]]
     Lt <- L[non_missing_points_matrix[, t], ]
-    n2loglik <- n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
+    n2loglik <-
+      n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
   }
   return(n2loglik)
 }
@@ -119,8 +121,9 @@ selectBasis <- function(data,
   if (any(are_all_missing_in_columns)) {
     data <- as.matrix(data[, !are_all_missing_in_columns])
   }
-  if (is.null(D)) D <- diag.spam(NROW(data))
-
+  if (is.null(D))
+    D <- diag.spam(NROW(data))
+  
   loc <- as.matrix(loc)
   d <- NCOL(loc)
   is_data_with_missing_values <- any(is.na(data))
@@ -132,7 +135,7 @@ selectBasis <- function(data,
     pick <- pick[-na_rows]
     is_data_with_missing_values <- any(is.na(data))
   }
-
+  
   N <- length(pick)
   klim <- min(N, round(10 * sqrt(N)))
   if (N < max_knot) {
@@ -140,13 +143,14 @@ selectBasis <- function(data,
   } else {
     knot <- subKnot(loc[pick, ], min(max_knot, klim))
   }
-
+  
   if (!is.null(max_rank)) {
     max_rank <- round(max_rank)
   } else {
-    max_rank <- ifelse(!is.null(sequence_rank), round(max(sequence_rank)), klim)
+    max_rank <-
+      ifelse(!is.null(sequence_rank), round(max(sequence_rank)), klim)
   }
-
+  
   if (!is.null(sequence_rank)) {
     K <- unique(round(sequence_rank))
     if (max(K) > max_rank) {
@@ -157,35 +161,35 @@ selectBasis <- function(data,
     } else if (any(K < (d + 1))) {
       warning(
         "The minimum of sequence_rank can not less than ",
-        d + 1, ". Too small values will be ignored."
+        d + 1,
+        ". Too small values will be ignored."
       )
     }
     K <- K[K > d]
   } else {
-    K <- unique(round(seq(d + 1, max_rank, by = max_rank^(1 / 3) * d)))
+    K <-
+      unique(round(seq(d + 1, max_rank, by = max_rank ^ (1 / 3) * d)))
     if (length(K) > 30) {
       K <- unique(round(seq(d + 1, max_rank, l = 30)))
     }
   }
-
+  
   if (is.null(Fk)) {
     Fk <- mrts(knot, max(K), loc, max_knot)
   }
   AIC_list <- rep(Inf, length(K))
   method <- match.arg(method)
   num_data_columns <- NCOL(data)
-
+  
   if ((method == "EM") & (is.null(DfromLK))) {
     for (k in 1:length(K)) {
-      AIC_list[k] <- indeMLE(
-        data,
-        Fk[pick, 1:K[k]],
-        D,
-        maxit,
-        avgtol,
-        wSave = FALSE,
-        num.report = FALSE
-      )$negloglik
+      AIC_list[k] <- indeMLE(data,
+                             Fk[pick, 1:K[k]],
+                             D,
+                             maxit,
+                             avgtol,
+                             wSave = FALSE,
+                             num.report = FALSE)$negloglik
     }
   } else {
     if (is_data_with_missing_values) {
@@ -195,11 +199,9 @@ selectBasis <- function(data,
           next
         }
         cidx <- which(!is_cell_missing_in_a_column)
-        nnidx <- FNN::get.knnx(
-          loc[cidx, ],
-          matrix(loc[is_cell_missing_in_a_column, ], ncol = dim(loc)[2]),
-          k = num_neighbors
-        )
+        nnidx <- FNN::get.knnx(loc[cidx, ],
+                               matrix(loc[is_cell_missing_in_a_column, ], ncol = dim(loc)[2]),
+                               k = num_neighbors)
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
         nnval <- array((data[, tt])[nnidx], dim(nnidx))
         data[is_cell_missing_in_a_column, tt] <- rowMeans(nnval)
@@ -218,12 +220,14 @@ selectBasis <- function(data,
       wwX <- diag.spam(sqrt(weight)) %*% wX
       wXiG <- (wwX) %*% solve(G)
       iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*%
-        as.matrix(Fk[pick, ]))
+                                                as.matrix(Fk[pick, ]))
       iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
     }
-    sample_covariance_trace <- sum(rowSums(as.matrix(iDZ) * data)) / num_data_columns
+    sample_covariance_trace <-
+      sum(rowSums(as.matrix(iDZ) * data)) / num_data_columns
     for (k in 1:length(K)) {
-      inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
+      inverse_square_root_matrix <-
+        getInverseSquareRootMatrix(Fk[pick, 1:K[k]], iDFk[, 1:K[k]])
       ihFiD <- inverse_square_root_matrix %*% t(iDFk[, 1:K[k]])
       matrix_JSJ <- tcrossprod(ihFiD %*% data) / num_data_columns
       matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
@@ -236,16 +240,18 @@ selectBasis <- function(data,
       )$negloglik
     }
   }
-
-  df <- (K * (K + 1) / 2 + 1) * (K <= num_data_columns) + (K * num_data_columns + 1 - num_data_columns * (num_data_columns - 1) / 2) * (K > num_data_columns)
+  
+  df <-
+    (K * (K + 1) / 2 + 1) * (K <= num_data_columns) + (K * num_data_columns + 1 - num_data_columns * (num_data_columns - 1) / 2) * (K > num_data_columns)
   AIC_list <- AIC_list + 2 * df
   Kopt <- K[which.min(AIC_list)]
   out <- Fk[, 1:Kopt]
-
+  
   dimnames(Fk) <- NULL
   aname <- names(attributes(Fk))
-  attributes(out) <- c(attributes(out), attributes(Fk)[setdiff(aname, "dim")])
-
+  attributes(out) <-
+    c(attributes(out), attributes(Fk)[setdiff(aname, "dim")])
+  
   return(out)
 }
 
@@ -263,16 +269,23 @@ estimateV <- function(d, s, sample_covariance_trace, n) {
   if (max(d) < max(sample_covariance_trace / n, s)) {
     return(max(sample_covariance_trace / n - s, 0))
   }
-
+  
   k <- length(d)
   cumulative_d_values <- cumsum(d)
   ks <- 1:k
-  if (k == n) ks[n] <- n - 1
-
-  eligible_indexs <- which(d > ((sample_covariance_trace - cumulative_d_values) / (n - ks)))
+  if (k == n)
+    ks[n] <- n - 1
+  
+  eligible_indexs <-
+    which(d > ((
+      sample_covariance_trace - cumulative_d_values
+    ) / (n - ks)))
   L <- max(eligible_indexs)
-  if (L >= n) L <- n - 1
-  return(max((sample_covariance_trace - cumulative_d_values[L]) / (n - L) - s, 0))
+  if (L >= n)
+    L <- n - 1
+  return(max((
+    sample_covariance_trace - cumulative_d_values[L]
+  ) / (n - L) - s, 0))
 }
 
 #'
@@ -299,15 +312,22 @@ estimateEta <- function(d, s, v) {
 #' @param sample_size An integer. Sample size.
 #' @return A numeric.
 #'
-neg2llik <- function(d, s, v, sample_covariance_trace, sample_size) {
-  k <- length(d)
-  eta <- estimateEta(d, s, v)
-  if (max(eta / (s + v)) > 1e20) {
-    return(Inf)
-  } else {
-    return(sample_size * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (sample_size - k) + 1 / (s + v) * sample_covariance_trace - 1 / (s + v) * sum(d * eta / (eta + s + v)))
+neg2llik <-
+  function(d,
+           s,
+           v,
+           sample_covariance_trace,
+           sample_size) {
+    k <- length(d)
+    eta <- estimateEta(d, s, v)
+    if (max(eta / (s + v)) > 1e20) {
+      return(Inf)
+    } else {
+      return(
+        sample_size * log(2 * pi) + sum(log(eta + s + v)) + log(s + v) * (sample_size - k) + 1 / (s + v) * sample_covariance_trace - 1 / (s + v) * sum(d * eta / (eta + s + v))
+      )
+    }
   }
-}
 
 #'
 #' Internal function: compute a negative likelihood
@@ -335,29 +355,34 @@ computeNegativeLikelihood <- function(nrow_Fk,
     stop("Please input a symmetric matrix")
   }
   if (ncol(matrix_JSJ) < ncol_Fk) {
-    stop(paste0("Please input the rank of a matrix larger than ncol_Fk = ", ncol_Fk))
+    stop(paste0(
+      "Please input the rank of a matrix larger than ncol_Fk = ",
+      ncol_Fk
+    ))
   }
   decomposed_JSJ <- eigenDecomposeInDecreasingOrder(matrix_JSJ)
   eigenvalues_JSJ <- decomposed_JSJ$value[1:ncol_Fk]
   eigenvectors_JSJ <- as.matrix(decomposed_JSJ$vector)[, 1:ncol_Fk]
-  v <- ifelse(is.null(vfixed),
-    estimateV(
-      eigenvalues_JSJ,
-      s,
-      sample_covariance_trace,
-      nrow_Fk
-    ),
+  v <- ifelse(
+    is.null(vfixed),
+    estimateV(eigenvalues_JSJ,
+              s,
+              sample_covariance_trace,
+              nrow_Fk),
     vfixed
   )
   d <- pmax(eigenvalues_JSJ, 0)
   d_hat <- estimateEta(d, s, v)
-  negative_log_likelihood <- neg2llik(d, s, v, sample_covariance_trace, nrow_Fk) * p + ldet * p
-  return(list(
-    negative_log_likelihood = negative_log_likelihood,
-    P = eigenvectors_JSJ,
-    v = v,
-    d_hat = d_hat
-  ))
+  negative_log_likelihood <-
+    neg2llik(d, s, v, sample_covariance_trace, nrow_Fk) * p + ldet * p
+  return(
+    list(
+      negative_log_likelihood = negative_log_likelihood,
+      P = eigenvectors_JSJ,
+      v = v,
+      d_hat = d_hat
+    )
+  )
 }
 
 #'
@@ -388,7 +413,7 @@ cMLE <- function(Fk,
                  onlylogLike = !wSave,
                  vfixed = NULL) {
   nrow_Fk <- nrow(Fk)
-
+  
   likelihood_object <- computeNegativeLikelihood(
     nrow_Fk = nrow_Fk,
     ncol_Fk = ncol(Fk),
@@ -399,15 +424,17 @@ cMLE <- function(Fk,
     vfixed = vfixed,
     ldet = ldet
   )
-  negative_log_likelihood <- likelihood_object$negative_log_likelihood
+  negative_log_likelihood <-
+    likelihood_object$negative_log_likelihood
   if (onlylogLike) {
     return(list(negloglik = negative_log_likelihood))
   }
-
+  
   P <- likelihood_object$P
   d_hat <- likelihood_object$d_hat
-
-  M <- inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
+  
+  M <-
+    inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
   dimnames(M) <- NULL
   if (!wSave) {
     L <- NULL
@@ -419,7 +446,7 @@ cMLE <- function(Fk,
       L <- matrix(0, nrow_Fk, 1)
     }
   }
-
+  
   return(list(
     v = likelihood_object$v,
     M = M,
@@ -445,18 +472,23 @@ computeProjectionMatrix <- function(Fk1,
                                     S = NULL) {
   num_columns <- NCOL(data)
   inverse_square_root_matrix <- getInverseSquareRootMatrix(Fk1, Fk2)
-  inverse_square_root_on_Fk2 <- inverse_square_root_matrix %*% t(Fk2)
+  inverse_square_root_on_Fk2 <-
+    inverse_square_root_matrix %*% t(Fk2)
   if (is.null(S)) {
-    matrix_JSJ <- tcrossprod(inverse_square_root_on_Fk2 %*% data) / num_columns
+    matrix_JSJ <-
+      tcrossprod(inverse_square_root_on_Fk2 %*% data) / num_columns
   }
   else {
-    matrix_JSJ <- (inverse_square_root_on_Fk2 %*% S) %*% t(inverse_square_root_on_Fk2)
+    matrix_JSJ <-
+      (inverse_square_root_on_Fk2 %*% S) %*% t(inverse_square_root_on_Fk2)
   }
   matrix_JSJ <- (matrix_JSJ + t(matrix_JSJ)) / 2
-  return(list(
-    inverse_square_root_matrix = inverse_square_root_matrix,
-    matrix_JSJ = matrix_JSJ
-  ))
+  return(
+    list(
+      inverse_square_root_matrix = inverse_square_root_matrix,
+      matrix_JSJ = matrix_JSJ
+    )
+  )
 }
 
 #'
@@ -480,17 +512,18 @@ cMLEimat <- function(Fk,
                      onlylogLike = !wSave) {
   data <- as.matrix(data)
   Fk <- as.matrix(Fk)
-
+  
   num_columns <- NCOL(data)
   nrow_Fk <- nrow(Fk)
   ncol_Fk <- ncol(Fk)
-
+  
   projection <- computeProjectionMatrix(Fk, Fk, data, S)
-  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  inverse_square_root_matrix <-
+    projection$inverse_square_root_matrix
   matrix_JSJ <- projection$matrix_JSJ
-
-  sample_covariance_trace <- sum(rowSums(data^2)) / num_columns
-
+  
+  sample_covariance_trace <- sum(rowSums(data ^ 2)) / num_columns
+  
   likelihood_object <- computeNegativeLikelihood(
     nrow_Fk = nrow_Fk,
     ncol_Fk = ncol_Fk,
@@ -499,15 +532,17 @@ cMLEimat <- function(Fk,
     matrix_JSJ = matrix_JSJ,
     sample_covariance_trace = sample_covariance_trace
   )
-  negative_log_likelihood <- likelihood_object$negative_log_likelihood
+  negative_log_likelihood <-
+    likelihood_object$negative_log_likelihood
   if (onlylogLike) {
     return(list(negloglik = negative_log_likelihood))
   }
-
+  
   P <- likelihood_object$P
   d_hat <- likelihood_object$d_hat
   v <- likelihood_object$v
-  M <- inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
+  M <-
+    inverse_square_root_matrix %*% P %*% (d_hat * t(P)) %*% inverse_square_root_matrix
   dimnames(M) <- NULL
   if (!wSave) {
     return(list(
@@ -526,14 +561,13 @@ cMLEimat <- function(Fk,
     L <- L[, reduced_columns]
     invD <- rep(1, nrow_Fk) / (s + v)
     iDZ <- invD * data
-    right <- L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
+    right <-
+      L %*% (solve(diag(1, NCOL(L)) + t(L) %*% (invD * L)) %*% (t(L) %*% iDZ))
     INVtZ <- iDZ - invD * right
     etatt <- as.matrix(M %*% t(Fk) %*% INVtZ)
     GM <- Fk %*% M
-    V <- as.matrix(M - t(GM) %*% invCz(
-      (s + v) * diag.spam(nrow_Fk),
-      L, GM
-    ))
+    V <- as.matrix(M - t(GM) %*% invCz((s + v) * diag.spam(nrow_Fk),
+                                       L, GM))
     return(list(
       v = v,
       M = M,
@@ -574,15 +608,17 @@ cMLElk <- function(Fk,
   wwX <- diag.spam(sqrt(weight)) %*% wX
   wXiG <- (wwX) %*% solve(G)
   iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
-
+  
   projection <- computeProjectionMatrix(Fk, iDFk, data)
-  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  inverse_square_root_matrix <-
+    projection$inverse_square_root_matrix
   matrix_JSJ <- projection$matrix_JSJ
-
+  
   iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
   trS <- sum(rowSums(as.matrix(iDZ) * data)) / num_columns
-
-  ldetD <- -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
+  
+  ldetD <-
+    -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
     sum(log(weight))
   out <- cMLE(
     Fk,
@@ -606,12 +642,13 @@ cMLElk <- function(Fk,
     iDL <- weight * L - wXiG %*% (t(wwX) %*% L)
     itmp <- solve(diag(1, NCOL(L)) + t(L) %*% iDL / out$s)
     iiLiD <- itmp %*% t(iDL / out$s)
-    MFiS11 <- out$M %*% t(iDFk) / out$s - ((out$M %*% t(iDFk / out$s)) %*%
-      L) %*% iiLiD
+    MFiS11 <-
+      out$M %*% t(iDFk) / out$s - ((out$M %*% t(iDFk / out$s)) %*%
+                                     L) %*% iiLiD
     out$w <- MFiS11 %*% data
     out$V <- MFiS11 %*% (Fk %*% out$M)
     wlk <- t(wXiG) %*% data - t(wXiG) %*% L %*% (iiLiD %*%
-      data)
+                                                   data)
     ihL <- chol(itmp) %*% t(L)
     attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
     return(out)
@@ -638,26 +675,37 @@ cMLEsp <- function(Fk,
   ldetD <- logDeterminant(De)
   iDFk <- iD %*% Fk
   num_columns <- NCOL(data)
-
+  
   projection <- computeProjectionMatrix(Fk, iDFk, data)
-  inverse_square_root_matrix <- projection$inverse_square_root_matrix
+  inverse_square_root_matrix <-
+    projection$inverse_square_root_matrix
   matrix_JSJ <- projection$matrix_JSJ
-
+  
   trS <- sum(rowSums(as.matrix(iD %*% data) * data)) / num_columns
-  out <- cMLE(Fk, num_columns, trS, inverse_square_root_matrix, matrix_JSJ, s = 0, ldet = ldetD, wSave)
+  out <-
+    cMLE(
+      Fk,
+      num_columns,
+      trS,
+      inverse_square_root_matrix,
+      matrix_JSJ,
+      s = 0,
+      ldet = ldetD,
+      wSave
+    )
   if (wSave) {
     L <- as.matrix(out$L)
     invD <- iD / (out$s + out$v)
     iDZ <- invD %*% data
     right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
-      L))
+                                                         L))
     INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
     etatt <- out$M %*% t(Fk) %*% INVtZ
     out$w <- as.matrix(etatt)
     GM <- Fk %*% out$M
     iDGM <- invD %*% GM
     out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
-      right0 %*% (t(L) %*% iDGM)))
+                                            right0 %*% (t(L) %*% iDGM)))
   }
   out$s <- out$v
   out <- out[-which(names(out) == "v")]
@@ -677,7 +725,9 @@ isDiagonal <- function(object) {
     return(TRUE)
   }
   if (is.matrix(object)) {
-    return(sum(abs(diag(diag(object)) - object)) < .Machine$double.eps)
+    return(sum(abs(diag(diag(
+      object
+    )) - object)) < .Machine$double.eps)
   }
   else if (is.spam(object)) {
     x <- diag.spam(diag.of.spam(object), NROW(object))
@@ -699,8 +749,8 @@ isDiagonal <- function(object) {
 setNC <- function(z, location, nlevel) {
   location_dim <- NCOL(location)
   n <- nrow(z)
-  a <- sum(2^(location_dim * (0:(nlevel - 1))))
-  nc_estimate <- round((n / a)^(1 / location_dim))
+  a <- sum(2 ^ (location_dim * (0:(nlevel - 1))))
+  nc_estimate <- round((n / a) ^ (1 / location_dim))
   return(max(4, nc_estimate))
 }
 
@@ -713,10 +763,13 @@ setNC <- function(z, location, nlevel) {
 #' @param xrng An array including two integers
 #' @return sampling knots
 #'
-subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
+subKnot <- function(x,
+                    nknot,
+                    xrng = NULL,
+                    nsamp = 1) {
   x <- apply(as.matrix(x), 2, sort)
   xdim <- dim(x)
-
+  
   if (is.null(xrng)) {
     xrng <- apply(x, 2, range)
   }
@@ -731,18 +784,18 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
       return(sample(z, size = min(nsamp, length(z))))
     }
   }
-
+  
   rng <- sqrt(xrng[2, ] - xrng[1, ])
   rng[rng == 0] <- min(rng[rng > 0]) / 5
   rng <- rng * 10 / min(rng)
   rng_max_index <- which.max(rng)
-
+  
   nmbin <- round(exp(log(rng) * log(nknot) / sum(log(rng))))
   nmbin <- pmax(2, nmbin)
   while (prod(nmbin) < nknot) {
     nmbin[rng_max_index] <- nmbin[rng_max_index] + 1
   }
-
+  
   gvec <- matrix(1, nrow = xdim[1])
   cnt <- 0
   while (length(unique(gvec)) < nknot) {
@@ -750,13 +803,12 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
     kconst <- 1
     gvec <- matrix(1, nrow = xdim[1])
     for (kk in 1:xdim[2]) {
-      grp <- pmin(
-        round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
-        nmbin[kk] - 1L
-      )
+      grp <-
+        pmin(round((nmbin[kk] - 1) * ((x[, kk] - xrng[1, kk]) / (xrng[2, kk] - xrng[1, kk]))),
+             nmbin[kk] - 1L)
       if (length(unique(grp)) < nmbin[kk]) {
         brk <- quantile(x[, kk], seq(0, 1, l = nmbin[kk] + 1))
-        brk[1] <- brk[1] - 0.1^8
+        brk[1] <- brk[1] - 0.1 ^ 8
         grp <- as.double(cut(x[, kk], brk))
       }
       gvec <- gvec + kconst * grp
@@ -781,16 +833,20 @@ subKnot <- function(x, nknot, xrng = NULL, nsamp = 1) {
 #'
 fetchNonZeroIndexs <- function(mat) {
   if (!is.matrix(mat)) {
-    stop(paste0(c("Wrong matrix format, but got ", class(mat))))
+    stop(paste0(c(
+      "Wrong matrix format, but got ", class(mat)
+    )))
   }
   db <- tempfile()
   NR <- NROW(mat)
   NC <- NCOL(mat)
   f <- fm.create(db, NR, NC)
   f[, 1:NCOL(mat)] <- mat
-  j <- sapply(1:NC, function(j) which(f[, j] != 0))
+  j <- sapply(1:NC, function(j)
+    which(f[, j] != 0))
   ridx <- unlist(j)
-  k <- sapply(1:NR, function(k) rbind(k, which(f[k, ] != 0)))
+  k <- sapply(1:NR, function(k)
+    rbind(k, which(f[k, ] != 0)))
   kk <- matrix(unlist(k), ncol = 2, byrow = T)
   cidx <- sort(kk[, 2])
   where <- (cidx - 1) * NR + ridx
@@ -808,16 +864,19 @@ fetchNonZeroIndexs <- function(mat) {
 #'
 toSparseMatrix <- function(mat, verbose = FALSE) {
   if (is.spam(mat)) {
-    if (verbose) message("The input is already a sparse matrix")
+    if (verbose)
+      message("The input is already a sparse matrix")
     return(mat)
   }
   if (!(is.data.frame(mat) || is.matrix(mat))) {
-    stop(paste0(c("Wrong format for toSparseMatrix, but got ", class(mat))))
+    stop(paste0(c(
+      "Wrong format for toSparseMatrix, but got ", class(mat)
+    )))
   }
   if (is.data.frame(mat)) {
     mat <- as.matrix(mat)
   }
-
+  
   if (length(mat) > 1e8) {
     warnings("Use sparse matrix as input instead; otherwise it could take a very long time!")
     non_zero_indexs <- fetchNonZeroIndexs(mat)
@@ -827,7 +886,9 @@ toSparseMatrix <- function(mat, verbose = FALSE) {
   matrix_dim <- dim(mat)
   sparse_matrix <- spam(0, nrow = NROW(mat), ncol = NCOL(mat))
   for (j in 1:matrix_dim[2]) {
-    flat_indexs <- non_zero_indexs[non_zero_indexs >= ((j - 1) * matrix_dim[1] + 1) & non_zero_indexs <= (j * matrix_dim[1])]
+    flat_indexs <-
+      non_zero_indexs[non_zero_indexs >= ((j - 1) * matrix_dim[1] + 1) &
+                        non_zero_indexs <= (j * matrix_dim[1])]
     if (length(flat_indexs) > 0) {
       row_indexs <- flat_indexs - ((j - 1) * matrix_dim[1])
       sparse_matrix[row_indexs, j] <- mat[row_indexs, j]
@@ -867,8 +928,9 @@ invCz <- function(R, L, z) {
   K <- NCOL(L)
   iR <- solve(R)
   iRZ <- iR %*% z
-  right <- L %*% solve(diag(1, K) + as.matrix(t(L) %*% iR %*% L)) %*% (t(L) %*% iRZ)
-
+  right <-
+    L %*% solve(diag(1, K) + as.matrix(t(L) %*% iR %*% L)) %*% (t(L) %*% iRZ)
+  
   return(iRZ - iR %*% right)
 }
 
@@ -902,7 +964,7 @@ print.mrts <- function(x, ...) {
   if (class(x) != "mrts") {
     stop("Invalid object! Please enter an `mrts` object")
   }
-
+  
   if (NCOL(x) == 1) {
     return(c(x))
   } else {
@@ -924,7 +986,7 @@ convertToPositiveDefinite <- function(mat) {
     v <- min(eigen(mat, only.values = T)$value)
   }
   if (v <= 0) {
-    mat <- mat + diag(max(0, -v) + 0.1^7.5, NROW(mat))
+    mat <- mat + diag(max(0, -v) + 0.1 ^ 7.5, NROW(mat))
   }
   return(mat)
 }
@@ -990,18 +1052,14 @@ setUpKrigInfo <- function(x = NULL,
     mean.neighbor = 50,
     V = NULL
   )
-
+  
   class(LKinfo) <- c("LKinfo", LKGeometry)
   LKinfo <- setDefaultsLKinfo(LKinfo)
-
-  LKinfo$latticeInfo <- do.call(
-    "LKrigSetupLattice",
-    c(
-      list(object = LKinfo, verbose = FALSE),
-      setupArgs
-    )
-  )
-
+  
+  LKinfo$latticeInfo <- do.call("LKrigSetupLattice",
+                                c(list(object = LKinfo, verbose = FALSE),
+                                  setupArgs))
+  
   if (LKGeometry == "LKRectangle") {
     LKinfo$a.wght <- setRectangleAwght(LKinfo)
   } else {
@@ -1009,7 +1067,7 @@ setUpKrigInfo <- function(x = NULL,
   }
   LKinfo$call <- NULL
   LKinfoCheck(LKinfo)
-
+  
   return(LKinfo)
 }
 
@@ -1024,7 +1082,7 @@ setDefaultAwght <- function(LKinfo) {
   a_wght <- LKinfo$a.wght
   nlevel <- LKinfo$nlevel
   isotropic <- length(a_wght) == 1
-
+  
   if (!is.list(a_wght)) {
     if (nlevel == 1) {
       a_wght <- list(a_wght)
@@ -1060,25 +1118,24 @@ setRectangleAwght <- function(LKinfo, ...) {
   a_wght <- LKinfo$a.wght
   n_level <- LKinfo$nlevel
   mx <- LKinfo$latticeInfo$mx
-
+  
   if (length(a_wght) == 1) {
     a_wght <- as.list(rep(a_wght, n_level))
   }
-
+  
   stationary <- rep(NA, n_level)
   first_order <- rep(NA, n_level)
   isotropic <- rep(NA, n_level)
-
+  
   for (k in 1:length(a_wght)) {
     length_awght <- length(a_wght[[k]])
     dim_a_wght <- dim(a_wght[[k]])
-
+    
     is_a_wght_matrix <- !is.matrix(a_wght[[k]])
     stationary[k] <- is_a_wght_matrix
     isotropic[k] <- ifelse(is_a_wght_matrix,
-      length_awght == 1,
-      dim_a_wght[2] == 1
-    )
+                           length_awght == 1,
+                           dim_a_wght[2] == 1)
     if (is_a_wght_matrix) {
       first_order[k] <- length_awght == 1
     }
@@ -1087,19 +1144,23 @@ setRectangleAwght <- function(LKinfo, ...) {
         (dim_a_wght[1] == mx[k, 1] * mx[k, 2]) &
         ((dim_a_wght[2] == 1) | (dim_a_wght[2] == 9))
       if (!is_dimenstion_matched) {
-        stop(paste0(
-          "Mismatched: a.wght matrix at level ",
-          k,
-          " has  dimensions:", dim_a_wght,
-          " compare to lattice: ", mx[k, ]
-        ))
+        stop(
+          paste0(
+            "Mismatched: a.wght matrix at level ",
+            k,
+            " has  dimensions:",
+            dim_a_wght,
+            " compare to lattice: ",
+            mx[k, ]
+          )
+        )
       }
       first_order[k] <- dim_a_wght[2] == 1
     }
   }
-
+  
   RBF <- LKinfo$basisInfo$BasisFunction
-
+  
   is_fast_normalization <- all(stationary) &
     all(first_order) &
     all(!is.na(unlist(a_wght))) &
@@ -1109,18 +1170,17 @@ setRectangleAwght <- function(LKinfo, ...) {
     is_fast_normalization <- FALSE
   }
   if (is_fast_normalization) {
-    attr(a_wght, which = "fastNormDecomp") <- LKRectangleSetupNormalization(
-      mx,
-      a_wght
-    )
+    attr(a_wght, which = "fastNormDecomp") <-
+      LKRectangleSetupNormalization(mx,
+                                    a_wght)
   }
-
+  
   attr(a_wght, which = "fastNormalize") <- is_fast_normalization
   attr(a_wght, which = "first.order") <- first_order
   attr(a_wght, which = "stationary") <- stationary
   attr(a_wght, which = "isotropic") <- isotropic
   attr(a_wght, which = "a.wghtAsObject") <- is_awght_object
-
+  
   return(a_wght)
 }
 
@@ -1134,13 +1194,14 @@ setRectangleAwght <- function(LKinfo, ...) {
 #'
 calculateLatticeKrigBasis <- function(x1, LKinfo) {
   x1 <- as.matrix(x1)
-
+  
   PHI <- NULL
   basis_delta <- LKinfo$latticeInfo$delta * LKinfo$basisInfo$overlap
   for (l in 1:LKinfo$nlevel) {
     centers <- LKinfo$latticeInfo$grid[[l]]
-    if (LKinfo$LKGeometry == "LKBox") class(centers) <- "gridList"
-
+    if (LKinfo$LKGeometry == "LKBox")
+      class(centers) <- "gridList"
+    
     PHItemp <- Radial.basis(
       x1,
       centers,
@@ -1163,7 +1224,7 @@ calculateLatticeKrigBasis <- function(x1, LKinfo) {
     else {
       PHItemp@entries <- PHItemp@entries / sqrt(wght)
     }
-
+    
     if (length(LKinfo$alpha[[l]]) > 1) {
       PHItemp <- diag.spam(sqrt(LKinfo$alpha[[l]])) %*% PHItemp
     }
@@ -1172,7 +1233,7 @@ calculateLatticeKrigBasis <- function(x1, LKinfo) {
     }
     PHI <- spam::cbind.spam(PHI, PHItemp)
   }
-
+  
   return(PHI)
 }
 
@@ -1192,15 +1253,15 @@ normalizeBasis <- function(LKinfo, level, PHI) {
   } else {
     tempB <- calculateSARForThreeDimLocation(LKinfo, level)
   }
-
+  
   # tempB is in spind format
-  tempB <- spam(tempB[c("ind", "ra")], nrow = tempB$da[1], ncol = tempB$da[2])
+  tempB <-
+    spam(tempB[c("ind", "ra")], nrow = tempB$da[1], ncol = tempB$da[2])
   # quadratic form involves applying inverse precision matrix to basis function evaluted at
   # locations for evaluation
   wght <- LKrig.quadraticform(t(tempB) %*% tempB,
-    PHI = PHI,
-    choleskyMemory = LKinfo$choleskyMemory
-  )
+                              PHI = PHI,
+                              choleskyMemory = LKinfo$choleskyMemory)
   return(wght)
 }
 
@@ -1226,7 +1287,11 @@ calculateSARForOneDimLocation <- function(LKinfo, level) {
   ra <- c(a.wght, rep(-1, (m - 1)), rep(-1, (m - 1)))
   Bi <- c(1:m, 2:m, 1:(m - 1))
   Bj <- c(1:m, 1:(m - 1), 2:m)
-  return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
+  return(list(
+    ind = cbind(Bi, Bj),
+    ra = ra,
+    da = da
+  ))
 }
 
 #'
@@ -1244,7 +1309,7 @@ calculateSARForTowDimLocation <- function(LKinfo, level) {
     stop("a.wght must be constant")
   }
   da <- c(m, m)
-
+  
   ra <- c(rep(a.wght, m), rep(-1, m * 6))
   Bi <- c(rep(1:m, 7))
   Bindex <- array(1:m, LKinfo$latticeInfo$mx[level, ])
@@ -1261,7 +1326,11 @@ calculateSARForTowDimLocation <- function(LKinfo, level) {
   Bi <- Bi[in_range]
   Bj <- Bj[in_range]
   ra <- ra[in_range]
-  return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
+  return(list(
+    ind = cbind(Bi, Bj),
+    ra = ra,
+    da = da
+  ))
 }
 
 #'
@@ -1277,7 +1346,7 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
   mx2 <- LKinfo$latticeInfo$mx[level, 2]
   m <- mx1 * mx2
   a.wght <- (LKinfo$a.wght)[[level]]
-
+  
   stationary <- (attr(LKinfo$a.wght, "stationary"))[level]
   first.order <- attr(LKinfo$a.wght, "first.order")[level]
   isotropic <- attr(LKinfo$a.wght, "isotropic")[level]
@@ -1287,7 +1356,7 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
       stop("a.wght less than 4")
     }
   }
-
+  
   dim.a.wght <- dim(a.wght)
   index <- c(5, 4, 6, 2, 8, 3, 9, 1, 7)
   da <- as.integer(c(m, m))
@@ -1307,7 +1376,7 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
       }
     }
   }
-
+  
   Bi <- rep(1:m, 5)
   i.c <- matrix(1:m, nrow = mx1, ncol = mx2)
   Bj <- c(
@@ -1327,12 +1396,12 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
       LKrig.shift.matrix(i.c, -1, -1)
     )
   }
-
+  
   good <- !is.na(Bj)
   Bi <- as.integer(Bi[good])
   Bj <- as.integer(Bj[good])
   ra <- c(ra)[good]
-
+  
   if (!is.null(LKinfo$setupArgs$BCHook)) {
     M <- da[1]
     for (i in 1:M) {
@@ -1341,7 +1410,11 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
       ra[rowNN] <- 4 * ra[rowNN] / length(rowNN)
     }
   }
-  return(list(ind = cbind(Bi, Bj), ra = ra, da = da))
+  return(list(
+    ind = cbind(Bi, Bj),
+    ra = ra,
+    da = da
+  ))
 }
 
 #'
@@ -1359,19 +1432,21 @@ shiftArray <- function(array_object, shift_index) {
   if (any(abs(shift_index) > shape)) {
     stop("shift exceeds array dimensions")
   }
-
+  
   index_list_source <- index_list_target <- NULL
-
+  
   for (k in 1:length(shape)) {
     index_list_source <- c(index_list_source, list(c(1:shape[k])))
-    temp_index <- (0:(shape[k] - 1) + shift_index[k]) %% shape[k] + 1
+    temp_index <-
+      (0:(shape[k] - 1) + shift_index[k]) %% shape[k] + 1
     temp_index[(temp_index < 1) | (temp_index > shape[k])] <- NA
     index_list_target <- c(index_list_target, list(temp_index))
   }
   index_source <- as.matrix(expand.grid(index_list_source))
   index_target <- as.matrix(expand.grid(index_list_target))
   in_range <- rowSums(is.na(index_target)) == 0
-  reshaped_array[index_target[in_range, ]] <- array_object[index_source[in_range, ]]
+  reshaped_array[index_target[in_range, ]] <-
+    array_object[index_source[in_range, ]]
   return(reshaped_array)
 }
 
@@ -1387,7 +1462,7 @@ wendland <- function(r) {
   if (any(r < 0)) {
     stop(paste(c("Invalid values: ", r[which(r < 0)]), " "))
   }
-  return(r < 1) * (1 - r)^6 * (35 * r^2 + 18 * r + 3)
+  return(r < 1) * (1 - r) ^ 6 * (35 * r ^ 2 + 18 * r + 3)
 }
 
 #'
@@ -1397,7 +1472,9 @@ wendland <- function(r) {
 #' @param x A character
 #' @return A character
 #'
-removeWhitespace <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
+removeWhitespace <-
+  function(x)
+    gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
 
 #'
 #' Internal function: log-determinant of a sqaure matrix
@@ -1406,4 +1483,88 @@ removeWhitespace <- function(x) gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
 #' @param mat A sqaure matrix.
 #' @return A numeric.
 #'
-logDeterminant <- function(mat) spam::determinant(mat, logarithm = TRUE)$modulus[1]
+logDeterminant <-
+  function(mat)
+    spam::determinant(mat, logarithm = TRUE)$modulus[1]
+
+
+
+#'
+#' Internal function: LKpeon
+#'
+#' @keywords internal
+#' @param M
+#' @param s
+#' @param Fk
+#' @param basis
+#' @param weight
+#' @param phi1
+#' @param phi0
+#' @param Q
+#' @param lambda
+#' @param phi0P
+#' @param L
+#' @param Data
+#' @param only.wlk
+#' @param only.se
+#' @return A list.
+#'
+LKpeon <- function(M,
+                   s,
+                   Fk,
+                   basis,
+                   weight,
+                   phi1,
+                   phi0,
+                   Q,
+                   lambda,
+                   phi0P,
+                   L = NULL,
+                   Data = NULL,
+                   only.wlk = FALSE,
+                   only.se = FALSE) {
+  wwX <- diag.spam(weight) %*% phi1
+  wXiG <- (wwX) %*% solve(t(wwX) %*% phi1 + lambda *
+                            Q)
+  fM <- Fk %*% M
+  if (is.null(L)) {
+    dec <- eigen(M)
+    L <- Fk %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value,
+                                                   0)), NROW(M))
+    L <- as.matrix(L)
+  }
+  iDL <- weight * L - wXiG %*% (t(wwX) %*% L)
+  iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
+  itmp <- solve(diag(1, NCOL(L)) + t(L) %*% iDL / s)
+  ihL <- chol(itmp) %*% t(L)
+  iiLiD <- itmp %*% t(iDL / s)
+  if (only.wlk) {
+    LiiLiDZ <- L %*% (iiLiD %*% Data)
+    w <- M %*% t(iDFk) %*% Data / s - (M %*% t(iDFk / s)) %*%
+      (LiiLiDZ)
+    wlk <- t(wXiG) %*% Data - t(wXiG) %*% (LiiLiDZ)
+    return(list(w = w, wlk = wlk))
+  }
+  MFiS11 <- M %*% t(iDFk) / s - ((M %*% t(iDFk / s)) %*%
+                                   L) %*% iiLiD
+  FMfi <- basis %*% MFiS11
+  p0Pp1 <- as.matrix(phi0P %*% t(phi1))
+  se0 <- rowSums((basis %*% M) * basis) + rowSums(as.matrix(phi0P *
+                                                              phi0)) / lambda * s
+  se11 <- rowSums((FMfi %*% fM) * basis)
+  se12 <- rowSums(p0Pp1 * (FMfi)) * s / lambda
+  se13 <- se12
+  se14 <- rowSums(as.matrix(phi0 %*% t(wXiG)) * p0Pp1) *
+    s / lambda - colSums((ihL %*% wXiG %*% t(phi0)) ^ 2)
+  se <- sqrt(pmax(se0 - (se11 + se12 + se13 + se14),
+                  0))
+  if (only.se) {
+    return(se)
+  } else {
+    return(list(
+      se = se,
+      w = MFiS11 %*% Data,
+      wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
+    ))
+  }
+}
