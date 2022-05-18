@@ -898,8 +898,9 @@ mrts <- function(knot, k, x = NULL, maxknot = 5000) {
     }
     dimnames(obj) <- NULL
     aname <- names(attributes(obj))
-    attributes(obj0) <- c(attributes(obj0), attributes(obj)[setdiff(aname,
-                                                                    c("dim", "dimnames"))])
+    attributes(obj0) <-
+      c(attributes(obj0), attributes(obj)[setdiff(aname,
+                                                  c("dim", "dimnames"))])
     return(obj0)
   }
 }
@@ -993,8 +994,7 @@ predict.FRK <-
           if (is.null(miss)) {
             se <- sqrt(pmax(0, rowSums((
               basis %*% object$V
-            ) *
-              basis)))
+            ) * basis)))
             se <- matrix(se, length(se), TT)
           }
           else {
@@ -1009,8 +1009,9 @@ predict.FRK <-
               G <- Fk[!miss[, tt],]
               GM <- G %*% M
               De <- D0[!miss[, tt],!miss[, tt]]
-              L <- G %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value,
-                                                            0)), NROW(M))
+              L <-
+                G %*% dec$vector %*% diag.spam(sqrt(pmax(dec$value,
+                                                         0)), NROW(M))
               V <- as.matrix(M - t(GM) %*% invCz(object$s *
                                                    De, L, GM))
               se[, tt] <- sqrt(pmax(0, rowSums((

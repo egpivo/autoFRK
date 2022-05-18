@@ -22,7 +22,7 @@ LKpeon(
 )
 }
 \value{
-A numeric.
+A list.
 }
 \description{
 Internal function: LKpeon
