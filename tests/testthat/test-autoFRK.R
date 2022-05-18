@@ -56,6 +56,10 @@ yhat_example4 <-
           newloc = grids,
           basis = Gpred)
 
+# Example5
+finescale_object <- autoFRK(Data = z, loc = X, maxK = 15, finescale = TRUE)
+yhat_example5 <- predict(finescale_object, newloc = grids)
+
 tolerance <- 1e-4
 # Test
 test_that("Automatic selection and prediction", {
@@ -85,6 +89,12 @@ test_that("User-specified basis function with kstar = 0", {
   expect_null(yhat_example4$se)
   expect_equal(length(yhat_example4$pred.value), 900)
   expect_equal(predict(G), G)
+})
+
+test_that("autoFRK object with finescale", {
+  expect_lte(abs(mean(yhat_example5$pred.value) + 9.457914), tolerance)
+  expect_lte(abs(sum(yhat_example5$pred.value) + 8512.1229), tolerance)
+  expect_null(yhat_example5$se)
 })
 
 test_that("mrts", {
