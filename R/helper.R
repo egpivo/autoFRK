@@ -53,7 +53,7 @@ calculateLogDeterminant <- function(R, L, K) {
 #' @keywords internal.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
-#' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param M A \emph{K} by \emph{K} symmetric matrix.
 #' @param s A scalar.
@@ -77,7 +77,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
     zt <- data[non_missing_points_matrix[, t], t]
     Rt <-
       R[non_missing_points_matrix[, t], non_missing_points_matrix[, t]]
-    Lt <- L[non_missing_points_matrix[, t], ]
+    Lt <- L[non_missing_points_matrix[, t],]
     n2loglik <-
       n2loglik + calculateLogDeterminant(Rt, Lt, K) + sum(zt * invCz(Rt, Lt, zt))
   }
@@ -100,7 +100,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' @param num_neighbors An integer.
 #' @param max_knot An integer for the maximum number of knots
 #' @param DfromLK An \emph{n} by \emph{n} diagonal matrix.
-#' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @return An mrts object with 6 attributes
 #'
@@ -119,7 +119,7 @@ selectBasis <- function(data,
   data <- as.matrix(data)
   are_all_missing_in_columns <- apply(!is.na(data), 2, sum) == 0
   if (any(are_all_missing_in_columns)) {
-    data <- as.matrix(data[, !are_all_missing_in_columns])
+    data <- as.matrix(data[,!are_all_missing_in_columns])
   }
   if (is.null(D))
     D <- diag.spam(NROW(data))
@@ -130,8 +130,8 @@ selectBasis <- function(data,
   na_rows <- which(rowSums(as.matrix(!is.na(data))) == 0)
   pick <- 1:NROW(data)
   if (length(na_rows) > 0) {
-    data <- as.matrix(data[-na_rows, ])
-    D <- D[-na_rows, -na_rows]
+    data <- as.matrix(data[-na_rows,])
+    D <- D[-na_rows,-na_rows]
     pick <- pick[-na_rows]
     is_data_with_missing_values <- any(is.na(data))
   }
@@ -139,9 +139,9 @@ selectBasis <- function(data,
   N <- length(pick)
   klim <- min(N, round(10 * sqrt(N)))
   if (N < max_knot) {
-    knot <- loc[pick, ]
+    knot <- loc[pick,]
   } else {
-    knot <- subKnot(loc[pick, ], min(max_knot, klim))
+    knot <- subKnot(loc[pick,], min(max_knot, klim))
   }
   
   if (!is.null(max_rank)) {
@@ -199,8 +199,8 @@ selectBasis <- function(data,
           next
         }
         cidx <- which(!is_cell_missing_in_a_column)
-        nnidx <- FNN::get.knnx(loc[cidx, ],
-                               matrix(loc[is_cell_missing_in_a_column, ], ncol = dim(loc)[2]),
+        nnidx <- FNN::get.knnx(loc[cidx,],
+                               matrix(loc[is_cell_missing_in_a_column,], ncol = dim(loc)[2]),
                                k = num_neighbors)
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
         nnval <- array((data[, tt])[nnidx], dim(nnidx))
@@ -209,18 +209,18 @@ selectBasis <- function(data,
     }
     if (is.null(DfromLK)) {
       iD <- solve(D)
-      iDFk <- iD %*% Fk[pick, ]
+      iDFk <- iD %*% Fk[pick,]
       iDZ <- iD %*% data
     }
     else {
-      wX <- DfromLK$wX[pick, ]
+      wX <- DfromLK$wX[pick,]
       G <- t(DfromLK$wX) %*% DfromLK$wX + DfromLK$lambda *
         DfromLK$Q
       weight <- DfromLK$weights[pick]
       wwX <- diag.spam(sqrt(weight)) %*% wX
       wXiG <- (wwX) %*% solve(G)
-      iDFk <- weight * Fk[pick, ] - wXiG %*% (t(wwX) %*%
-                                                as.matrix(Fk[pick, ]))
+      iDFk <- weight * Fk[pick,] - wXiG %*% (t(wwX) %*%
+                                               as.matrix(Fk[pick,]))
       iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
     }
     sample_covariance_trace <-
@@ -389,7 +389,7 @@ computeNegativeLikelihood <- function(nrow_Fk,
 #' Internal function: maximum likelihood estimate with the likelihood
 #'
 #' @keywords internal.
-#' @param Fk A  \emph{n} by \emph{K} matrix of basis function values with
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param num_columns A positive numeric.
 #' @param sample_covariance_trace A positive numeric.
@@ -602,7 +602,7 @@ cMLElk <- function(Fk,
   N <- NROW(data)
   lambda <- DfromLK$lambda
   pick <- DfromLK$pick
-  wX <- DfromLK$wX[pick, ]
+  wX <- DfromLK$wX[pick,]
   G <- t(wX) %*% wX + lambda * DfromLK$Q
   weight <- DfromLK$weights[pick]
   wwX <- diag.spam(sqrt(weight)) %*% wX
@@ -785,7 +785,7 @@ subKnot <- function(x,
     }
   }
   
-  rng <- sqrt(xrng[2, ] - xrng[1, ])
+  rng <- sqrt(xrng[2,] - xrng[1,])
   rng[rng == 0] <- min(rng[rng > 0]) / 5
   rng <- rng * 10 / min(rng)
   rng_max_index <- which.max(rng)
@@ -821,7 +821,7 @@ subKnot <- function(x,
   gid <- as.double(as.character(gvec))
   names(gid) <- 1:xdim[1]
   index <- unlist(tapply(gid, gvec, mysamp))
-  return(x[index, ])
+  return(x[index,])
 }
 
 #'
@@ -846,7 +846,7 @@ fetchNonZeroIndexs <- function(mat) {
     which(f[, j] != 0))
   ridx <- unlist(j)
   k <- sapply(1:NR, function(k)
-    rbind(k, which(f[k, ] != 0)))
+    rbind(k, which(f[k,] != 0)))
   kk <- matrix(unlist(k), ncol = 2, byrow = T)
   cidx <- sort(kk[, 2])
   where <- (cidx - 1) * NR + ridx
@@ -986,7 +986,7 @@ convertToPositiveDefinite <- function(mat) {
     v <- min(eigen(mat, only.values = T)$value)
   }
   if (v <= 0) {
-    mat <- mat + diag(max(0, -v) + 0.1 ^ 7.5, NROW(mat))
+    mat <- mat + diag(max(0,-v) + 0.1 ^ 7.5, NROW(mat))
   }
   return(mat)
 }
@@ -1151,7 +1151,7 @@ setRectangleAwght <- function(LKinfo, ...) {
             " has  dimensions:",
             dim_a_wght,
             " compare to lattice: ",
-            mx[k, ]
+            mx[k,]
           )
         )
       }
@@ -1312,14 +1312,14 @@ calculateSARForTowDimLocation <- function(LKinfo, level) {
   
   ra <- c(rep(a.wght, m), rep(-1, m * 6))
   Bi <- c(rep(1:m, 7))
-  Bindex <- array(1:m, LKinfo$latticeInfo$mx[level, ])
+  Bindex <- array(1:m, LKinfo$latticeInfo$mx[level,])
   Bj <- c(
     1:m,
     c(shiftArray(Bindex, c(-1, 0, 0))),
     c(shiftArray(Bindex, c(1, 0, 0))),
-    c(shiftArray(Bindex, c(0, -1, 0))),
+    c(shiftArray(Bindex, c(0,-1, 0))),
     c(shiftArray(Bindex, c(0, 1, 0))),
-    c(shiftArray(Bindex, c(0, 0, -1))),
+    c(shiftArray(Bindex, c(0, 0,-1))),
     c(shiftArray(Bindex, c(0, 0, 1)))
   )
   in_range <- !is.na(Bj)
@@ -1381,19 +1381,19 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
   i.c <- matrix(1:m, nrow = mx1, ncol = mx2)
   Bj <- c(
     i.c,
-    LKrig.shift.matrix(i.c, 0, -1),
+    LKrig.shift.matrix(i.c, 0,-1),
     LKrig.shift.matrix(i.c, 0, 1),
     LKrig.shift.matrix(i.c, 1, 0),
-    LKrig.shift.matrix(i.c, -1, 0)
+    LKrig.shift.matrix(i.c,-1, 0)
   )
   if (!first.order) {
     Bi <- c(Bi, rep(1:m, 4))
     Bj <- c(
       Bj,
       LKrig.shift.matrix(i.c, 1, 1),
-      LKrig.shift.matrix(i.c, -1, 1),
-      LKrig.shift.matrix(i.c, 1, -1),
-      LKrig.shift.matrix(i.c, -1, -1)
+      LKrig.shift.matrix(i.c,-1, 1),
+      LKrig.shift.matrix(i.c, 1,-1),
+      LKrig.shift.matrix(i.c,-1,-1)
     )
   }
   
@@ -1445,8 +1445,8 @@ shiftArray <- function(array_object, shift_index) {
   index_source <- as.matrix(expand.grid(index_list_source))
   index_target <- as.matrix(expand.grid(index_list_target))
   in_range <- rowSums(is.na(index_target)) == 0
-  reshaped_array[index_target[in_range, ]] <-
-    array_object[index_source[in_range, ]]
+  reshaped_array[index_target[in_range,]] <-
+    array_object[index_source[in_range,]]
   return(reshaped_array)
 }
 
@@ -1493,20 +1493,21 @@ logDeterminant <-
 #' Internal function: LKpeon
 #'
 #' @keywords internal
-#' @param M
-#' @param s
-#' @param Fk
-#' @param basis
-#' @param weight
-#' @param phi1
-#' @param phi0
-#' @param Q
-#' @param lambda
-#' @param phi0P
-#' @param L
-#' @param Data
-#' @param only.wlk
-#' @param only.se
+#' @param M A \emph{K} by \emph{K} symmetric matrix.
+#' @param s A scalar.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param basis An \emph{n} by \emph{K} matrix
+#' @param weight A vector
+#' @param phi1 A matrix produced by LatticeKrig basis fucntions
+#' @param phi0 A matrix produced by LatticeKrig basis fucntions with new locations
+#' @param Q A precision matrix
+#' @param lambda A scalar.
+#' @param phi0P A projection matrix of phi1
+#' @param L An \emph{n} by \emph{K} matrix
+#' @param Data An \emph{n} by \emph{T} data matrix
+#' @param only.wlk A logic.
+#' @param only.se A logic.
 #' @return A list.
 #'
 LKpeon <- function(M,
@@ -1539,10 +1540,15 @@ LKpeon <- function(M,
   ihL <- chol(itmp) %*% t(L)
   iiLiD <- itmp %*% t(iDL / s)
   if (only.wlk) {
-    LiiLiDZ <- L %*% (iiLiD %*% Data)
-    w <- M %*% t(iDFk) %*% Data / s - (M %*% t(iDFk / s)) %*%
-      (LiiLiDZ)
-    wlk <- t(wXiG) %*% Data - t(wXiG) %*% (LiiLiDZ)
+    if (!is.null(Data)) {
+      LiiLiDZ <- L %*% (iiLiD %*% Data)
+      w <- M %*% t(iDFk) %*% Data / s - (M %*% t(iDFk / s)) %*%
+        (LiiLiDZ)
+      wlk <- t(wXiG) %*% Data - t(wXiG) %*% (LiiLiDZ)
+    } else {
+      w <- NULL
+      wlk <- NULL
+    }
     return(list(w = w, wlk = wlk))
   }
   MFiS11 <- M %*% t(iDFk) / s - ((M %*% t(iDFk / s)) %*%
@@ -1561,10 +1567,15 @@ LKpeon <- function(M,
   if (only.se) {
     return(se)
   } else {
-    return(list(
-      se = se,
-      w = MFiS11 %*% Data,
-      wlk = t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
-    ))
+    if (!is.null(Data)) {
+      w <- MFiS11 %*% Data
+      wlk <- t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
+    } else {
+      w <- NULL
+      wlk <- NULL
+    }
+    return(list(se = se,
+                w = w,
+                wlk = wlk))
   }
 }
