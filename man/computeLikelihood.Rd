@@ -10,7 +10,7 @@ computeLikelihood(data, Fk, M, s, Depsilon)
 \item{data}{An \emph{n} by \emph{T} data matrix (NA allowed) with
 \eqn{z[t]} as the \emph{t}-th column.}
 
-\item{Fk}{A  \emph{n} by \emph{K} matrix of basis function values with
+\item{Fk}{An \emph{n} by \emph{K} matrix of basis function values with
 each column being a basis function taken values at \code{loc}.}
 
 \item{M}{A \emph{K} by \emph{K} symmetric matrix.}
