@@ -25,5 +25,5 @@ in a similar way as \code{predict.ns} and \code{predict.bs} in \code{splines} pa
 \code{\link{mrts}}
 }
 \author{
-ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
+ShengLi Tzeng and Hsin-Cheng Huang.
 }

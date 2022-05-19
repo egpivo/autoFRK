@@ -54,5 +54,5 @@ Predicted values and estimate of standard errors based on an "\code{autoFRK}" mo
 \code{\link{autoFRK}}
 }
 \author{
-ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
+ShengLi Tzeng and Hsin-Cheng Huang.
 }

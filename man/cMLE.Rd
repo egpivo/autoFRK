@@ -18,7 +18,7 @@ cMLE(
 )
 }
 \arguments{
-\item{Fk}{A  \emph{n} by \emph{K} matrix of basis function values with
+\item{Fk}{An \emph{n} by \emph{K} matrix of basis function values with
 each column being a basis function taken values at \code{loc}.}
 
 \item{num_columns}{A positive numeric.}
