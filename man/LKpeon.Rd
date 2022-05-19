@@ -21,6 +21,36 @@ LKpeon(
   only.se = FALSE
 )
 }
+\arguments{
+\item{M}{A \emph{K} by \emph{K} symmetric matrix.}
+
+\item{s}{A scalar.}
+
+\item{Fk}{An \emph{n} by \emph{K} matrix of basis function values with
+each column being a basis function taken values at \code{loc}.}
+
+\item{basis}{An \emph{n} by \emph{K} matrix}
+
+\item{weight}{A vector}
+
+\item{phi1}{A matrix produced by LatticeKrig basis fucntions}
+
+\item{phi0}{A matrix produced by LatticeKrig basis fucntions with new locations}
+
+\item{Q}{A precision matrix}
+
+\item{lambda}{A scalar.}
+
+\item{phi0P}{A projection matrix of phi1}
+
+\item{L}{An \emph{n} by \emph{K} matrix}
+
+\item{Data}{An \emph{n} by \emph{T} data matrix}
+
+\item{only.wlk}{A logic.}
+
+\item{only.se}{A logic.}
+}
 \value{
 A list.
 }
