@@ -68,6 +68,12 @@ finescale_object <-
 yhat_example5 <- predict(finescale_object, newloc = grids)
 yhat_se_example5 <-
   predict(finescale_object, newloc = grids, se.report = TRUE)
+yhat_without_newloc_obsloc_example5 <-
+  predict(finescale_object, se.report = TRUE)
+yhat_with_obsloc_example5 <-
+  predict(finescale_object, obsloc = grids, newloc = NULL, se.report = TRUE)
+yhat_with_obsData_example5 <- predict(finescale_object, obsData = rnorm(n), se.report = TRUE)
+yhat_with_obsData_obsloc_example5 <- predict(finescale_object, obsloc = X, obsData = rnorm(n), se.report = TRUE)
 
 tolerance <- 1e-4
 # Test
@@ -107,7 +113,14 @@ test_that("autoFRK object with finescale", {
   expect_equal(yhat_example5$pred.value, yhat_se_example5$pred.value)
   expect_lte(abs(mean(yhat_se_example5$se) - 0.4681181), tolerance)
   expect_lte(abs(sum(yhat_se_example5$se) - 421.3063), tolerance)
-  
+  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$pred.value) + 9.521325), tolerance)
+  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$se) - 0.4695479), tolerance)
+  expect_lte(abs(mean(yhat_with_obsloc_example5$pred.value) + 9.521325), tolerance)
+  expect_lte(abs(mean(yhat_with_obsloc_example5$se) - 0.4695479), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_example5$pred.value) - 0.1293826), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_example5$se) - 0.4695479), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$pred.value) + 0.08612931), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$se) - 0.4695479), tolerance)
 })
 
 test_that("mrts", {
