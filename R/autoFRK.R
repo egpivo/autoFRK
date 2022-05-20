@@ -1110,7 +1110,6 @@ predict.FRK <-
         }
       }
       if (!is.null(obsData)) {
-        print("gg") 
         loc <- attr(object, "pinfo")$loc
         if (is.null(newloc)) {
           newloc <- loc
