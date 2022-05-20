@@ -167,65 +167,63 @@ autoFRK <- function(Data,
       Data[where, tt] <- rowMeans(nnval)
     }
   }
-  {
-    if (!finescale) {
-      obj <- indeMLE(
-        Data = Data,
-        Fk = Fk[, 1:K],
-        D = D,
-        maxit = maxit,
-        avgtol = tolerance,
-        wSave = TRUE,
-        DfromLK = NULL
-      )
-    } else {
-      nu <- .Options$LKinfoSetup$nu
-      nlevel <- .Options$LKinfoSetup$nlevel
-      a.wght <- .Options$LKinfoSetup$a.wght
-      NC <- .Options$LKinfoSetup$NC
-      if (is.null(nu)) {
-        nu <- 1
-      }
-      if (is.null(nlevel)) {
-        nlevel <- 3
-      }
-      iniobj <- initializeLKnFRK(
-        Data = Data,
-        loc = loc,
-        nlevel = nlevel,
-        weights = 1 / diag(D),
-        n.neighbor = n.neighbor,
-        nu = nu
-      )
-      DnLK <-
-        setLKnFRKOption(iniobj, Fk[, 1:K], nc = NC, a.wght = a.wght)
-      DfromLK <- DnLK$DfromLK
-      LKobj <- DnLK$LKobj
-      Depsilon <- diag.spam(iniobj$weight[iniobj$pick],
-                            length(iniobj$weight[iniobj$pick]))
-      obj <- indeMLE(
-        Data = Data,
-        Fk = Fk[, 1:K],
-        D = D,
-        maxit = maxit,
-        avgtol = tolerance,
-        wSave = TRUE,
-        DfromLK = DfromLK,
-        vfixed = DnLK$s
-      )
+  if (!finescale) {
+    obj <- indeMLE(
+      Data = Data,
+      Fk = Fk[, 1:K],
+      D = D,
+      maxit = maxit,
+      avgtol = tolerance,
+      wSave = TRUE,
+      DfromLK = NULL
+    )
+  } else {
+    nu <- .Options$LKinfoSetup$nu
+    nlevel <- .Options$LKinfoSetup$nlevel
+    a.wght <- .Options$LKinfoSetup$a.wght
+    NC <- .Options$LKinfoSetup$NC
+    if (is.null(nu)) {
+      nu <- 1
     }
-    obj$G <- Fk
-    if (finescale) {
-      obj$LKobj <- LKobj
-      attr(obj, "pinfo")$loc <- loc
-      attr(obj, "pinfo")$weights <- 1 / diag(D)
+    if (is.null(nlevel)) {
+      nlevel <- 3
     }
-    else {
-      obj$LKobj <- NULL
-    }
-    class(obj) <- "FRK"
-    return(obj)
+    iniobj <- initializeLKnFRK(
+      Data = Data,
+      loc = loc,
+      nlevel = nlevel,
+      weights = 1 / diag(D),
+      n.neighbor = n.neighbor,
+      nu = nu
+    )
+    DnLK <-
+      setLKnFRKOption(iniobj, Fk[, 1:K], nc = NC, a.wght = a.wght)
+    DfromLK <- DnLK$DfromLK
+    LKobj <- DnLK$LKobj
+    Depsilon <- diag.spam(iniobj$weight[iniobj$pick],
+                          length(iniobj$weight[iniobj$pick]))
+    obj <- indeMLE(
+      Data = Data,
+      Fk = Fk[, 1:K],
+      D = D,
+      maxit = maxit,
+      avgtol = tolerance,
+      wSave = TRUE,
+      DfromLK = DfromLK,
+      vfixed = DnLK$s
+    )
   }
+  obj$G <- Fk
+  if (finescale) {
+    obj$LKobj <- LKobj
+    attr(obj, "pinfo")$loc <- loc
+    attr(obj, "pinfo")$weights <- 1 / diag(D)
+  }
+  else {
+    obj$LKobj <- NULL
+  }
+  class(obj) <- "FRK"
+  return(obj)
 }
 
 cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
@@ -946,9 +944,6 @@ predict.FRK <-
            mu.new = 0,
            se.report = FALSE,
            ...) {
-    if (!"w" %in% names(object)) {
-      stop("input model (object) should use the option \"wsave=TRUE\"!")
-    }
     if (is.null(basis)) {
       if (is.null(newloc) & is.null(obsloc)) {
         basis <- object$G
@@ -990,6 +985,7 @@ predict.FRK <-
         stop("Dimensions of obsloc and basis are not compatible!")
       }
     }
+ 
     if (is.null(object$LKobj)) {
       if (is.null(obsloc) & is.null(obsData)) {
         miss <- attr(object, "missing")
@@ -1053,7 +1049,7 @@ predict.FRK <-
       }
     }
     else {
-      if (is.null(obsloc) & is.null(obsData)) {
+      if (is.null(obsData)) {
         if (is.null(newloc)) {
           newloc <- attr(object, "pinfo")$loc
         }
@@ -1114,6 +1110,7 @@ predict.FRK <-
         }
       }
       if (!is.null(obsData)) {
+        print("gg") 
         loc <- attr(object, "pinfo")$loc
         if (is.null(newloc)) {
           newloc <- loc
