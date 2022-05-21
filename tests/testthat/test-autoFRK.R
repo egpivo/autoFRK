@@ -15,11 +15,21 @@ y <- fn %*% w
 obs <- sample(900, n)
 z <- y[obs] + rnorm(n) * sqrt(s)
 X <- grids[obs, ]
+obsData <- rnorm(n)
 
 # Example1
 single_realization_object <- autoFRK(Data = z, loc = X, maxK = 15)
 yhat_example1 <- predict(single_realization_object, newloc = grids)
-
+yhat_without_newloc_example1 <- predict(single_realization_object)
+yhat_se_without_newloc_example1 <- predict(single_realization_object, se.report = TRUE)
+yhat_se_with_obsData_example1 <- predict(single_realization_object, obsData = obsData, se.report = TRUE)
+yhat_se_with_obsData_obsloc_example1 <-
+  predict(
+    single_realization_object,
+    obsloc = X,
+    obsData = obsData,
+    se.report = TRUE
+  )
 # Example2
 G <- mrts(X, 15)
 Gpred <- predict(G, newx = grids)
@@ -72,8 +82,8 @@ yhat_without_newloc_obsloc_example5 <-
   predict(finescale_object, se.report = TRUE)
 yhat_with_obsloc_example5 <-
   predict(finescale_object, obsloc = grids, newloc = NULL, se.report = TRUE)
-yhat_with_obsData_example5 <- predict(finescale_object, obsData = rnorm(n), se.report = TRUE)
-yhat_with_obsData_obsloc_example5 <- predict(finescale_object, obsloc = X, obsData = rnorm(n), se.report = TRUE)
+yhat_with_obsData_example5 <- predict(finescale_object, obsData = obsData, se.report = TRUE)
+yhat_with_obsData_obsloc_example5 <- predict(finescale_object, obsloc = X, obsData = obsData, se.report = TRUE)
 
 tolerance <- 1e-4
 # Test
@@ -82,6 +92,19 @@ test_that("Automatic selection and prediction", {
   expect_lte(abs(sum(yhat_example1$pred.value) + 2726.683), tolerance)
   expect_null(yhat_example1$se)
   expect_equal(length(yhat_example1$pred.value), 900)
+  expect_lte(abs(mean(
+    yhat_without_newloc_example1$pred.value
+  ) + 3.022685), tolerance)
+  expect_lte(abs(
+    mean(yhat_se_without_newloc_example1$pred.value) + 3.022685
+  ), tolerance)
+  expect_lte(abs(mean(yhat_se_without_newloc_example1$se) - 0.1629801), tolerance)
+  expect_lte(abs(
+    mean(yhat_se_with_obsData_example1$pred.value) - 0.09285895
+  ), tolerance)
+  expect_lte(abs(
+    mean(yhat_se_with_obsData_obsloc_example1$pred.value) - 0.09285895
+  ), tolerance)
 })
 
 test_that("User-specified basis function", {
@@ -92,35 +115,35 @@ test_that("User-specified basis function", {
 })
 
 test_that("Independent multi-realization", {
-  expect_lte(abs(norm(yhat_example3, "F") - 110.428), tolerance)
-  expect_lte(abs(max(yhat_example3) - 4.134017), tolerance)
+  expect_lte(abs(norm(yhat_example3, "F") - 107.6848), tolerance)
+  expect_lte(abs(max(yhat_example3) - 3.998665), tolerance)
   expect_true(any("matrix" %in% class(yhat_example3)))
   expect_equal(dim(yhat_example3), c(900, 13))
 })
 
 test_that("User-specified basis function with kstar = 0", {
-  expect_lte(abs(mean(yhat_example4$pred.value) + 2.988811), tolerance)
-  expect_lte(abs(sum(yhat_example4$pred.value) + 2689.9299), tolerance)
+  expect_lte(abs(mean(yhat_example4$pred.value) + 2.9857), tolerance)
+  expect_lte(abs(sum(yhat_example4$pred.value) + 2687.1301), tolerance)
   expect_null(yhat_example4$se)
   expect_equal(length(yhat_example4$pred.value), 900)
   expect_equal(predict(G), G)
 })
 
 test_that("autoFRK object with finescale", {
-  expect_lte(abs(mean(yhat_example5$pred.value) + 9.457914), tolerance)
-  expect_lte(abs(sum(yhat_example5$pred.value) + 8512.1229), tolerance)
+  expect_lte(abs(mean(yhat_example5$pred.value) + 4.415521), tolerance)
+  expect_lte(abs(sum(yhat_example5$pred.value) + 3973.9687), tolerance)
   expect_null(yhat_example5$se)
   expect_equal(yhat_example5$pred.value, yhat_se_example5$pred.value)
-  expect_lte(abs(mean(yhat_se_example5$se) - 0.4681181), tolerance)
-  expect_lte(abs(sum(yhat_se_example5$se) - 421.3063), tolerance)
-  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$pred.value) + 9.521325), tolerance)
-  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$se) - 0.4695479), tolerance)
-  expect_lte(abs(mean(yhat_with_obsloc_example5$pred.value) + 9.521325), tolerance)
-  expect_lte(abs(mean(yhat_with_obsloc_example5$se) - 0.4695479), tolerance)
-  expect_lte(abs(mean(yhat_with_obsData_example5$pred.value) - 0.1293826), tolerance)
-  expect_lte(abs(mean(yhat_with_obsData_example5$se) - 0.4695479), tolerance)
-  expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$pred.value) + 0.08612931), tolerance)
-  expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$se) - 0.4695479), tolerance)
+  expect_lte(abs(mean(yhat_se_example5$se) - 0.4575002), tolerance)
+  expect_lte(abs(sum(yhat_se_example5$se) - 411.7502), tolerance)
+  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$pred.value) + 4.477185), tolerance)
+  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$se) - 0.4588948), tolerance)
+  expect_lte(abs(mean(yhat_with_obsloc_example5$pred.value) + 4.477185), tolerance)
+  expect_lte(abs(mean(yhat_with_obsloc_example5$se) - 0.4588948), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_example5$pred.value) - 0.05621855), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_example5$se) - 0.4588948), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$pred.value) - 0.05621855), tolerance)
+  expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$se) - 0.4588948), tolerance)
 })
 
 test_that("mrts", {
