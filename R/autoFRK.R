@@ -596,22 +596,19 @@ initializeLKnFRK <-
     empty <- apply(!is.na(Data), 2, sum) == 0
     if (sum(empty) > 0)
       Data <- Data[, which(!empty)]
-    
     loc <- as.matrix(loc)
     N <- NROW(Data)
     d <- NCOL(loc)
     nas <- sum(is.na(Data))
     del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
     pick <- 1:N
-    
+    x <- as.matrix(loc)
     if (length(del) > 0) {
       Data <- Data[-del,]
-      loc <- loc[-del,]
+      x <- x[-del,]
       pick <- (1:N)[-del]
     }
-    
     nas <- sum(is.na(Data))
-    
     if (nas > 0) {
       for (tt in 1:NCOL(Data)) {
         where <- is.na(Data[, tt])
@@ -620,24 +617,20 @@ initializeLKnFRK <-
         }
         cidx <- which(!where)
         nnidx <-
-          FNN::get.knnx(loc[cidx,], as.matrix(loc[where,]), k = n.neighbor)
+          FNN::get.knnx(x[cidx,], as.matrix(x[where,]), k = n.neighbor)
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
         nnval <- array((Data[, tt])[nnidx], dim(nnidx))
         Data[where, tt] <- rowMeans(nnval)
       }
     }
-    x <- as.matrix(loc[pick,])
     z <- as.matrix(Data)
     d <- NCOL(x)
-    
     gtype <-
       ifelse(d == 1, "LKInterval", ifelse(d == 2, "LKRectangle", "LKBox"))
-    
     thetaL <- 2 ^ (-1 * (1:nlevel))
     alpha <- thetaL ^ (2 * nu)
     alpha <- alpha / sum(alpha)
     n <- NROW(x)
-    
     if (is.null(weights))
       weights <- rep(1, NROW(z))
     
@@ -667,7 +660,9 @@ setLKnFRKOption <-
     alpha <- iniobj$alpha
     alpha <- alpha / sum(alpha)
     gtype <- iniobj$gtype
-    weights <- iniobj$weights[iniobj$pick]
+    weights <- iniobj$weights
+    if (length(iniobj$pick) < length(weights))
+      weights <- weights[iniobj$pick]
     nlevel <- iniobj$nlevel
     TT <- NCOL(z)
     Fk <- Fk[iniobj$pick,]
