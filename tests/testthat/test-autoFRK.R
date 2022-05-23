@@ -14,15 +14,19 @@ w <- c(rnorm(1, sd = 5), rnorm(1, sd = 3))
 y <- fn %*% w
 obs <- sample(900, n)
 z <- y[obs] + rnorm(n) * sqrt(s)
-X <- grids[obs, ]
+X <- grids[obs,]
 obsData <- rnorm(n)
 
 # Example1
 single_realization_object <- autoFRK(Data = z, loc = X, maxK = 15)
 yhat_example1 <- predict(single_realization_object, newloc = grids)
 yhat_without_newloc_example1 <- predict(single_realization_object)
-yhat_se_without_newloc_example1 <- predict(single_realization_object, se.report = TRUE)
-yhat_se_with_obsData_example1 <- predict(single_realization_object, obsData = obsData, se.report = TRUE)
+yhat_se_without_newloc_example1 <-
+  predict(single_realization_object, se.report = TRUE)
+yhat_se_with_obsData_example1 <-
+  predict(single_realization_object,
+          obsData = obsData,
+          se.report = TRUE)
 yhat_se_with_obsData_obsloc_example1 <-
   predict(
     single_realization_object,
@@ -46,8 +50,8 @@ for (tt in 1:20) {
 }
 yt <- fn %*% wt
 obs <- sample(900, n)
-zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
-X <- grids[obs, ]
+zt <- yt[obs,] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
+X <- grids[obs,]
 
 zt[1:10, 1] <- NA
 multi_realization_object <- autoFRK(
@@ -81,9 +85,44 @@ yhat_se_example5 <-
 yhat_without_newloc_obsloc_example5 <-
   predict(finescale_object, se.report = TRUE)
 yhat_with_obsloc_example5 <-
-  predict(finescale_object, obsloc = grids, newloc = NULL, se.report = TRUE)
-yhat_with_obsData_example5 <- predict(finescale_object, obsData = obsData, se.report = TRUE)
-yhat_with_obsData_obsloc_example5 <- predict(finescale_object, obsloc = X, obsData = obsData, se.report = TRUE)
+  predict(
+    finescale_object,
+    obsloc = grids,
+    newloc = NULL,
+    se.report = TRUE
+  )
+yhat_with_obsData_example5 <-
+  predict(finescale_object, obsData = obsData, se.report = TRUE)
+yhat_with_obsData_obsloc_example5 <-
+  predict(
+    finescale_object,
+    obsloc = X,
+    obsData = obsData,
+    se.report = TRUE
+  )
+
+# Example6
+z[c(1, 3, 5)] <- NA
+missing_value_object <-
+  autoFRK(
+    Data = z,
+    loc = X,
+    maxK = 15,
+    method = "EM"
+  )
+yhat_example6 <- predict(missing_value_object, newloc = grids)
+missing_value_finescale_object <-
+  autoFRK(
+    Data = z,
+    loc = X,
+    maxK = 15,
+    method = "EM",
+    finescale = TRUE
+  )
+yhat_finescale_example6 <-
+  predict(missing_value_finescale_object,
+          newloc = grids,
+          se.report = TRUE)
 
 tolerance <- 1e-4
 # Test
@@ -136,20 +175,37 @@ test_that("autoFRK object with finescale", {
   expect_equal(yhat_example5$pred.value, yhat_se_example5$pred.value)
   expect_lte(abs(mean(yhat_se_example5$se) - 0.4575002), tolerance)
   expect_lte(abs(sum(yhat_se_example5$se) - 411.7502), tolerance)
-  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$pred.value) + 4.477185), tolerance)
-  expect_lte(abs(mean(yhat_without_newloc_obsloc_example5$se) - 0.4588948), tolerance)
+  expect_lte(abs(
+    mean(yhat_without_newloc_obsloc_example5$pred.value) + 4.477185
+  ), tolerance)
+  expect_lte(abs(mean(
+    yhat_without_newloc_obsloc_example5$se
+  ) - 0.4588948), tolerance)
   expect_lte(abs(mean(yhat_with_obsloc_example5$pred.value) + 4.477185), tolerance)
   expect_lte(abs(mean(yhat_with_obsloc_example5$se) - 0.4588948), tolerance)
-  expect_lte(abs(mean(yhat_with_obsData_example5$pred.value) - 0.05621855), tolerance)
+  expect_lte(abs(mean(
+    yhat_with_obsData_example5$pred.value
+  ) - 0.05621855), tolerance)
   expect_lte(abs(mean(yhat_with_obsData_example5$se) - 0.4588948), tolerance)
-  expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$pred.value) - 0.05621855), tolerance)
+  expect_lte(abs(
+    mean(yhat_with_obsData_obsloc_example5$pred.value) - 0.05621855
+  ), tolerance)
   expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$se) - 0.4588948), tolerance)
+})
+
+test_that("autoFRK object with missing values", {
+  expect_lte(abs(mean(yhat_example6$pred.value) + 2.907614), tolerance)
+  expect_lte(abs(sum(yhat_example6$pred.value) + 2616.8529), tolerance)
+  expect_lte(abs(mean(yhat_finescale_example6$pred.value) + 3.667199), tolerance)
+  expect_lte(abs(sum(yhat_finescale_example6$pred.value) + 3300.47903), tolerance)
+  expect_lte(abs(mean(yhat_finescale_example6$se) - 0.4602187), tolerance)
+  expect_lte(abs(sum(yhat_finescale_example6$se) - 414.1968), tolerance)
 })
 
 test_that("mrts", {
   expect_equal(class(G), "mrts")
   expect_equal(mean(G[, 1]), 1)
-  expect_lte(max(colSums(G[, -1], 2)), tolerance)
+  expect_lte(max(colSums(G[,-1], 2)), tolerance)
   expect_error(mrts(seq(0, 1, l = 30), 1),
                "k-1 can not be smaller than the number of dimensions!")
   expect_error(mrts(1, 3), "nev must satisfy 1 <= nev <= n - 1, n is the size of matrix")

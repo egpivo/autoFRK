@@ -602,21 +602,22 @@ cMLElk <- function(Fk,
   N <- NROW(data)
   lambda <- DfromLK$lambda
   pick <- DfromLK$pick
-  wX <- DfromLK$wX[pick,]
+  wX <- DfromLK$wX
+  weight <- DfromLK$weights
+  if (length(pick) < dim(wX)[1]) {
+    wX <- wX[pick,]
+    weight <- weight[pick]
+  }
   G <- t(wX) %*% wX + lambda * DfromLK$Q
-  weight <- DfromLK$weights[pick]
   wwX <- diag.spam(sqrt(weight)) %*% wX
   wXiG <- (wwX) %*% solve(G)
   iDFk <- weight * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
-  
   projection <- computeProjectionMatrix(Fk, iDFk, data)
   inverse_square_root_matrix <-
     projection$inverse_square_root_matrix
   matrix_JSJ <- projection$matrix_JSJ
-  
   iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
   trS <- sum(rowSums(as.matrix(iDZ) * data)) / num_columns
-  
   ldetD <-
     -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
     sum(log(weight))
