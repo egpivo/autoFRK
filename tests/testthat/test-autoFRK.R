@@ -85,6 +85,13 @@ yhat_with_obsloc_example5 <-
 yhat_with_obsData_example5 <- predict(finescale_object, obsData = obsData, se.report = TRUE)
 yhat_with_obsData_obsloc_example5 <- predict(finescale_object, obsloc = X, obsData = obsData, se.report = TRUE)
 
+# Example6
+z[c(1, 3, 5)] <- NA
+missing_value_object <- autoFRK(Data = z, loc = X, maxK = 15, method="EM")
+yhat_example6 <- predict(missing_value_object, newloc = grids)
+missing_value_finescale_object <- autoFRK(Data = z, loc = X, maxK = 15, method="EM", finescale = TRUE)
+yhat_finescale_example6 <- predict(missing_value_finescale_object, newloc = grids)
+
 tolerance <- 1e-4
 # Test
 test_that("Automatic selection and prediction", {
@@ -145,6 +152,13 @@ test_that("autoFRK object with finescale", {
   expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$pred.value) - 0.05621855), tolerance)
   expect_lte(abs(mean(yhat_with_obsData_obsloc_example5$se) - 0.4588948), tolerance)
 })
+
+test_that("autoFRK object with missing values", {
+  expect_lte(abs(mean(yhat_example6$pred.value) + 2.907614), tolerance)
+  expect_lte(abs(sum(yhat_example6$pred.value) + 2616.8529), tolerance)
+  expect_lte(abs(mean(yhat_finescale_example6$pred.value) + 3.667199), tolerance)
+  expect_lte(abs(sum(yhat_finescale_example6$pred.value) + 3300.47903), tolerance)
+})  
 
 test_that("mrts", {
   expect_equal(class(G), "mrts")
