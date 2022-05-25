@@ -200,3 +200,4 @@ test_that("autoFRK object with missing values", {
   expect_lte(abs(sum(yhat_finescale_example6$pred.value) + 3300.47903), tolerance)
   expect_lte(abs(mean(yhat_finescale_example6$se) - 0.4602187), tolerance)
   expect_lte(abs(sum(yhat_finescale_example6$se) - 414.1968), tolerance)
+})
