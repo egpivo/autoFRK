@@ -90,27 +90,6 @@ test_that("Interanl matrix calculation function", {
   expect_lte(sum(invCz(R, L, z) - t(true_matrix)), tolerance)
 })
 
-mrts_message <- capture_output(print.mrts(mrts(1, 2)), print = TRUE)
-test_that("Print mrts", {
-  expect_error(print.mrts(1), "Invalid object! Please enter an `mrts` object")
-  expect_equal(mrts_message, "[1]   1 NaN")
-  expect_equal(sum(print.mrts(mrts(matrix(
-    1:10, 2
-  ), 6))), 2)
-})
-
-set.seed(1234)
-FRK_message <-
-  capture_output(print.FRK(autoFRK(
-    Data = rnorm(10),
-    loc = 1:10,
-    maxK = 3
-  )))
-test_that("Print FRK", {
-  expect_error(print.FRK(1), "Invalid object! Please enter an `FRK` object")
-  expect_equal(FRK_message, "[1] \"a 10 by 2 mrts matrix\"")
-})
-
 test_coverted_matrix <-
   convertToPositiveDefinite(matrix(c(1, 2, 3, 4), 2, 2))
 true_pd_matrix <- matrix(c(1.415476, 2.5, 2.5, 4.415476), 2, 2)
@@ -154,17 +133,6 @@ test_that("Negative log likelihood", {
              tolerance)
   expect_lte(estimeated_log_likelihood_K_1 - true_log_likelihood_K_1,
              tolerance)
-})
-
-cMLEsp_result <- cMLEsp(Fk[obs,], data, diag(epsilon), TRUE)
-
-test_that("cMLEsp", {
-  expect_lte(abs(norm(cMLEsp_result$M, "F") - 46.896965660), tolerance)
-  expect_lte(abs(cMLEsp_result$s - 2.088664), tolerance)
-  expect_lte(abs(cMLEsp_result$negloglik - 592.7296927), tolerance)
-  expect_lte(abs(sum(cMLEsp_result$w) + 436.4577698), tolerance)
-  expect_lte(abs(norm(cMLEsp_result$V, "F") - 3890.7169745), tolerance)
-  
 })
 
 selected_basis <- selectBasis(data, grids)
@@ -250,39 +218,6 @@ test_that("Log determinant", {
   ))[1] - 176.308193), tolerance)
 })
 
-set.seed(1234)
-test_matrix <- matrix(rnorm(25), 5, 5)
-test_matrix <- (test_matrix + t(test_matrix)) / 2
-mle1 <- cMLE(Fk,
-             4,
-             5,
-             diag(1, 5),
-             test_matrix,
-             wSave = TRUE)
-mle2 <- cMLE(Fk,
-             4,
-             5,
-             diag(1, 5),
-             test_matrix,
-             wSave = FALSE,
-             onlylogLike = FALSE,)
-mle3 <- cMLE(Fk,
-             4,
-             5,
-             diag(1, 5),
-             test_matrix,
-             wSave = TRUE,
-             s = 10)
-test_that("cMLE", {
-  expect_lte(abs(mle1$v - 0.003904234), tolerance)
-  expect_lte(abs(norm(mle1$M, "F") - 1.373454), tolerance)
-  expect_equal(mle1$s, 0)
-  expect_lte(abs(mle1$negloglik--9710.933343), tolerance)
-  expect_lte(abs(norm(mle1$L, "F") - 27.275983), tolerance)
-  expect_null(mle2$L)
-  expect_true(all(mle3$L == 0))
-})
-
 likeilihood_result <-
   computeNegativeLikelihood(100, 10, 1000, 4, diag(1, 10), 1)
 test_that("helper function for cMLE", {
@@ -298,13 +233,6 @@ test_that("helper function for cMLE", {
              tolerance)
 })
 
-test_cmle_object <-
-  cMLEimat(Fk[obs], data, s, FALSE, diag(150), onlylogLike = FALSE)
-test_that("cMLEimat", {
-  expect_lte(abs(test_cmle_object$M[1] - 0), tolerance)
-  expect_lte(abs(test_cmle_object$v - 35.089146), tolerance)
-  expect_lte(abs(test_cmle_object$negloglik - 979.347403), tolerance)
-})
 
 cpm_example1 <- computeProjectionMatrix(Fk[obs], Fk[obs], data)
 cpm_example2 <-
@@ -325,7 +253,6 @@ object <- autoFRK(
   maxK = 3,
   finescale = TRUE
 )
-
 
 newloc <- attr(object, "pinfo")$loc
 miss <- attr(object, "missing")
