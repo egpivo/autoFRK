@@ -18,7 +18,7 @@ X <- grids[obs,]
 obsData <- rnorm(n)
 
 # Example1
-single_realization_object <- autoFRK(Data = z, loc = X, maxK = 15)
+single_realization_object <- autoFRK(data = z, loc = X, maxK = 15)
 yhat_example1 <- predict(single_realization_object, newloc = grids)
 yhat_without_newloc_example1 <- predict(single_realization_object)
 yhat_se_without_newloc_example1 <-
@@ -37,7 +37,7 @@ yhat_se_with_obsData_obsloc_example1 <-
 # Example2
 G <- mrts(X, 15)
 Gpred <- predict(G, newx = grids)
-user_defined_basis_object <- autoFRK(Data = z, loc = X, G = G)
+user_defined_basis_object <- autoFRK(data = z, loc = X, G = G)
 yhat_example2 <-
   predict(user_defined_basis_object,
           newloc = grids,
@@ -55,7 +55,7 @@ X <- grids[obs,]
 
 zt[1:10, 1] <- NA
 multi_realization_object <- autoFRK(
-  Data = zt,
+  data = zt,
   loc = X,
   maxK = 15,
   finescale = TRUE
@@ -65,7 +65,7 @@ yhat_example3 <- predict(multi_realization_object$G, newx = grids)
 # Example4
 G <- mrts(X, 3)
 Gpred <- predict(G, newx = grids)
-user_defined_basis_object <- autoFRK(Data = z, loc = X, G = G)
+user_defined_basis_object <- autoFRK(data = z, loc = X, G = G)
 yhat_example4 <-
   predict(user_defined_basis_object,
           newloc = grids,
@@ -74,7 +74,7 @@ yhat_example4 <-
 # Example5
 finescale_object <-
   autoFRK(
-    Data = z,
+    data = z,
     loc = X,
     maxK = 15,
     finescale = TRUE
@@ -105,7 +105,7 @@ yhat_with_obsData_obsloc_example5 <-
 z[c(1, 3, 5)] <- NA
 missing_value_object <-
   autoFRK(
-    Data = z,
+    data = z,
     loc = X,
     maxK = 15,
     method = "EM"
@@ -113,7 +113,7 @@ missing_value_object <-
 yhat_example6 <- predict(missing_value_object, newloc = grids)
 missing_value_finescale_object <-
   autoFRK(
-    Data = z,
+    data = z,
     loc = X,
     maxK = 15,
     method = "EM",

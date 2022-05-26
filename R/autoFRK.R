@@ -16,7 +16,7 @@
 #' Parameters are estimated by maximum likelihood in a closed-form expression. The matrix \eqn{G} corresponding to basis functions is
 #' given by an ordered class of thin-plate spline functions, with the number of basis functions
 #' selected by  Akaike's information criterion.
-#' @param Data  \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param data  \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param loc \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
 #' @param mu \emph{n}-vector or scalar for \eqn{\mu}; Default is 0.
@@ -77,13 +77,13 @@
 #' X <- grids[obs, ]
 #'
 #' #### method1: automatic selection and prediction
-#' one.imat <- autoFRK(Data = z, loc = X, maxK = 15)
+#' one.imat <- autoFRK(data = z, loc = X, maxK = 15)
 #' yhat <- predict(one.imat, newloc = grids)
 #'
 #' #### method2: user-specified basis functions
 #' G <- mrts(X, 15)
 #' Gpred <- predict(G, newx = grids)
-#' one.usr <- autoFRK(Data = z, loc = X, G = G)
+#' one.usr <- autoFRK(data = z, loc = X, G = G)
 #' yhat2 <- predict(one.usr, newloc = grids, basis = Gpred)
 #'
 #' require(fields)
@@ -106,7 +106,7 @@
 #' obs <- sample(900, n)
 #' zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
 #' X <- grids[obs, ]
-#' multi.imat <- autoFRK(Data = zt, loc = X, maxK = 15)
+#' multi.imat <- autoFRK(data = zt, loc = X, maxK = 15)
 #' Gpred <- predict(multi.imat$G, newx = grids)
 #'
 #' G <- multi.imat$G
@@ -121,10 +121,10 @@
 #' par(originalPar)
 #' #### end of independent multi-realization simulation example
 #' @author ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
-autoFRK <- function(Data,
+autoFRK <- function(data,
                     loc,
                     mu = 0,
-                    D = diag.spam(NROW(Data)),
+                    D = diag.spam(NROW(data)),
                     G = NULL,
                     finescale = FALSE,
                     maxit = 50,
@@ -135,11 +135,11 @@ autoFRK <- function(Data,
                     n.neighbor = 3,
                     maxknot = 5000) {
   method <- match.arg(method)
-  Data <- Data - mu
+  data <- data - mu
   if (!is.null(G)) {
     Fk <- G
   } else {
-    Fk <- selectBasis(Data,
+    Fk <- selectBasis(data,
                       loc,
                       D,
                       maxit,
@@ -153,9 +153,9 @@ autoFRK <- function(Data,
   }
   K <- NCOL(Fk)
   if (method == "fast") {
-    Data <- as.matrix(Data)
-    for (tt in 1:NCOL(Data)) {
-      where <- is.na(Data[, tt])
+    data <- as.matrix(data)
+    for (tt in 1:NCOL(data)) {
+      where <- is.na(data[, tt])
       if (sum(where) == 0) {
         next
       }
@@ -163,13 +163,13 @@ autoFRK <- function(Data,
       nnidx <-
         FNN::get.knnx(loc[cidx,], as.matrix(loc[where,]), k = n.neighbor)
       nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
-      nnval <- array((Data[, tt])[nnidx], dim(nnidx))
-      Data[where, tt] <- rowMeans(nnval)
+      nnval <- array((data[, tt])[nnidx], dim(nnidx))
+      data[where, tt] <- rowMeans(nnval)
     }
   }
   if (!finescale) {
     obj <- indeMLE(
-      Data = Data,
+      data = data,
       Fk = Fk[, 1:K],
       D = D,
       maxit = maxit,
@@ -189,7 +189,7 @@ autoFRK <- function(Data,
       nlevel <- 3
     }
     iniobj <- initializeLKnFRK(
-      Data = Data,
+      data = data,
       loc = loc,
       nlevel = nlevel,
       weights = 1 / diag(D),
@@ -203,7 +203,7 @@ autoFRK <- function(Data,
     Depsilon <- diag.spam(iniobj$weight[iniobj$pick],
                           length(iniobj$weight[iniobj$pick]))
     obj <- indeMLE(
-      Data = Data,
+      data = data,
       Fk = Fk[, 1:K],
       D = D,
       maxit = maxit,
@@ -226,34 +226,3 @@ autoFRK <- function(Data,
   return(obj)
 }
 
-cMLEsp <- function(Fk, Data, Depsilon, wSave = FALSE) {
-  De <- toSparseMatrix(Depsilon)
-  iD <- solve(De)
-  ldetD <- logDeterminant(De)
-  iDFk <- iD %*% Fk
-  half <- getInverseSquareRootMatrix(Fk, iDFk)
-  ihFiD <- half %*% t(iDFk)
-  TT <- NCOL(Data)
-  JSJ <- tcrossprod(ihFiD %*% Data) / TT
-  JSJ <- (JSJ + t(JSJ)) / 2
-  trS <- sum(rowSums(as.matrix(iD %*% Data) * Data)) / TT
-  out <- cMLE(Fk, TT, trS, half, JSJ, s = 0, ldet = ldetD, wSave)
-  if (wSave) {
-    L <- as.matrix(out$L)
-    invD <- iD / (out$s + out$v)
-    iDZ <- invD %*% Data
-    right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
-                                                         L))
-    INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
-    etatt <- out$M %*% t(Fk) %*% INVtZ
-    out$w <- as.matrix(etatt)
-    GM <- Fk %*% out$M
-    iDGM <- invD %*% GM
-    out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
-                                            right0 %*% (t(L) %*% iDGM)))
-  }
-  out$s <- out$v
-  out <- out[-which(names(out) == "v")]
-  out <- out[-which(names(out) == "L")]
-  out
-}

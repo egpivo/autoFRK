@@ -1,32 +1,31 @@
-
 initializeLKnFRK <-
-  function(Data,
+  function(data,
            loc,
            nlevel = 3,
            weights = NULL,
            n.neighbor = 3,
            nu = 1) {
-    if ("numeric" %in% class(Data))
-      Data <- as.matrix(Data)
-    empty <- apply(!is.na(Data), 2, sum) == 0
+    if ("numeric" %in% class(data))
+      data <- as.matrix(data)
+    empty <- apply(!is.na(data), 2, sum) == 0
     if (sum(empty) > 0)
-      Data <- Data[, which(!empty)]
+      data <- data[, which(!empty)]
     loc <- as.matrix(loc)
-    N <- NROW(Data)
+    N <- NROW(data)
     d <- NCOL(loc)
-    nas <- sum(is.na(Data))
-    del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
+    nas <- sum(is.na(data))
+    del <- which(rowSums(as.matrix(!is.na(data))) == 0)
     pick <- 1:N
     x <- as.matrix(loc)
     if (length(del) > 0) {
-      Data <- Data[-del,]
+      data <- data[-del,]
       x <- x[-del,]
       pick <- (1:N)[-del]
     }
-    nas <- sum(is.na(Data))
+    nas <- sum(is.na(data))
     if (nas > 0) {
-      for (tt in 1:NCOL(Data)) {
-        where <- is.na(Data[, tt])
+      for (tt in 1:NCOL(data)) {
+        where <- is.na(data[, tt])
         if (sum(where) == 0) {
           next
         }
@@ -34,11 +33,11 @@ initializeLKnFRK <-
         nnidx <-
           FNN::get.knnx(x[cidx,], as.matrix(x[where,]), k = n.neighbor)
         nnidx <- array(cidx[nnidx$nn.index], dim(nnidx$nn.index))
-        nnval <- array((Data[, tt])[nnidx], dim(nnidx))
-        Data[where, tt] <- rowMeans(nnval)
+        nnval <- array((data[, tt])[nnidx], dim(nnidx))
+        data[where, tt] <- rowMeans(nnval)
       }
     }
-    z <- as.matrix(Data)
+    z <- as.matrix(data)
     d <- NCOL(x)
     gtype <-
       ifelse(d == 1, "LKInterval", ifelse(d == 2, "LKRectangle", "LKBox"))
@@ -104,18 +103,18 @@ setLKnFRKOption <-
     wwX <- w %*% wX
     XwX <- t(wX) %*% wX
     
-    iniLike <- function(par, Data = z, full = FALSE) {
+    iniLike <- function(par, data = z, full = FALSE) {
       lambda <- exp(par)
       G <- XwX + lambda * Qini
       wXiG <- (wwX) %*% solve(G)
       iDFk <- weights * Fk - wXiG %*% (t(wwX) %*% as.matrix(Fk))
-      iDZ <- weights * Data - wXiG %*% (t(wwX) %*% as.matrix(Data))
+      iDZ <- weights * data - wXiG %*% (t(wwX) %*% as.matrix(data))
       ldetD <- -nrow(Qini) * log(lambda) + logDeterminant(G)
       ldetD <- as.vector(ldetD)
-      trS <- sum(rowSums(as.matrix(iDZ) * Data)) / TT
+      trS <- sum(rowSums(as.matrix(iDZ) * data)) / TT
       half <- getInverseSquareRootMatrix(Fk, iDFk)
       ihFiD <- half %*% t(iDFk)
-      LSL <- tcrossprod(ihFiD %*% Data) / TT
+      LSL <- tcrossprod(ihFiD %*% data) / TT
       if (!full) {
         cMLE(
           Fk,

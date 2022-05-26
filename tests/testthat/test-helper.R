@@ -245,10 +245,9 @@ test_that("compute projection matrices", {
   expect_lte(abs(cpm_example2$matrix_JSJ[1] - 1), tolerance)
 })
 
-
 set.seed(1234)
 object <- autoFRK(
-  Data = rnorm(10),
+  data = rnorm(10),
   loc = 1:10,
   maxK = 3,
   finescale = TRUE
@@ -302,7 +301,7 @@ se_case2 <- LKpeon(
   lambda = lambda,
   phi0P = phi0P,
   L = NULL,
-  Data = rnorm(10),
+  data = rnorm(10),
   only.wlk = TRUE
 )
 se_case3 <- LKpeon(
@@ -317,7 +316,7 @@ se_case3 <- LKpeon(
   lambda = lambda,
   phi0P = phi0P,
   L = NULL,
-  Data = rnorm(10),
+  data = rnorm(10),
   only.se = FALSE
 )
 test_that("test LKpeon", {
