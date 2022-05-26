@@ -1,4 +1,3 @@
-
 EM0miss <-
   function(Fk,
            Data,
@@ -10,11 +9,6 @@ EM0miss <-
            DfromLK = NULL,
            num.report = TRUE,
            vfixed = NULL) {
-    saveOLD <-
-      function(external)
-        if (external)
-          save(old, Ptt1, file = oldfile)
-    
     O <- !is.na(Data)
     TT <- NCOL(Data)
     K <- NCOL(Fk)
@@ -106,7 +100,8 @@ EM0miss <-
       old$s <- vfixed
     old$M <- convertToPositiveDefinite(old$M)
     Ptt1 <- old$M
-    saveOLD(external)
+    if (external)
+      save(old, Ptt1, file = oldfile)
     inv <- MASS::ginv
     
     while ((dif > (avgtol * (100 * K ^ 2))) && (cnt < maxit)) {
@@ -143,7 +138,8 @@ EM0miss <-
       cnt <- cnt + 1
       old <- new
       Ptt1 <- old$M
-      saveOLD(external)
+      if (external)
+        save(old, Ptt1, file = oldfile)
     }
     if (num.report)
       cat("Number of iteration: ", cnt, "\n")
