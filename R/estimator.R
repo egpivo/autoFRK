@@ -1,6 +1,6 @@
 EM0miss <-
   function(Fk,
-           Data,
+           data,
            Depsilon,
            maxit,
            avgtol,
@@ -9,8 +9,8 @@ EM0miss <-
            DfromLK = NULL,
            num.report = TRUE,
            vfixed = NULL) {
-    O <- !is.na(Data)
-    TT <- NCOL(Data)
+    O <- !is.na(data)
+    TT <- NCOL(data)
     K <- NCOL(Fk)
     tmpdir <- tempfile()
     dir.create(tmpdir)
@@ -47,7 +47,7 @@ EM0miss <-
           Bt <- t(Bt)
         iDBt <-
           as.matrix(weight[O[, tt]] * Bt - wXiG %*% (t(wwX[O[, tt],]) %*% Bt))
-        zt <- Data[O[, tt], tt]
+        zt <- data[O[, tt], tt]
         ziDz[tt] <-
           sum(zt * as.vector(weight[O[, tt]] * zt - wXiG %*% (t(wwX[O[, tt],]) %*% zt)))
         ziDB[tt,] <- t(zt) %*% iDBt
@@ -62,7 +62,7 @@ EM0miss <-
         if (NCOL(Bt) == 1)
           Bt <- t(Bt)
         iDBt <- as.matrix(iDt %*% Bt)
-        zt <- Data[O[, tt], tt]
+        zt <- data[O[, tt], tt]
         ziDz[tt] <- sum(zt * as.vector(iDt %*% zt))
         ziDB[tt,] <- t(zt) %*% iDBt
         BiDBt <- t(Bt) %*% iDBt
@@ -91,7 +91,7 @@ EM0miss <-
     
     dif <- Inf
     cnt <- 0
-    Z0 <- Data
+    Z0 <- data
     Z0[is.na(Z0)] <- 0
     old <- cMLEimat(Fk, Z0, s = 0, wSave = TRUE)
     if (is.null(vfixed))
@@ -144,7 +144,7 @@ EM0miss <-
     if (num.report)
       cat("Number of iteration: ", cnt, "\n")
     unlink(tmpdir, recursive = TRUE)
-    n2loglik <- computeLikelihood(Data, Fk, new$M, new$s, Depsilon)
+    n2loglik <- computeLikelihood(data, Fk, new$M, new$s, Depsilon)
     
     if (!wSave) {
       return(list(
@@ -172,7 +172,7 @@ EM0miss <-
           G <- t(DfromLK$wX[O[, tt],]) %*% DfromLK$wX[O[, tt],] + lQ
           wXiG <- wwX[O[, tt],] %*% solve(G)
         }
-        dat <- Data[O[, tt], tt]
+        dat <- data[O[, tt], tt]
         Lt <- L[O[, tt],]
         iDL <-
           weight[O[, tt]] * Lt - wXiG %*% (t(wwX[O[, tt],]) %*% Lt)
@@ -201,48 +201,48 @@ EM0miss <-
     }
   }
 
-indeMLE <- function(Data,
+indeMLE <- function(data,
                     Fk,
-                    D = diag.spam(NROW(Data)),
+                    D = diag.spam(NROW(data)),
                     maxit = 50,
                     avgtol = 1e-6,
                     wSave = FALSE,
                     DfromLK = NULL,
                     vfixed = NULL,
                     num.report = TRUE) {
-  withNA <- sum(is.na(Data)) > 0
-  if (is(Data, "vector")) {
-    Data <- as.matrix(Data)
+  withNA <- sum(is.na(data)) > 0
+  if (is(data, "vector")) {
+    data <- as.matrix(data)
   }
-  TT <- NCOL(Data)
-  empty <- apply(!is.na(Data), 2, sum) == 0
+  TT <- NCOL(data)
+  empty <- apply(!is.na(data), 2, sum) == 0
   notempty <- which(!empty)
   if (sum(empty) > 0) {
-    Data <- as.matrix(Data[, notempty])
+    data <- as.matrix(data[, notempty])
   }
-  if (is(Data, "vector")) {
-    Data <- as.matrix(Data)
+  if (is(data, "vector")) {
+    data <- as.matrix(data)
   }
-  del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
-  pick <- 1:NROW(Data)
+  del <- which(rowSums(as.matrix(!is.na(data))) == 0)
+  pick <- 1:NROW(data)
   if (!isDiagonal(D)) {
     D0 <- toSparseMatrix(D)
   } else {
-    D0 <- diag.spam(diag(D), NROW(Data))
+    D0 <- diag.spam(diag(D), NROW(data))
   }
   
   if (withNA && (length(del) > 0)) {
     pick <- pick[-del]
-    Data <- Data[-del,]
+    data <- data[-del,]
     Fk <- Fk[-del,]
     if (!isDiagonal(D)) {
       D <- D[-del,-del]
     } else {
-      D <- diag.spam(diag(D)[-del], NROW(Data))
+      D <- diag.spam(diag(D)[-del], NROW(data))
     }
-    withNA <- sum(is.na(Data)) > 0
+    withNA <- sum(is.na(data)) > 0
   }
-  N <- NROW(Data)
+  N <- NROW(data)
   K <- NCOL(Fk)
   Depsilon <- toSparseMatrix(D)
   isimat <- isDiagonal(D) * (
@@ -257,10 +257,10 @@ indeMLE <- function(Data,
       } else {
         sigma <- 0
       }
-      if (NCOL(Data) == 1) {
-        Data <- as.matrix(Data)
+      if (NCOL(data) == 1) {
+        data <- as.matrix(data)
       }
-      out <- cMLEimat(Fk, Data, s = sigma, wSave)
+      out <- cMLEimat(Fk, data, s = sigma, wSave)
       if (!is.null(out$v)) {
         if (sigma == 0) {
           out$s <- out$v
@@ -279,7 +279,7 @@ indeMLE <- function(Data,
     }
     else {
       if (is.null(DfromLK)) {
-        out <- cMLEsp(Fk, Data, Depsilon, wSave)
+        out <- cMLEsp(Fk, data, Depsilon, wSave)
         if (wSave) {
           w <- matrix(0, K, TT)
           w[, notempty] <- out$w
@@ -289,7 +289,7 @@ indeMLE <- function(Data,
         return(out)
       }
       else {
-        out <- cMLElk(Fk, Data, Depsilon, wSave, DfromLK,
+        out <- cMLElk(Fk, data, Depsilon, wSave, DfromLK,
                       vfixed)
         if (wSave) {
           w <- matrix(0, K, TT)
@@ -302,7 +302,7 @@ indeMLE <- function(Data,
   }
   else {
     out <- EM0miss(Fk,
-                   Data,
+                   data,
                    Depsilon,
                    maxit,
                    avgtol,
