@@ -240,7 +240,7 @@ predict.FRK <-
           lambda,
           phi0P,
           L,
-          Data = obsData[pick,],
+          data = obsData[pick,],
           only.wlk = !se.report
         )
         yhat <- basis %*% pred$w + phi0 %*% pred$wlk

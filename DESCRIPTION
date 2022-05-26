@@ -1,7 +1,7 @@
 
 Package: autoFRK
 Title: Automatic Fixed Rank Kriging
-Version: 1.4.14
+Version: 1.4.15
 Authors@R: c(person(
   given = "ShengLi",
   family = "Tzeng",
@@ -26,7 +26,7 @@ Authors@R: c(person(
   )
 Description: Automatic fixed rank kriging for (irregularly located) spatial data using a class of basis functions with multi-resolution features and ordered in terms of their resolutions. The model parameters are estimated by maximum likelihood (ML) and the number of basis functions is determined by Akaike's information criterion (AIC). For spatial data with either one realization or independent replicates, the ML estimates and AIC are efficiently computed using their closed-form expressions when no missing value occurs. Details regarding the basis function construction, parameter estimation, and AIC calculation can be found in Tzeng and Huang (2018) <doi:10.1080/00401706.2017.1345701>. For data with missing values, the ML estimates are obtained using the expectation-maximization algorithm. Apart from the number of basis functions, there are no other tuning parameters, making the method fully automatic. Users can also include a stationary structure in the spatial covariance, which utilizes 'LatticeKrig' package.
 License: GPL (>= 2)
-Date: 2022-05-16
+Date: 2022-05-26
 Depends: R (>= 3.5.0), spam
 Imports: fields (>= 6.9.1), filehashSQLite, filehash, MASS, mgcv, LatticeKrig
         (>= 5.4), FNN, filematrix, Rcpp, methods

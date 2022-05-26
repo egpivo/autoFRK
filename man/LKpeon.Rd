@@ -16,7 +16,7 @@ LKpeon(
   lambda,
   phi0P,
   L = NULL,
-  Data = NULL,
+  data = NULL,
   only.wlk = FALSE,
   only.se = FALSE
 )
@@ -45,11 +45,11 @@ each column being a basis function taken values at \code{loc}.}
 
 \item{L}{An \emph{n} by \emph{K} matrix}
 
-\item{Data}{An \emph{n} by \emph{T} data matrix}
-
 \item{only.wlk}{A logic.}
 
 \item{only.se}{A logic.}
+
+\item{Data}{An \emph{n} by \emph{T} data matrix}
 }
 \value{
 A list.

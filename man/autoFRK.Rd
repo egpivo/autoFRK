@@ -5,10 +5,10 @@
 \title{Automatic Fixed Rank Kriging}
 \usage{
 autoFRK(
-  Data,
+  data,
   loc,
   mu = 0,
-  D = diag.spam(NROW(Data)),
+  D = diag.spam(NROW(data)),
   G = NULL,
   finescale = FALSE,
   maxit = 50,
@@ -21,7 +21,7 @@ autoFRK(
 )
 }
 \arguments{
-\item{Data}{\emph{n} by \emph{T} data matrix (NA allowed) with
+\item{data}{\emph{n} by \emph{T} data matrix (NA allowed) with
 \eqn{z[t]} as the \emph{t}-th column.}
 
 \item{loc}{\emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.}
@@ -109,13 +109,13 @@ z <- y[obs] + rnorm(n) * sqrt(s)
 X <- grids[obs, ]
 
 #### method1: automatic selection and prediction
-one.imat <- autoFRK(Data = z, loc = X, maxK = 15)
+one.imat <- autoFRK(data = z, loc = X, maxK = 15)
 yhat <- predict(one.imat, newloc = grids)
 
 #### method2: user-specified basis functions
 G <- mrts(X, 15)
 Gpred <- predict(G, newx = grids)
-one.usr <- autoFRK(Data = z, loc = X, G = G)
+one.usr <- autoFRK(data = z, loc = X, G = G)
 yhat2 <- predict(one.usr, newloc = grids, basis = Gpred)
 
 require(fields)
@@ -138,7 +138,7 @@ yt <- fn \%*\% wt
 obs <- sample(900, n)
 zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
 X <- grids[obs, ]
-multi.imat <- autoFRK(Data = zt, loc = X, maxK = 15)
+multi.imat <- autoFRK(data = zt, loc = X, maxK = 15)
 Gpred <- predict(multi.imat$G, newx = grids)
 
 G <- multi.imat$G

@@ -73,7 +73,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param loc \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
 #' @param D A diagonal matrix.
-#' @param maxit An iteger for the maximum number of iterations used in indeMLE.
+#' @param maxit An integer for the maximum number of iterations used in indeMLE.
 #' @param avgtol A numeric for average tolerance used in indeMLE.
 #' @param max_rank An integer of the maximum of K values.
 #' @param sequence_rank An array of K values
@@ -170,7 +170,7 @@ selectBasis <- function(data,
                              maxit,
                              avgtol,
                              wSave = FALSE,
-                             num.report = FALSE)$negloglik
+                             verbose = FALSE)$negloglik
     }
   } else {
     if (is_data_with_missing_values) {
@@ -695,7 +695,7 @@ LKpeon <- function(M,
                    lambda,
                    phi0P,
                    L = NULL,
-                   Data = NULL,
+                   data = NULL,
                    only.wlk = FALSE,
                    only.se = FALSE) {
   wwX <- diag.spam(weight) %*% phi1
@@ -714,11 +714,11 @@ LKpeon <- function(M,
   ihL <- chol(itmp) %*% t(L)
   iiLiD <- itmp %*% t(iDL / s)
   if (only.wlk) {
-    if (!is.null(Data)) {
-      LiiLiDZ <- L %*% (iiLiD %*% Data)
-      w <- M %*% t(iDFk) %*% Data / s - (M %*% t(iDFk / s)) %*%
+    if (!is.null(data)) {
+      LiiLiDZ <- L %*% (iiLiD %*% data)
+      w <- M %*% t(iDFk) %*% data / s - (M %*% t(iDFk / s)) %*%
         (LiiLiDZ)
-      wlk <- t(wXiG) %*% Data - t(wXiG) %*% (LiiLiDZ)
+      wlk <- t(wXiG) %*% data - t(wXiG) %*% (LiiLiDZ)
     } else {
       w <- NULL
       wlk <- NULL
@@ -741,9 +741,9 @@ LKpeon <- function(M,
   if (only.se) {
     return(se)
   } else {
-    if (!is.null(Data)) {
-      w <- MFiS11 %*% Data
-      wlk <- t(wXiG) %*% Data - t(wXiG) %*% L %*% (iiLiD %*% Data)
+    if (!is.null(data)) {
+      w <- MFiS11 %*% data
+      wlk <- t(wXiG) %*% data - t(wXiG) %*% L %*% (iiLiD %*% data)
     } else {
       w <- NULL
       wlk <- NULL

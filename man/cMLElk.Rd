@@ -18,7 +18,7 @@ each column being a basis function taken values at \code{loc}.}
 
 \item{DfromLK}{An \emph{n} by \emph{n} matrix}
 
-\item{vfixed}{A numeric}
+\item{vfixed}{A numeric.}
 }
 \value{
 A list.

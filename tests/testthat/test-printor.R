@@ -12,7 +12,7 @@ test_that("Print mrts", {
 
 FRK_message <-
   capture_output(print.FRK(autoFRK(
-    Data = rnorm(10),
+    data = rnorm(10),
     loc = 1:10,
     maxK = 3
   )))

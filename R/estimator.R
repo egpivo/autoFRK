@@ -1,258 +1,273 @@
-
-EM0miss <-
-  function(Fk,
-           Data,
-           Depsilon,
-           maxit,
-           avgtol,
-           wSave = FALSE,
-           external = FALSE,
-           DfromLK = NULL,
-           num.report = TRUE,
-           vfixed = NULL) {
-    saveOLD <-
-      function(external)
-        if (external)
-          save(old, Ptt1, file = oldfile)
-    
-    O <- !is.na(Data)
-    TT <- NCOL(Data)
-    K <- NCOL(Fk)
-    tmpdir <- tempfile()
-    dir.create(tmpdir)
-    ftmp <- paste(tmpdir, 1:TT, sep = "/")
-    oldfile <- paste(tmpdir, "old_par.Rdata", sep = "/")
-    ziDz <- rep(NA, TT)
-    ziDB <- matrix(NA, TT, K)
-    db <- list()
-    D <- toSparseMatrix(Depsilon)
-    iD <- solve(D)
-    diagD <- isDiagonal(D)
-    
+#'
+#' Internal function: EM0miss
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
+#' @param maxit An integer for the maximum number of iterations.
+#' @param avgtol A numeric for average tolerance.
+#' @param wSave A logic.
+#' @param external A logic.
+#' @param DfromLK An \emph{n} by \emph{n} matrix
+#' @param vfixed A numeric.
+#' @param verbose A logic. Print a useful information.
+#' @return A list.
+#'
+EM0miss <- function(Fk,
+                    data,
+                    Depsilon,
+                    maxit,
+                    avgtol,
+                    wSave = FALSE,
+                    external = FALSE,
+                    DfromLK = NULL,
+                    vfixed = NULL,
+                    verbose = TRUE) {
+  if ("numeric" %in% class(data))
+    data <- as.matrix(data)
+  O <- !is.na(data)
+  TT <- NCOL(data)
+  ncol_Fk <- NCOL(Fk)
+  tmpdir <- tempfile()
+  dir.create(tmpdir)
+  ftmp <- paste(tmpdir, 1:TT, sep = "/")
+  oldfile <- paste(tmpdir, "old_par.Rdata", sep = "/")
+  
+  ziDz <- rep(NA, TT)
+  ziDB <- matrix(NA, TT, ncol_Fk)
+  db <- list()
+  D <- toSparseMatrix(Depsilon)
+  iD <- solve(D)
+  diagD <- isDiagonal(D)
+  
+  if (!is.null(DfromLK)) {
+    pick <- DfromLK$pick
+    if (is.null(pick))
+      pick <- 1:length(DfromLK$weights)
+    weight <- DfromLK$weights[pick]
+    DfromLK$wX <- DfromLK$wX[pick,]
+    wwX <- diag.spam(sqrt(weight)) %*% DfromLK$wX
+    lQ <- DfromLK$lambda * DfromLK$Q
+  }
+  
+  for (tt in 1:TT) {
     if (!is.null(DfromLK)) {
-      pick <- DfromLK$pick
-      if (is.null(pick))
-        pick <- 1:length(DfromLK$weights)
-      weight <- DfromLK$weights[pick]
-      DfromLK$wX <- DfromLK$wX[pick,]
-      wwX <- diag.spam(sqrt(weight)) %*% DfromLK$wX
-      lQ <- DfromLK$lambda * DfromLK$Q
-    }
-    
-    for (tt in 1:TT) {
-      if (!is.null(DfromLK)) {
-        iDt <- NULL
-        if (sum(O[, tt]) == NROW(O)) {
-          wXiG <- wwX %*% solve(DfromLK$G)
-        } else {
-          G <- t(DfromLK$wX[O[, tt],]) %*% DfromLK$wX[O[, tt],] + lQ
-          wXiG <- wwX[O[, tt],] %*% solve(G)
-        }
-        Bt <- as.matrix(Fk[O[, tt],])
-        if (NCOL(Bt) == 1)
-          Bt <- t(Bt)
-        iDBt <-
-          as.matrix(weight[O[, tt]] * Bt - wXiG %*% (t(wwX[O[, tt],]) %*% Bt))
-        zt <- Data[O[, tt], tt]
-        ziDz[tt] <-
-          sum(zt * as.vector(weight[O[, tt]] * zt - wXiG %*% (t(wwX[O[, tt],]) %*% zt)))
-        ziDB[tt,] <- t(zt) %*% iDBt
-        BiDBt <- t(Bt) %*% iDBt
+      iDt <- NULL
+      if (sum(O[, tt]) == NROW(O)) {
+        wXiG <- wwX %*% solve(DfromLK$G)
       } else {
-        if (!diagD) {
-          iDt <- solve(D[O[, tt], O[, tt]])
-        } else {
-          iDt <- iD[O[, tt], O[, tt]]
-        }
-        Bt <- Fk[O[, tt],]
-        if (NCOL(Bt) == 1)
-          Bt <- t(Bt)
-        iDBt <- as.matrix(iDt %*% Bt)
-        zt <- Data[O[, tt], tt]
-        ziDz[tt] <- sum(zt * as.vector(iDt %*% zt))
-        ziDB[tt,] <- t(zt) %*% iDBt
-        BiDBt <- t(Bt) %*% iDBt
+        G <- t(DfromLK$wX[O[, tt],]) %*% DfromLK$wX[O[, tt],] + lQ
+        wXiG <- wwX[O[, tt],] %*% solve(G)
       }
-      
-      if (external) {
-        db[[tt]] <- dumpObjects(iDBt,
-                                zt,
-                                BiDBt,
-                                external,
-                                oldfile,
-                                dbName = ftmp[tt])
-      } else {
-        db[[tt]] <- list(
-          iDBt = iDBt,
-          zt = zt,
-          BiDBt = BiDBt,
-          external = external,
-          oldfile = oldfile
-        )
-      }
-    }
-    # gc
-    rm(iDt, Bt, iDBt, zt, BiDBt)
-    gc()
-    
-    dif <- Inf
-    cnt <- 0
-    Z0 <- Data
-    Z0[is.na(Z0)] <- 0
-    old <- cMLEimat(Fk, Z0, s = 0, wSave = TRUE)
-    if (is.null(vfixed))
-      old$s <- old$v
-    else
-      old$s <- vfixed
-    old$M <- convertToPositiveDefinite(old$M)
-    Ptt1 <- old$M
-    saveOLD(external)
-    inv <- MASS::ginv
-    
-    while ((dif > (avgtol * (100 * K ^ 2))) && (cnt < maxit)) {
-      etatt <- matrix(0, K, TT)
-      sumPtt <- 0
-      s1 <- rep(0, TT)
-      if (external)
-        load(oldfile)
-      for (tt in 1:TT) {
-        s1.eta.P <- with(db[[tt]], {
-          iP <-
-            convertToPositiveDefinite(MASS::ginv(convertToPositiveDefinite(Ptt1)) + BiDBt / old$s)
-          Ptt <- solve(iP)
-          Gt <- as.matrix(Ptt %*% t(iDBt) / old$s)
-          eta <- c(0 + Gt %*% zt)
-          s1kk <- diag(BiDBt %*% (eta %*% t(eta) + Ptt))
-          rbind(s1kk, eta, Ptt)
-        })
-        sumPtt <- sumPtt + s1.eta.P[-c(1:2),]
-        etatt[, tt] <- s1.eta.P[2,]
-        s1[tt] <- sum(s1.eta.P[1,])
-      }
-      if (is.null(vfixed)) {
-        new <- list(M = (etatt %*% t(etatt) + sumPtt) / TT,
-                    s = max((sum(ziDz) - 2 * sum(
-                      ziDB * t(etatt)
-                    ) + sum(s1)) / sum(O), 0.1 ^ 8))
-      } else {
-        new <- list(M = (etatt %*% t(etatt) + sumPtt) / TT,
-                    s = vfixed)
-      }
-      new$M <- (new$M + t(new$M)) / 2
-      dif <- sum(abs(new$M - old$M)) + abs(new$s - old$s)
-      cnt <- cnt + 1
-      old <- new
-      Ptt1 <- old$M
-      saveOLD(external)
-    }
-    if (num.report)
-      cat("Number of iteration: ", cnt, "\n")
-    unlink(tmpdir, recursive = TRUE)
-    n2loglik <- computeLikelihood(Data, Fk, new$M, new$s, Depsilon)
-    
-    if (!wSave) {
-      return(list(
-        M = new$M,
-        s = new$s,
-        negloglik = n2loglik
-      ))
-    } else if (!is.null(DfromLK)) {
-      out <- list(
-        M = new$M,
-        s = new$s,
-        negloglik = n2loglik,
-        w = etatt,
-        V = new$M - etatt %*% t(etatt) / TT
-      )
-      dec <- eigen(new$M)
-      L <- Fk %*% dec$vector %*% diag(sqrt(pmax(dec$value,
-                                                0)))
-      weight <- DfromLK$weights[pick]
-      wlk <- matrix(NA, NROW(lQ), TT)
-      for (tt in 1:TT) {
-        if (sum(O[, tt]) == NROW(O)) {
-          wXiG <- wwX %*% solve(DfromLK$G)
-        } else {
-          G <- t(DfromLK$wX[O[, tt],]) %*% DfromLK$wX[O[, tt],] + lQ
-          wXiG <- wwX[O[, tt],] %*% solve(G)
-        }
-        dat <- Data[O[, tt], tt]
-        Lt <- L[O[, tt],]
-        iDL <-
-          weight[O[, tt]] * Lt - wXiG %*% (t(wwX[O[, tt],]) %*% Lt)
-        itmp <- solve(diag(1, NCOL(L)) + t(Lt) %*% iDL / out$s)
-        iiLiD <- itmp %*% t(iDL / out$s)
-        wlk[, tt] <-
-          t(wXiG) %*% dat - t(wXiG) %*% Lt %*% (iiLiD %*% dat)
-      }
-      attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
-      attr(out, "missing") <- list(miss = toSparseMatrix(1 - O),
-                                   maxit = maxit,
-                                   avgtol = avgtol)
-      return(out)
+      Bt <- as.matrix(Fk[O[, tt],])
+      if (NCOL(Bt) == 1)
+        Bt <- t(Bt)
+      iDBt <-
+        as.matrix(weight[O[, tt]] * Bt - wXiG %*% (t(wwX[O[, tt],]) %*% Bt))
+      zt <- data[O[, tt], tt]
+      ziDz[tt] <-
+        sum(zt * as.vector(weight[O[, tt]] * zt - wXiG %*% (t(wwX[O[, tt],]) %*% zt)))
+      ziDB[tt,] <- t(zt) %*% iDBt
+      BiDBt <- t(Bt) %*% iDBt
     } else {
-      out <- list(
-        M = as.matrix(new$M),
-        s = new$s,
-        negloglik = n2loglik,
-        w = etatt,
-        V = new$M - etatt %*% t(etatt) / TT
+      if (!diagD) {
+        iDt <- solve(D[O[, tt], O[, tt]])
+      } else {
+        iDt <- iD[O[, tt], O[, tt]]
+      }
+      Bt <- Fk[O[, tt],]
+      if (NCOL(Bt) == 1)
+        Bt <- t(Bt)
+      iDBt <- as.matrix(iDt %*% Bt)
+      zt <- data[O[, tt], tt]
+      ziDz[tt] <- sum(zt * as.vector(iDt %*% zt))
+      ziDB[tt,] <- t(zt) %*% iDBt
+      BiDBt <- t(Bt) %*% iDBt
+    }
+    
+    if (external) {
+      db[[tt]] <- dumpObjects(iDBt,
+                              zt,
+                              BiDBt,
+                              external,
+                              oldfile,
+                              dbName = ftmp[tt])
+    } else {
+      db[[tt]] <- list(
+        iDBt = iDBt,
+        zt = zt,
+        BiDBt = BiDBt,
+        external = external,
+        oldfile = oldfile
       )
-      attr(out, "missing") <- list(miss = toSparseMatrix(1 - O),
-                                   maxit = maxit,
-                                   avgtol = avgtol)
-      return(out)
     }
   }
+  # gc
+  rm(iDt, Bt, iDBt, zt, BiDBt)
+  gc()
+  
+  dif <- Inf
+  cnt <- 0
+  Z0 <- data
+  Z0[is.na(Z0)] <- 0
+  old <- cMLEimat(Fk, Z0, s = 0, wSave = TRUE)
+  if (is.null(vfixed))
+    old$s <- old$v
+  else
+    old$s <- vfixed
+  old$M <- convertToPositiveDefinite(old$M)
+  Ptt1 <- old$M
+  if (external)
+    save(old, Ptt1, file = oldfile)
+  inv <- MASS::ginv
+  
+  while ((dif > (avgtol * (100 * ncol_Fk ^ 2))) && (cnt < maxit)) {
+    etatt <- matrix(0, ncol_Fk, TT)
+    sumPtt <- 0
+    s1 <- rep(0, TT)
+    if (external)
+      load(oldfile)
+    for (tt in 1:TT) {
+      s1.eta.P <- with(db[[tt]], {
+        iP <-
+          convertToPositiveDefinite(MASS::ginv(convertToPositiveDefinite(Ptt1)) + BiDBt / old$s)
+        Ptt <- solve(iP)
+        Gt <- as.matrix(Ptt %*% t(iDBt) / old$s)
+        eta <- c(0 + Gt %*% zt)
+        s1kk <- diag(BiDBt %*% (eta %*% t(eta) + Ptt))
+        rbind(s1kk, eta, Ptt)
+      })
+      sumPtt <- sumPtt + s1.eta.P[-c(1:2),]
+      etatt[, tt] <- s1.eta.P[2,]
+      s1[tt] <- sum(s1.eta.P[1,])
+    }
+    if (is.null(vfixed)) {
+      s <-  max((sum(ziDz) - 2 * sum(ziDB * t(etatt)) + sum(s1)) / sum(O),
+                1e-8)
+      new <- list(M = (etatt %*% t(etatt) + sumPtt) / TT,
+                  s = s)
+    } else {
+      new <- list(M = (etatt %*% t(etatt) + sumPtt) / TT,
+                  s = vfixed)
+    }
+    new$M <- (new$M + t(new$M)) / 2
+    dif <- sum(abs(new$M - old$M)) + abs(new$s - old$s)
+    cnt <- cnt + 1
+    old <- new
+    Ptt1 <- old$M
+    if (external)
+      save(old, Ptt1, file = oldfile)
+  }
+  if (verbose)
+    cat("Number of iteration: ", cnt, "\n")
+  unlink(tmpdir, recursive = TRUE)
+  n2loglik <- computeLikelihood(data, Fk, new$M, new$s, Depsilon)
+  
+  if (!wSave) {
+    return(list(
+      M = new$M,
+      s = new$s,
+      negloglik = n2loglik
+    ))
+  } else if (!is.null(DfromLK)) {
+    out <- list(
+      M = new$M,
+      s = new$s,
+      negloglik = n2loglik,
+      w = etatt,
+      V = new$M - etatt %*% t(etatt) / TT
+    )
+    dec <- eigen(new$M)
+    L <- Fk %*% dec$vector %*% diag(sqrt(pmax(dec$value,
+                                              0)))
+    weight <- DfromLK$weights[pick]
+    wlk <- matrix(NA, NROW(lQ), TT)
+    for (tt in 1:TT) {
+      if (sum(O[, tt]) == NROW(O)) {
+        wXiG <- wwX %*% solve(DfromLK$G)
+      } else {
+        G <- t(DfromLK$wX[O[, tt],]) %*% DfromLK$wX[O[, tt],] + lQ
+        wXiG <- wwX[O[, tt],] %*% solve(G)
+      }
+      dat <- data[O[, tt], tt]
+      Lt <- L[O[, tt],]
+      iDL <-
+        weight[O[, tt]] * Lt - wXiG %*% (t(wwX[O[, tt],]) %*% Lt)
+      itmp <- solve(diag(1, NCOL(L)) + t(Lt) %*% iDL / out$s)
+      iiLiD <- itmp %*% t(iDL / out$s)
+      wlk[, tt] <-
+        t(wXiG) %*% dat - t(wXiG) %*% Lt %*% (iiLiD %*% dat)
+    }
+    attr(out, "pinfo") <- list(wlk = wlk, pick = pick)
+    attr(out, "missing") <- list(miss = toSparseMatrix(1 - O),
+                                 maxit = maxit,
+                                 avgtol = avgtol)
+    return(out)
+  } else {
+    out <- list(
+      M = as.matrix(new$M),
+      s = new$s,
+      negloglik = n2loglik,
+      w = etatt,
+      V = new$M - etatt %*% t(etatt) / TT
+    )
+    attr(out, "missing") <- list(miss = toSparseMatrix(1 - O),
+                                 maxit = maxit,
+                                 avgtol = avgtol)
+    return(out)
+  }
+}
 
-indeMLE <- function(Data,
+indeMLE <- function(data,
                     Fk,
-                    D = diag.spam(NROW(Data)),
+                    D = diag.spam(NROW(data)),
                     maxit = 50,
                     avgtol = 1e-6,
                     wSave = FALSE,
                     DfromLK = NULL,
                     vfixed = NULL,
-                    num.report = TRUE) {
-  withNA <- sum(is.na(Data)) > 0
-  if (is(Data, "vector")) {
-    Data <- as.matrix(Data)
+                    verbose = TRUE) {
+  withNA <- sum(is.na(data)) > 0
+  if (is(data, "vector")) {
+    data <- as.matrix(data)
   }
-  TT <- NCOL(Data)
-  empty <- apply(!is.na(Data), 2, sum) == 0
+  TT <- NCOL(data)
+  empty <- apply(!is.na(data), 2, sum) == 0
   notempty <- which(!empty)
   if (sum(empty) > 0) {
-    Data <- as.matrix(Data[, notempty])
+    data <- as.matrix(data[, notempty])
   }
-  if (is(Data, "vector")) {
-    Data <- as.matrix(Data)
+  if (is(data, "vector")) {
+    data <- as.matrix(data)
   }
-  del <- which(rowSums(as.matrix(!is.na(Data))) == 0)
-  pick <- 1:NROW(Data)
+  del <- which(rowSums(as.matrix(!is.na(data))) == 0)
+  pick <- 1:NROW(data)
   if (!isDiagonal(D)) {
     D0 <- toSparseMatrix(D)
   } else {
-    D0 <- diag.spam(diag(D), NROW(Data))
+    D0 <- diag.spam(diag(D), NROW(data))
   }
   
   if (withNA && (length(del) > 0)) {
     pick <- pick[-del]
-    Data <- Data[-del,]
+    data <- data[-del,]
     Fk <- Fk[-del,]
     if (!isDiagonal(D)) {
       D <- D[-del,-del]
     } else {
-      D <- diag.spam(diag(D)[-del], NROW(Data))
+      D <- diag.spam(diag(D)[-del], NROW(data))
     }
-    withNA <- sum(is.na(Data)) > 0
+    withNA <- sum(is.na(data)) > 0
   }
-  N <- NROW(Data)
+  N <- NROW(data)
   K <- NCOL(Fk)
   Depsilon <- toSparseMatrix(D)
-  isimat <- isDiagonal(D) * (
-    sum(abs(rep(mean(diag(D)), N) -
-              diag(Depsilon))) < .Machine$double.eps
-  )
+  isimat <- isDiagonal(D) * (sum(abs(rep(mean(
+    diag(D)
+  ), N) -
+    diag(Depsilon))) < .Machine$double.eps)
   
   if (!withNA) {
     if (isimat & is.null(DfromLK)) {
@@ -261,10 +276,10 @@ indeMLE <- function(Data,
       } else {
         sigma <- 0
       }
-      if (NCOL(Data) == 1) {
-        Data <- as.matrix(Data)
+      if (NCOL(data) == 1) {
+        data <- as.matrix(data)
       }
-      out <- cMLEimat(Fk, Data, s = sigma, wSave)
+      out <- cMLEimat(Fk, data, s = sigma, wSave)
       if (!is.null(out$v)) {
         if (sigma == 0) {
           out$s <- out$v
@@ -283,7 +298,7 @@ indeMLE <- function(Data,
     }
     else {
       if (is.null(DfromLK)) {
-        out <- cMLEsp(Fk, Data, Depsilon, wSave)
+        out <- cMLEsp(Fk, data, Depsilon, wSave)
         if (wSave) {
           w <- matrix(0, K, TT)
           w[, notempty] <- out$w
@@ -293,7 +308,7 @@ indeMLE <- function(Data,
         return(out)
       }
       else {
-        out <- cMLElk(Fk, Data, Depsilon, wSave, DfromLK,
+        out <- cMLElk(Fk, data, Depsilon, wSave, DfromLK,
                       vfixed)
         if (wSave) {
           w <- matrix(0, K, TT)
@@ -306,15 +321,15 @@ indeMLE <- function(Data,
   }
   else {
     out <- EM0miss(Fk,
-                   Data,
+                   data,
                    Depsilon,
                    maxit,
                    avgtol,
                    wSave,
                    external = FALSE,
                    DfromLK,
-                   num.report,
-                   vfixed)
+                   vfixed,
+                   verbose)
     if (wSave) {
       w <- matrix(0, K, TT)
       w[, notempty] <- out$w
@@ -342,7 +357,7 @@ indeMLE <- function(Data,
 #' @param ldet A numeric. A log determinant.
 #' @param wSave A logic.
 #' @param onlylogLike A logic.
-#' @param vfixed A numeric
+#' @param vfixed A numeric.
 #' @return A numeric.
 #'
 cMLE <- function(Fk,
@@ -498,7 +513,7 @@ cMLEimat <- function(Fk,
 #' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @param wSave A logic.
 #' @param DfromLK An \emph{n} by \emph{n} matrix
-#' @param vfixed A numeric
+#' @param vfixed A numeric.
 #' @return A list.
 #'
 cMLElk <- function(Fk,
@@ -580,6 +595,8 @@ cMLEsp <- function(Fk,
                    data,
                    Depsilon,
                    wSave = FALSE) {
+  if ("numeric" %in% class(data))
+    data <- as.matrix(data)
   De <- toSparseMatrix(Depsilon)
   iD <- solve(De)
   ldetD <- logDeterminant(De)
@@ -621,4 +638,37 @@ cMLEsp <- function(Fk,
   out <- out[-which(names(out) == "v")]
   out <- out[-which(names(out) == "L")]
   return(out)
+}
+
+
+cMLEsp <- function(Fk, data, Depsilon, wSave = FALSE) {
+  De <- toSparseMatrix(Depsilon)
+  iD <- solve(De)
+  ldetD <- logDeterminant(De)
+  iDFk <- iD %*% Fk
+  half <- getInverseSquareRootMatrix(Fk, iDFk)
+  ihFiD <- half %*% t(iDFk)
+  TT <- NCOL(data)
+  JSJ <- tcrossprod(ihFiD %*% data) / TT
+  JSJ <- (JSJ + t(JSJ)) / 2
+  trS <- sum(rowSums(as.matrix(iD %*% data) * data)) / TT
+  out <- cMLE(Fk, TT, trS, half, JSJ, s = 0, ldet = ldetD, wSave)
+  if (wSave) {
+    L <- as.matrix(out$L)
+    invD <- iD / (out$s + out$v)
+    iDZ <- invD %*% data
+    right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
+                                                         L))
+    INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
+    etatt <- out$M %*% t(Fk) %*% INVtZ
+    out$w <- as.matrix(etatt)
+    GM <- Fk %*% out$M
+    iDGM <- invD %*% GM
+    out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
+                                            right0 %*% (t(L) %*% iDGM)))
+  }
+  out$s <- out$v
+  out <- out[-which(names(out) == "v")]
+  out <- out[-which(names(out) == "L")]
+  out
 }
