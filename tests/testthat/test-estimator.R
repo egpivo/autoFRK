@@ -14,6 +14,7 @@ epsilon <- rexp(n) * sqrt(s)
 data <- y[obs] + epsilon
 
 cMLEsp_result <- cMLEsp(Fk[obs,], data, diag(epsilon), TRUE)
+em0miss_result <- EM0miss(Fk[obs,], data, diag(epsilon), 10, 1e-4)
 
 set.seed(1234)
 test_matrix <- matrix(rnorm(25), 5, 5)
