@@ -15,6 +15,8 @@ data <- y[obs] + epsilon
 
 cMLEsp_result <- cMLEsp(Fk[obs,], data, diag(epsilon), TRUE)
 em0miss_result <- EM0miss(Fk[obs,], data, diag(epsilon), 10, 1e-4)
+em0miss_result_message <- capture_output(
+  EM0miss(Fk[obs,], data, diag(epsilon), 10, 1e-4), print = TRUE)
 
 set.seed(1234)
 test_matrix <- matrix(rnorm(25), 5, 5)
@@ -67,4 +69,11 @@ test_that("cMLEimat", {
   expect_lte(abs(test_cmle_object$M[1] - 0), tolerance)
   expect_lte(abs(test_cmle_object$v - 35.089146), tolerance)
   expect_lte(abs(test_cmle_object$negloglik - 979.347403), tolerance)
+})
+
+test_that("EM0miss", {
+  expect_lte(abs(sum(em0miss_result$M) - 27.0142), tolerance)
+  expect_lte(abs(em0miss_result$s - 2.095243), tolerance)
+  expect_lte(abs(em0miss_result$negloglik - 593.1121768), tolerance)
+  expect_equal(em0miss_result_message, "Number of iteration:  3 \n$M\n      [,1]      [,2]\n 44.680115 -9.944163\n -9.944163  2.222411\n\n$s\n[1] 2.095243\n\n$negloglik\n[1] 593.1122\n")
 })
