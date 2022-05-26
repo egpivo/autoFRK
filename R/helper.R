@@ -73,7 +73,7 @@ computeLikelihood <- function(data, Fk, M, s, Depsilon) {
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param loc \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
 #' @param D A diagonal matrix.
-#' @param maxit An iteger for the maximum number of iterations used in indeMLE.
+#' @param maxit An integer for the maximum number of iterations used in indeMLE.
 #' @param avgtol A numeric for average tolerance used in indeMLE.
 #' @param max_rank An integer of the maximum of K values.
 #' @param sequence_rank An array of K values

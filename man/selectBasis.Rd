@@ -27,7 +27,7 @@ selectBasis(
 
 \item{D}{A diagonal matrix.}
 
-\item{maxit}{An iteger for the maximum number of iterations used in indeMLE.}
+\item{maxit}{An integer for the maximum number of iterations used in indeMLE.}
 
 \item{avgtol}{A numeric for average tolerance used in indeMLE.}
 

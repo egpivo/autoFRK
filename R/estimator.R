@@ -1,3 +1,20 @@
+#'
+#' Internal function: EM0miss
+#'
+#' @keywords internal.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
+#' @param maxit An integer for the maximum number of iterations.
+#' @param avgtol A numeric for average tolerance.
+#' @param wSave A logic.
+#' @param external A logic.
+#' @param DfromLK An \emph{n} by \emph{n} matrix
+#' @param vfixed A numeric.
+#' @param verbose A logic. Print a useful information.
+#' @return A list.
+#'
 EM0miss <-
   function(Fk,
            data,
@@ -7,8 +24,8 @@ EM0miss <-
            wSave = FALSE,
            external = FALSE,
            DfromLK = NULL,
-           num.report = TRUE,
-           vfixed = NULL) {
+           vfixed = NULL,
+           verbose = TRUE) {
     O <- !is.na(data)
     TT <- NCOL(data)
     K <- NCOL(Fk)
@@ -141,7 +158,7 @@ EM0miss <-
       if (external)
         save(old, Ptt1, file = oldfile)
     }
-    if (num.report)
+    if (verbose)
       cat("Number of iteration: ", cnt, "\n")
     unlink(tmpdir, recursive = TRUE)
     n2loglik <- computeLikelihood(data, Fk, new$M, new$s, Depsilon)
@@ -209,7 +226,7 @@ indeMLE <- function(data,
                     wSave = FALSE,
                     DfromLK = NULL,
                     vfixed = NULL,
-                    num.report = TRUE) {
+                    verbose = TRUE) {
   withNA <- sum(is.na(data)) > 0
   if (is(data, "vector")) {
     data <- as.matrix(data)
@@ -309,8 +326,8 @@ indeMLE <- function(data,
                    wSave,
                    external = FALSE,
                    DfromLK,
-                   num.report,
-                   vfixed)
+                   vfixed,
+                   verbose)
     if (wSave) {
       w <- matrix(0, K, TT)
       w[, notempty] <- out$w
@@ -338,7 +355,7 @@ indeMLE <- function(data,
 #' @param ldet A numeric. A log determinant.
 #' @param wSave A logic.
 #' @param onlylogLike A logic.
-#' @param vfixed A numeric
+#' @param vfixed A numeric.
 #' @return A numeric.
 #'
 cMLE <- function(Fk,
@@ -494,7 +511,7 @@ cMLEimat <- function(Fk,
 #' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @param wSave A logic.
 #' @param DfromLK An \emph{n} by \emph{n} matrix
-#' @param vfixed A numeric
+#' @param vfixed A numeric.
 #' @return A list.
 #'
 cMLElk <- function(Fk,

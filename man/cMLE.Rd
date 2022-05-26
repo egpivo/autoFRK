@@ -37,7 +37,7 @@ each column being a basis function taken values at \code{loc}.}
 
 \item{onlylogLike}{A logic.}
 
-\item{vfixed}{A numeric}
+\item{vfixed}{A numeric.}
 }
 \value{
 A numeric.
