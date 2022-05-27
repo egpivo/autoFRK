@@ -558,7 +558,7 @@ cMLElk <- function(Fk,
   matrix_JSJ <- projection$matrix_JSJ
   iDZ <- weight * data - wXiG %*% (t(wwX) %*% as.matrix(data))
   trS <- sum(rowSums(as.matrix(iDZ) * data)) / num_columns
-  ldetD <-
+  ldetD <- 
     -nrow(DfromLK$Q) * log(lambda) + logDeterminant(G) - logDeterminant(DfromLK$Q) -
     sum(log(weight))
   out <- cMLE(
@@ -625,17 +625,16 @@ cMLEsp <- function(Fk,
   matrix_JSJ <- projection$matrix_JSJ
   
   trS <- sum(rowSums(as.matrix(iD %*% data) * data)) / num_columns
-  out <-
-    cMLE(
-      Fk,
-      num_columns,
-      trS,
-      inverse_square_root_matrix,
-      matrix_JSJ,
-      s = 0,
-      ldet = ldetD,
-      wSave
-    )
+  out <- cMLE(
+    Fk,
+    num_columns,
+    trS,
+    inverse_square_root_matrix,
+    matrix_JSJ,
+    s = 0,
+    ldet = ldetD,
+    wSave
+  )
   if (wSave) {
     L <- as.matrix(out$L)
     invD <- iD / (out$s + out$v)
