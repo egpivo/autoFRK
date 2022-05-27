@@ -19,6 +19,9 @@ em0miss_result_message <- capture_output(
   EM0miss(Fk[obs,], data, diag(epsilon), 10, 1e-4), print = TRUE)
 em0miss_w_result <- EM0miss(Fk[obs,], data, diag(epsilon), 10, 1e-4, wSave = TRUE)
 
+data[1:10] <- NA
+indeMLE(data=data, Fk=Fk)
+
 set.seed(1234)
 test_matrix <- matrix(rnorm(25), 5, 5)
 test_matrix <- (test_matrix + t(test_matrix)) / 2

@@ -47,7 +47,7 @@ EM0miss <- function(Fk,
     if (is.null(pick))
       pick <- 1:length(DfromLK$weights)
     weight <- DfromLK$weights[pick]
-    DfromLK$wX <- DfromLK$wX[pick,]
+    DfromLK$wX <- DfromLK$wX[pick, ]
     wwX <- diag.spam(sqrt(weight)) %*% DfromLK$wX
     lQ <- DfromLK$lambda * DfromLK$Q
   }
@@ -58,18 +58,18 @@ EM0miss <- function(Fk,
       if (sum(O[, tt]) == NROW(O)) {
         wXiG <- wwX %*% solve(DfromLK$G)
       } else {
-        G <- t(DfromLK$wX[O[, tt],]) %*% DfromLK$wX[O[, tt],] + lQ
-        wXiG <- wwX[O[, tt],] %*% solve(G)
+        G <- t(DfromLK$wX[O[, tt], ]) %*% DfromLK$wX[O[, tt], ] + lQ
+        wXiG <- wwX[O[, tt], ] %*% solve(G)
       }
-      Bt <- as.matrix(Fk[O[, tt],])
+      Bt <- as.matrix(Fk[O[, tt], ])
       if (NCOL(Bt) == 1)
         Bt <- t(Bt)
       iDBt <-
-        as.matrix(weight[O[, tt]] * Bt - wXiG %*% (t(wwX[O[, tt],]) %*% Bt))
+        as.matrix(weight[O[, tt]] * Bt - wXiG %*% (t(wwX[O[, tt], ]) %*% Bt))
       zt <- data[O[, tt], tt]
       ziDz[tt] <-
-        sum(zt * as.vector(weight[O[, tt]] * zt - wXiG %*% (t(wwX[O[, tt],]) %*% zt)))
-      ziDB[tt,] <- t(zt) %*% iDBt
+        sum(zt * as.vector(weight[O[, tt]] * zt - wXiG %*% (t(wwX[O[, tt], ]) %*% zt)))
+      ziDB[tt, ] <- t(zt) %*% iDBt
       BiDBt <- t(Bt) %*% iDBt
     } else {
       if (!diagD) {
@@ -77,13 +77,13 @@ EM0miss <- function(Fk,
       } else {
         iDt <- iD[O[, tt], O[, tt]]
       }
-      Bt <- Fk[O[, tt],]
+      Bt <- Fk[O[, tt], ]
       if (NCOL(Bt) == 1)
         Bt <- t(Bt)
       iDBt <- as.matrix(iDt %*% Bt)
       zt <- data[O[, tt], tt]
       ziDz[tt] <- sum(zt * as.vector(iDt %*% zt))
-      ziDB[tt,] <- t(zt) %*% iDBt
+      ziDB[tt, ] <- t(zt) %*% iDBt
       BiDBt <- t(Bt) %*% iDBt
     }
     
@@ -139,9 +139,9 @@ EM0miss <- function(Fk,
         s1kk <- diag(BiDBt %*% (eta %*% t(eta) + Ptt))
         rbind(s1kk, eta, Ptt)
       })
-      sumPtt <- sumPtt + s1.eta.P[-c(1:2),]
-      etatt[, tt] <- s1.eta.P[2,]
-      s1[tt] <- sum(s1.eta.P[1,])
+      sumPtt <- sumPtt + s1.eta.P[-c(1:2), ]
+      etatt[, tt] <- s1.eta.P[2, ]
+      s1[tt] <- sum(s1.eta.P[1, ])
     }
     if (is.null(vfixed)) {
       s <-  max((sum(ziDz) - 2 * sum(ziDB * t(etatt)) + sum(s1)) / sum(O),
@@ -188,13 +188,13 @@ EM0miss <- function(Fk,
       if (sum(O[, tt]) == NROW(O)) {
         wXiG <- wwX %*% solve(DfromLK$G)
       } else {
-        G <- t(DfromLK$wX[O[, tt],]) %*% DfromLK$wX[O[, tt],] + lQ
-        wXiG <- wwX[O[, tt],] %*% solve(G)
+        G <- t(DfromLK$wX[O[, tt], ]) %*% DfromLK$wX[O[, tt], ] + lQ
+        wXiG <- wwX[O[, tt], ] %*% solve(G)
       }
       dat <- data[O[, tt], tt]
-      Lt <- L[O[, tt],]
+      Lt <- L[O[, tt], ]
       iDL <-
-        weight[O[, tt]] * Lt - wXiG %*% (t(wwX[O[, tt],]) %*% Lt)
+        weight[O[, tt]] * Lt - wXiG %*% (t(wwX[O[, tt], ]) %*% Lt)
       itmp <- solve(diag(1, NCOL(L)) + t(Lt) %*% iDL / out$s)
       iiLiD <- itmp %*% t(iDL / out$s)
       wlk[, tt] <-
@@ -220,6 +220,22 @@ EM0miss <- function(Fk,
   }
 }
 
+#'
+#' Internal function: indeMLE
+#'
+#' @keywords internal.
+#' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param D An \emph{n} by \emph{n} diagonal matrix.
+#' @param maxit An integer for the maximum number of iterations.
+#' @param avgtol A numeric for average tolerance.
+#' @param wSave A logic.
+#' @param DfromLK An \emph{n} by \emph{n} matrix
+#' @param vfixed A numeric.
+#' @param verbose A logic. Print a useful information.
+#' @return A list.
+#'
 indeMLE <- function(data,
                     Fk,
                     D = diag.spam(NROW(data)),
@@ -252,10 +268,10 @@ indeMLE <- function(data,
   
   if (withNA && (length(del) > 0)) {
     pick <- pick[-del]
-    data <- data[-del,]
-    Fk <- Fk[-del,]
+    data <- data[-del, ]
+    Fk <- Fk[-del, ]
     if (!isDiagonal(D)) {
-      D <- D[-del,-del]
+      D <- D[-del, -del]
     } else {
       D <- diag.spam(diag(D)[-del], NROW(data))
     }
@@ -529,7 +545,7 @@ cMLElk <- function(Fk,
   wX <- DfromLK$wX
   weight <- DfromLK$weights
   if (length(pick) < dim(wX)[1]) {
-    wX <- wX[pick,]
+    wX <- wX[pick, ]
     weight <- weight[pick]
   }
   G <- t(wX) %*% wX + lambda * DfromLK$Q
