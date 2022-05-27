@@ -19,8 +19,9 @@ em0miss_result_message <- capture_output(
   EM0miss(Fk[obs,], data, diag(epsilon), 10, 1e-4), print = TRUE)
 em0miss_w_result <- EM0miss(Fk[obs,], data, diag(epsilon), 10, 1e-4, wSave = TRUE)
 
-data[1:10] <- NA
-indeMLE(data=data, Fk=Fk)
+missing_data <- data
+missing_data[1:10] <- NA
+indeMLE_na_result <- indeMLE(missing_data, Fk[obs,])
 
 set.seed(1234)
 test_matrix <- matrix(rnorm(25), 5, 5)
@@ -82,4 +83,8 @@ test_that("EM0miss", {
   expect_equal(em0miss_result_message, "Number of iteration:  3 \n$M\n      [,1]      [,2]\n 44.680115 -9.944163\n -9.944163  2.222411\n\n$s\n[1] 2.095243\n\n$negloglik\n[1] 593.1122\n")
   expect_lte(abs(sum(em0miss_w_result$w) + 5.195894), tolerance)
   expect_lte(abs(sum(em0miss_w_result$V) - 0.01688807), tolerance)
+})
+
+test_that("indeMLE", {
+  expect_lte(abs(indeMLE_na_result$negloglik - 732.866333), tolerance)
 })
