@@ -8,6 +8,18 @@
 ### Introduction
 `autoFRK` (Automatic fixed rank kriging) is an R package to mitigate the intensive computation for modeling regularly/irregularly located spatial data using a class of basis functions with multi-resolution features and ordered in terms of their resolutions. 
 
+
+### Installation
+To get the current development version from GitHub:
+
+```r
+devtools::install_github("egpivo/autoFRK")
+```
+
+### Usage
+- Main function `autoFRL`: https://egpivo.github.io/autoFRK/reference/autoFRK.html#examples
+
+
 ### Reference
 - Tzeng and Huang (2018) <doi:10.1080/00401706.2017.1345701>
 
