@@ -17,7 +17,8 @@ indeMLE(
 )
 }
 \arguments{
-\item{data}{An \emph{n} by \emph{T} data matrix (NA allowed) with}
+\item{data}{An \emph{n} by \emph{T} data matrix (NA allowed) with
+\eqn{z[t]} as the \emph{t}-th column.}
 
 \item{Fk}{An \emph{n} by \emph{K} matrix of basis function values with
 each column being a basis function taken values at \code{loc}.}

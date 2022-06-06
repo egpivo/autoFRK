@@ -5,6 +5,7 @@
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @param maxit An integer for the maximum number of iterations.
 #' @param avgtol A numeric for average tolerance.
@@ -131,8 +132,8 @@ EM0miss <- function(Fk,
       load(oldfile)
     for (tt in 1:TT) {
       s1.eta.P <- with(db[[tt]], {
-        iP <-
-          convertToPositiveDefinite(MASS::ginv(convertToPositiveDefinite(Ptt1)) + BiDBt / old$s)
+        ginv_Ptt1 <- MASS::ginv(convertToPositiveDefinite(Ptt1))
+        iP <- convertToPositiveDefinite(ginv_Ptt1 + BiDBt / old$s)
         Ptt <- solve(iP)
         Gt <- as.matrix(Ptt %*% t(iDBt) / old$s)
         eta <- c(0 + Gt %*% zt)
@@ -225,6 +226,7 @@ EM0miss <- function(Fk,
 #'
 #' @keywords internal.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param D An \emph{n} by \emph{n} diagonal matrix.
@@ -438,6 +440,7 @@ cMLE <- function(Fk,
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
 #' @param s A positive numeric.
 #' @param wSave A logic.
 #' @param S An \emph{n} by \emph{n} matrix
@@ -526,6 +529,7 @@ cMLEimat <- function(Fk,
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @param wSave A logic.
 #' @param DfromLK An \emph{n} by \emph{n} matrix
@@ -603,6 +607,7 @@ cMLElk <- function(Fk,
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
 #'  each column being a basis function taken values at \code{loc}.
 #' @param data  An \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
 #' @param Depsilon An \emph{n} by \emph{n} diagonal matrix.
 #' @param wSave A logic.
 #' @return A list.
@@ -653,37 +658,4 @@ cMLEsp <- function(Fk,
   out <- out[-which(names(out) == "v")]
   out <- out[-which(names(out) == "L")]
   return(out)
-}
-
-
-cMLEsp <- function(Fk, data, Depsilon, wSave = FALSE) {
-  De <- toSparseMatrix(Depsilon)
-  iD <- solve(De)
-  ldetD <- logDeterminant(De)
-  iDFk <- iD %*% Fk
-  half <- getInverseSquareRootMatrix(Fk, iDFk)
-  ihFiD <- half %*% t(iDFk)
-  TT <- NCOL(data)
-  JSJ <- tcrossprod(ihFiD %*% data) / TT
-  JSJ <- (JSJ + t(JSJ)) / 2
-  trS <- sum(rowSums(as.matrix(iD %*% data) * data)) / TT
-  out <- cMLE(Fk, TT, trS, half, JSJ, s = 0, ldet = ldetD, wSave)
-  if (wSave) {
-    L <- as.matrix(out$L)
-    invD <- iD / (out$s + out$v)
-    iDZ <- invD %*% data
-    right0 <- L %*% solve(diag(1, NCOL(L)) + t(L) %*% (invD %*%
-                                                         L))
-    INVtZ <- iDZ - invD %*% right0 %*% (t(L) %*% iDZ)
-    etatt <- out$M %*% t(Fk) %*% INVtZ
-    out$w <- as.matrix(etatt)
-    GM <- Fk %*% out$M
-    iDGM <- invD %*% GM
-    out$V <- as.matrix(out$M - t(GM) %*% (iDGM - invD %*%
-                                            right0 %*% (t(L) %*% iDGM)))
-  }
-  out$s <- out$v
-  out <- out[-which(names(out) == "v")]
-  out <- out[-which(names(out) == "L")]
-  out
 }
