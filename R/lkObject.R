@@ -196,6 +196,8 @@ setLKnFRKOption <-
 #' @return numeric
 #'
 setNC <- function(z, location, nlevel) {
+  if(!is.matrix(z))
+    z <- matrix(z)
   location_dim <- NCOL(location)
   n <- nrow(z)
   a <- sum(2 ^ (location_dim * (0:(nlevel - 1))))
