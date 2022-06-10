@@ -1,6 +1,19 @@
+#'
+#' Internal function: initializeLKnFRK
+#'
+#' @keywords internal
+#' @param data  \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
+#' @param location \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
+#' @param nlelve An integer.
+#' @param weights An \emph{n} by \emph{n} diagonal matrix.
+#' @param n.neighbor number of neighbors to be used in the "fast" imputation method. Default is 3.
+#' @param nu An integer.
+#' @return list
+#'
 initializeLKnFRK <-
   function(data,
-           loc,
+           location,
            nlevel = 3,
            weights = NULL,
            n.neighbor = 3,
@@ -10,13 +23,13 @@ initializeLKnFRK <-
     empty <- apply(!is.na(data), 2, sum) == 0
     if (sum(empty) > 0)
       data <- data[, which(!empty)]
-    loc <- as.matrix(loc)
+    location <- as.matrix(location)
     N <- NROW(data)
-    d <- NCOL(loc)
+    d <- NCOL(location)
     nas <- sum(is.na(data))
     del <- which(rowSums(as.matrix(!is.na(data))) == 0)
     pick <- 1:N
-    x <- as.matrix(loc)
+    x <- as.matrix(location)
     if (length(del) > 0) {
       data <- data[-del,]
       x <- x[-del,]
@@ -57,29 +70,41 @@ initializeLKnFRK <-
         gtype = gtype,
         weights = weights,
         nlevel = nlevel,
-        loc = loc,
+        location = location,
         pick = pick
       )
     )
   }
 
+#'
+#' Internal function: setLKnFRKOption
+#'
+#' @keywords internal
+#' @param LK_obj  A list produced from `initializeLKnFRK`.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{location}.
+#' @param nc A numeric made by `setNC`.
+#' @param Ks An integer.
+#' @param a.wght A numeric.
+#' @return list
+#'
 setLKnFRKOption <-
-  function(iniobj,
+  function(LK_obj,
            Fk,
            nc = NULL,
            Ks = NCOL(Fk),
            a.wght = NULL) {
-    x <- iniobj$x
-    z <- iniobj$z
-    alpha <- iniobj$alpha
+    x <- LK_obj$x
+    z <- LK_obj$z
+    alpha <- LK_obj$alpha
     alpha <- alpha / sum(alpha)
-    gtype <- iniobj$gtype
-    weights <- iniobj$weights
-    if (length(iniobj$pick) < length(weights))
-      weights <- weights[iniobj$pick]
-    nlevel <- iniobj$nlevel
+    gtype <- LK_obj$gtype
+    weights <- LK_obj$weights
+    if (length(LK_obj$pick) < length(weights))
+      weights <- weights[LK_obj$pick]
+    nlevel <- LK_obj$nlevel
     TT <- NCOL(z)
-    Fk <- Fk[iniobj$pick,]
+    Fk <- Fk[LK_obj$pick,]
     
     if (is.null(nc))
       nc <- setNC(z, x, nlevel)
@@ -96,8 +121,8 @@ setLKnFRKOption <-
       lambda = 1
     )
     
-    loc <- x
-    phi <- LKrig.basis(loc, info)
+    location <- x
+    phi <- LKrig.basis(location, info)
     w <- diag.spam(sqrt(weights))
     wX <- w %*% phi
     wwX <- w %*% wX
@@ -170,7 +195,7 @@ setLKnFRKOption <-
         wX = wX,
         G = G,
         lambda = info.MLE$lambda,
-        pick = iniobj$pick
+        pick = LK_obj$pick
       ),
       s = out$v,
       LKobj = list(
@@ -196,6 +221,8 @@ setLKnFRKOption <-
 #' @return numeric
 #'
 setNC <- function(z, location, nlevel) {
+  if(!is.matrix(z))
+    z <- matrix(z)
   location_dim <- NCOL(location)
   n <- nrow(z)
   a <- sum(2 ^ (location_dim * (0:(nlevel - 1))))
@@ -639,8 +666,6 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
 #'
 shiftArray <- function(array_object, shift_index) {
   shape <- dim(array_object)
-  print(shape)
-  print(array_object)
   reshaped_array <- array(NA, shape)
   if (any(abs(shift_index) > shape)) {
     stop("shift exceeds array dimensions")

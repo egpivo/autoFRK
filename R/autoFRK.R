@@ -188,20 +188,20 @@ autoFRK <- function(data,
     if (is.null(nlevel)) {
       nlevel <- 3
     }
-    iniobj <- initializeLKnFRK(
+    LK_obj <- initializeLKnFRK(
       data = data,
-      loc = loc,
+      location = loc,
       nlevel = nlevel,
       weights = 1 / diag(D),
       n.neighbor = n.neighbor,
       nu = nu
     )
     DnLK <-
-      setLKnFRKOption(iniobj, Fk[, 1:K], nc = NC, a.wght = a.wght)
+      setLKnFRKOption(LK_obj, Fk[, 1:K], nc = NC, a.wght = a.wght)
     DfromLK <- DnLK$DfromLK
     LKobj <- DnLK$LKobj
-    Depsilon <- diag.spam(iniobj$weight[iniobj$pick],
-                          length(iniobj$weight[iniobj$pick]))
+    Depsilon <- diag.spam(LK_obj$weight[LK_obj$pick],
+                          length(LK_obj$weight[LK_obj$pick]))
     obj <- indeMLE(
       data = data,
       Fk = Fk[, 1:K],

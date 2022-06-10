@@ -34,10 +34,6 @@ test_that("Is an object diagonal", {
 set.seed(1234)
 grid <- seq(0, 1, l = 30)
 z <- sample(30, 10)
-test_that("nc for LkrigInfo", {
-  expect_equal(setNC(z, grid, 1), 4)
-  expect_equal(setNC(z, grid, 2), 4)
-})
 
 two_dim_knots_example_1 <- subKnot(matrix(grid, ncol = 2), 2)
 true_two_dim_knots_example_1 <-
