@@ -23,13 +23,13 @@ initializeLKnFRK <-
     empty <- apply(!is.na(data), 2, sum) == 0
     if (sum(empty) > 0)
       data <- data[, which(!empty)]
-    loc <- as.matrix(loc)
+    location <- as.matrix(location)
     N <- NROW(data)
-    d <- NCOL(loc)
+    d <- NCOL(location)
     nas <- sum(is.na(data))
     del <- which(rowSums(as.matrix(!is.na(data))) == 0)
     pick <- 1:N
-    x <- as.matrix(loc)
+    x <- as.matrix(location)
     if (length(del) > 0) {
       data <- data[-del,]
       x <- x[-del,]
@@ -70,7 +70,7 @@ initializeLKnFRK <-
         gtype = gtype,
         weights = weights,
         nlevel = nlevel,
-        loc = loc,
+        location = location,
         pick = pick
       )
     )
@@ -82,7 +82,7 @@ initializeLKnFRK <-
 #' @keywords internal
 #' @param LK_obj  A list produced from `initializeLKnFRK`.
 #' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
-#'  each column being a basis function taken values at \code{loc}.
+#'  each column being a basis function taken values at \code{location}.
 #' @param nc A numeric made by `setNC`.
 #' @param Ks An integer.
 #' @param a.wght A numeric.
@@ -121,8 +121,8 @@ setLKnFRKOption <-
       lambda = 1
     )
     
-    loc <- x
-    phi <- LKrig.basis(loc, info)
+    location <- x
+    phi <- LKrig.basis(location, info)
     w <- diag.spam(sqrt(weights))
     wX <- w %*% phi
     wwX <- w %*% wX
