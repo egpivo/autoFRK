@@ -1,6 +1,19 @@
+#'
+#' Internal function: initializeLKnFRK
+#'
+#' @keywords internal
+#' @param data  \emph{n} by \emph{T} data matrix (NA allowed) with
+#' \eqn{z[t]} as the \emph{t}-th column.
+#' @param location \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
+#' @param nlelve An integer.
+#' @param weights An \emph{n} by \emph{n} diagonal matrix.
+#' @param n.neighbor number of neighbors to be used in the "fast" imputation method. Default is 3.
+#' @param nu An integer.
+#' @return list
+#'
 initializeLKnFRK <-
   function(data,
-           loc,
+           location,
            nlevel = 3,
            weights = NULL,
            n.neighbor = 3,
@@ -63,23 +76,35 @@ initializeLKnFRK <-
     )
   }
 
+#'
+#' Internal function: setLKnFRKOption
+#'
+#' @keywords internal
+#' @param LK_obj  A list produced from `initializeLKnFRK`.
+#' @param Fk An \emph{n} by \emph{K} matrix of basis function values with
+#'  each column being a basis function taken values at \code{loc}.
+#' @param nc A numeric made by `setNC`.
+#' @param Ks An integer.
+#' @param a.wght A numeric.
+#' @return list
+#'
 setLKnFRKOption <-
-  function(iniobj,
+  function(LK_obj,
            Fk,
            nc = NULL,
            Ks = NCOL(Fk),
            a.wght = NULL) {
-    x <- iniobj$x
-    z <- iniobj$z
-    alpha <- iniobj$alpha
+    x <- LK_obj$x
+    z <- LK_obj$z
+    alpha <- LK_obj$alpha
     alpha <- alpha / sum(alpha)
-    gtype <- iniobj$gtype
-    weights <- iniobj$weights
-    if (length(iniobj$pick) < length(weights))
-      weights <- weights[iniobj$pick]
-    nlevel <- iniobj$nlevel
+    gtype <- LK_obj$gtype
+    weights <- LK_obj$weights
+    if (length(LK_obj$pick) < length(weights))
+      weights <- weights[LK_obj$pick]
+    nlevel <- LK_obj$nlevel
     TT <- NCOL(z)
-    Fk <- Fk[iniobj$pick,]
+    Fk <- Fk[LK_obj$pick,]
     
     if (is.null(nc))
       nc <- setNC(z, x, nlevel)
@@ -170,7 +195,7 @@ setLKnFRKOption <-
         wX = wX,
         G = G,
         lambda = info.MLE$lambda,
-        pick = iniobj$pick
+        pick = LK_obj$pick
       ),
       s = out$v,
       LKobj = list(
