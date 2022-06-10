@@ -641,8 +641,6 @@ calculateSARForThreeDimLocation <- function(LKinfo, level) {
 #'
 shiftArray <- function(array_object, shift_index) {
   shape <- dim(array_object)
-  print(shape)
-  print(array_object)
   reshaped_array <- array(NA, shape)
   if (any(abs(shift_index) > shape)) {
     stop("shift exceeds array dimensions")
