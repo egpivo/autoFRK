@@ -5,9 +5,10 @@
 #' @keywords internal
 #' @param x An FRK object
 #' @param ... Not used directly
+#' @method print FRK
 #'
 print.FRK <- function(x, ...) {
-  if (class(x) != "FRK") {
+  if (!inherits(x, "FRK")) {
     stop("Invalid object! Please enter an `FRK` object")
   }
   attr(x, "pinfo") <- NULL
@@ -24,9 +25,10 @@ print.FRK <- function(x, ...) {
 #' @keywords internal
 #' @param x An mrts object
 #' @param ... Not used directly
+#' @method print mrts
 #'
 print.mrts <- function(x, ...) {
-  if (class(x) != "mrts") {
+  if (!inherits(x, "mrts")) {
     stop("Invalid object! Please enter an `mrts` object")
   }
   
