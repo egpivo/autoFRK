@@ -4,7 +4,7 @@
 \alias{as.matrix.mrts}
 \title{Internal function: Remove attributes of mrts}
 \usage{
-as.matrix.mrts(x, ...)
+\method{as.matrix}{mrts}(x, ...)
 }
 \arguments{
 \item{x}{A mrts object.}

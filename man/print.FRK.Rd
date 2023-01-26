@@ -4,7 +4,7 @@
 \alias{print.FRK}
 \title{Internal function: print an FRK object}
 \usage{
-print.FRK(x, ...)
+\method{print}{FRK}(x, ...)
 }
 \arguments{
 \item{x}{An FRK object}

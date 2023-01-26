@@ -10,7 +10,7 @@ setLKnFRKOption(LK_obj, Fk, nc = NULL, Ks = NCOL(Fk), a.wght = NULL)
 \item{LK_obj}{A list produced from \code{initializeLKnFRK}.}
 
 \item{Fk}{An \emph{n} by \emph{K} matrix of basis function values with
-each column being a basis function taken values at \code{loc}.}
+each column being a basis function taken values at \code{location}.}
 
 \item{nc}{A numeric made by \code{setNC}.}
 

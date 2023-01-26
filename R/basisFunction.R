@@ -5,6 +5,7 @@
 #' @param x A mrts object.
 #' @param ... Not used directly.
 #' @return A matrix object.
+#' @method as.matrix mrts
 #'
 as.matrix.mrts <- function(x, ...) {
   attr(x, "S") <- NULL

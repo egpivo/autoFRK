@@ -4,7 +4,7 @@
 \alias{print.mrts}
 \title{Internal function: print an mrts object}
 \usage{
-print.mrts(x, ...)
+\method{print}{mrts}(x, ...)
 }
 \arguments{
 \item{x}{An mrts object}
