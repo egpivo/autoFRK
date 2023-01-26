@@ -21,7 +21,7 @@ They are useful in the spatio-temporal random effects model."><!-- mathjax --><s
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.17</span>
       </span>
     </div>
 
@@ -61,7 +61,7 @@ They are useful in the spatio-temporal random effects model.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">mrts</span><span class="op">(</span><span class="va">knot</span>, <span class="va">k</span>, x <span class="op">=</span> <span class="cn">NULL</span>, maxknot <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mrts</span><span class="op">(</span><span class="va">knot</span>, <span class="va">k</span>, x <span class="op">=</span> <span class="cn">NULL</span>, maxknot <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -69,17 +69,26 @@ They are useful in the spatio-temporal random effects model.</p>
     <dl><dt>knot</dt>
 <dd><p><em>m</em> by <em>d</em> matrix (<em>d&lt;=3</em>) for <em>m</em> locations of <em>d</em>-dimensional knots as in ordinary splines.
 Missing values are not allowed.</p></dd>
+
+
 <dt>k</dt>
 <dd><p>the number (<em>&lt;=m</em>) of basis functions.</p></dd>
+
+
 <dt>x</dt>
 <dd><p><em>n</em> by <em>d</em> matrix of coordinates corresponding to <em>n</em> locations where the values of basis functions to be evaluated.
 Default is <code>NULL</code>, which uses the <em>m</em> by <em>d</em> matrix in <code>knot</code>.</p></dd>
+
+
 <dt>maxknot</dt>
 <dd><p>maximum number of knots to be used in generating basis functions. If  <code>maxknot</code> &lt; <em>m</em>, a deterministic subset selection of knots will be used.  For using all knots, set <code>maxknot</code>&gt;=<em>m</em>.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>An <code>mrts</code> object is generated. If <code>x=NULL</code> (default) it returns
+    
+
+<p>An <code>mrts</code> object is generated. If <code>x=NULL</code> (default) it returns
 an <em>m</em> by <em>k</em> matrix of <em>k</em> basis function taken values at knots.
 With <code>x</code> given, it returns <em>n</em> by <em>k</em> matrix for basis functions taken values at <code>x</code>.</p>
     </div>
@@ -101,18 +110,18 @@ With <code>x</code> given, it returns <em>n</em> by <em>k</em> matrix for basis 
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">originalPar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">knot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu">mrts</span><span class="op">(</span><span class="va">knot</span>, <span class="fl">30</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">x0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">bx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">x0</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in">  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bx</span><span class="op">[</span>, <span class="va">i</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"l"</span>, axes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span class="r-in">  <span class="fu"><a href="https://rdrr.io/r/graphics/box.html" class="external-link">box</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">}</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">originalPar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">knot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu">mrts</span><span class="op">(</span><span class="va">knot</span>, <span class="fl">30</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">bx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">x0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bx</span><span class="op">[</span>, <span class="va">i</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"l"</span>, axes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/graphics/box.html" class="external-link">box</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="mrts-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">originalPar</span><span class="op">)</span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">originalPar</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -127,7 +136,7 @@ With <code>x</code> given, it returns <em>n</em> by <em>k</em> matrix for basis 
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

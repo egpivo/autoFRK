@@ -29,7 +29,7 @@ selected by  Akaike's information criterion."><!-- mathjax --><script src="https
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.17</span>
       </span>
     </div>
 
@@ -77,21 +77,21 @@ selected by  Akaike's information criterion.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">autoFRK</span><span class="op">(</span>
-  <span class="va">data</span>,
-  <span class="va">loc</span>,
-  mu <span class="op">=</span> <span class="fl">0</span>,
-  D <span class="op">=</span> <span class="fu"><a href="diag.spam.html">diag.spam</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span>,
-  G <span class="op">=</span> <span class="cn">NULL</span>,
-  finescale <span class="op">=</span> <span class="cn">FALSE</span>,
-  maxit <span class="op">=</span> <span class="fl">50</span>,
-  tolerance <span class="op">=</span> <span class="fl">1e-06</span>,
-  maxK <span class="op">=</span> <span class="cn">NULL</span>,
-  Kseq <span class="op">=</span> <span class="cn">NULL</span>,
-  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fast"</span>, <span class="st">"EM"</span><span class="op">)</span>,
-  n.neighbor <span class="op">=</span> <span class="fl">3</span>,
-  maxknot <span class="op">=</span> <span class="fl">5000</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">autoFRK</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">loc</span>,</span>
+<span>  mu <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  D <span class="op">=</span> <span class="fu"><a href="diag.spam.html">diag.spam</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  G <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  finescale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  maxit <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  tolerance <span class="op">=</span> <span class="fl">1e-06</span>,</span>
+<span>  maxK <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  Kseq <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fast"</span>, <span class="st">"EM"</span><span class="op">)</span>,</span>
+<span>  n.neighbor <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  maxknot <span class="op">=</span> <span class="fl">5000</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -99,57 +99,91 @@ selected by  Akaike's information criterion.</p>
     <dl><dt>data</dt>
 <dd><p><em>n</em> by <em>T</em> data matrix (NA allowed) with
 \(z[t]\) as the <em>t</em>-th column.</p></dd>
+
+
 <dt>loc</dt>
 <dd><p><em>n</em> by <em>d</em> matrix of coordinates corresponding to <em>n</em> locations.</p></dd>
+
+
 <dt>mu</dt>
 <dd><p><em>n</em>-vector or scalar for \(\mu\); Default is 0.</p></dd>
+
+
 <dt>D</dt>
 <dd><p><em>n</em> by <em>n</em> matrix (preferably sparse) for the covariance matrix of the measurement errors up to a constant scale.
 Default is an identity matrix.</p></dd>
+
+
 <dt>G</dt>
 <dd><p><em>n</em> by <em>K</em> matrix of basis function values with each column being a basis function taken values at <code>loc</code>.
 Default is NULL, which is automatic determined.</p></dd>
+
+
 <dt>finescale</dt>
 <dd><p>logical; if <code>TRUE</code> then a (approximate) stationary finer scale process \(\eta[t]\) will be included
 based on <code>LatticeKrig</code> pacakge.
 In such a case, only the diagonals of \(D\) would be taken into account. Default is <code>FALSE</code>.</p></dd>
+
+
 <dt>maxit</dt>
 <dd><p>maximum number of iterations. Default is 50.</p></dd>
+
+
 <dt>tolerance</dt>
 <dd><p>precision tolerance for convergence check. Default is 0.1^6.</p></dd>
+
+
 <dt>maxK</dt>
 <dd><p>maximum number of basis functions considered. Default is
 \(10 \cdot \sqrt{n}\) for <em>n&gt;100</em> or <em>n</em> for <em>n&lt;=100</em>.</p></dd>
+
+
 <dt>Kseq</dt>
 <dd><p>user-specified vector of numbers of basis functions considered. Default is
 <code>NULL</code>, which is determined from <code>maxK</code>.</p></dd>
+
+
 <dt>method</dt>
 <dd><p>"fast" or " EM"; if "fast" then the missing data are filled in using k-nearest-neighbor imputation;
 if "EM" then the missing data are taken care by the EM algorithm. Default is "fast".</p></dd>
+
+
 <dt>n.neighbor</dt>
 <dd><p>number of neighbors to be used in the "fast" imputation method. Default is 3.</p></dd>
+
+
 <dt>maxknot</dt>
 <dd><p>maximum number of knots to be used in
 generating basis functions. Default is 5000.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>an object of class <code>FRK</code> is returned, which is a list of the following components:</p>
+    
+
+<p>an object of class <code>FRK</code> is returned, which is a list of the following components:</p>
 <dl><dt>M</dt>
 <dd><p>ML estimate of \(M\).</p></dd>
+
 <dt>s</dt>
 <dd><p>estimate for the scale parameter of measurement errors.</p></dd>
+
 <dt>negloglik</dt>
 <dd><p>negative  log-likelihood.</p></dd>
+
 <dt>w</dt>
 <dd><p><em>K</em> by <em>T</em> matrix with \(w[t]\) as the <em>t</em>-th column.</p></dd>
+
 <dt>V</dt>
 <dd><p><em>K</em> by <em>K</em> matrix of the prediction error covariance matrix of \(w[t]\).</p></dd>
+
 <dt>G</dt>
 <dd><p>user specified basis function matrix or an automatically generated <code>mrts</code> object.</p></dd>
+
 <dt>LKobj</dt>
 <dd><p>a list from calling <code>LKrig.MLE</code> in <code>LatticeKrig</code> package if <code>useLK=TRUE</code>;
 otherwise <code>NULL</code>. See that package for details.</p></dd>
+
 </dl></div>
     <div id="details">
     <h2>Details</h2>
@@ -175,75 +209,75 @@ in <code>spam</code> package.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="co">#### generating data from two eigenfunctions</span></span>
-<span class="r-in"><span class="va">originalPar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">150</span></span>
-<span class="r-in"><span class="va">s</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
-<span class="r-in"><span class="va">grid1</span> <span class="op">&lt;-</span> <span class="va">grid2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">grids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span><span class="va">grid1</span>, <span class="va">grid2</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">900</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">fn</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">fn</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.75</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.25</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#### single realization simulation example</span></span>
-<span class="r-in"><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">fn</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">w</span></span>
-<span class="r-in"><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">900</span>, <span class="va">n</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">z</span> <span class="op">&lt;-</span> <span class="va">y</span><span class="op">[</span><span class="va">obs</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">grids</span><span class="op">[</span><span class="va">obs</span>, <span class="op">]</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#### method1: automatic selection and prediction</span></span>
-<span class="r-in"><span class="va">one.imat</span> <span class="op">&lt;-</span> <span class="fu">autoFRK</span><span class="op">(</span>data <span class="op">=</span> <span class="va">z</span>, loc <span class="op">=</span> <span class="va">X</span>, maxK <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">yhat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">one.imat</span>, newloc <span class="op">=</span> <span class="va">grids</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#### method2: user-specified basis functions</span></span>
-<span class="r-in"><span class="va">G</span> <span class="op">&lt;-</span> <span class="fu"><a href="mrts.html">mrts</a></span><span class="op">(</span><span class="va">X</span>, <span class="fl">15</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">Gpred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">G</span>, newx <span class="op">=</span> <span class="va">grids</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">one.usr</span> <span class="op">&lt;-</span> <span class="fu">autoFRK</span><span class="op">(</span>data <span class="op">=</span> <span class="va">z</span>, loc <span class="op">=</span> <span class="va">X</span>, G <span class="op">=</span> <span class="va">G</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">yhat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">one.usr</span>, newloc <span class="op">=</span> <span class="va">grids</span>, basis <span class="op">=</span> <span class="va">Gpred</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dnychka/fieldsRPackage" class="external-link">fields</a></span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">#### generating data from two eigenfunctions</span></span></span>
+<span class="r-in"><span><span class="va">originalPar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">150</span></span></span>
+<span class="r-in"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fl">5</span></span></span>
+<span class="r-in"><span><span class="va">grid1</span> <span class="op">&lt;-</span> <span class="va">grid2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">grids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span><span class="va">grid1</span>, <span class="va">grid2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">900</span>, <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fn</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fn</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.75</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="op">(</span><span class="va">grids</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.25</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#### single realization simulation example</span></span></span>
+<span class="r-in"><span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">fn</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">w</span></span></span>
+<span class="r-in"><span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">900</span>, <span class="va">n</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">z</span> <span class="op">&lt;-</span> <span class="va">y</span><span class="op">[</span><span class="va">obs</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">grids</span><span class="op">[</span><span class="va">obs</span>, <span class="op">]</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#### method1: automatic selection and prediction</span></span></span>
+<span class="r-in"><span><span class="va">one.imat</span> <span class="op">&lt;-</span> <span class="fu">autoFRK</span><span class="op">(</span>data <span class="op">=</span> <span class="va">z</span>, loc <span class="op">=</span> <span class="va">X</span>, maxK <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">yhat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">one.imat</span>, newloc <span class="op">=</span> <span class="va">grids</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#### method2: user-specified basis functions</span></span></span>
+<span class="r-in"><span><span class="va">G</span> <span class="op">&lt;-</span> <span class="fu"><a href="mrts.html">mrts</a></span><span class="op">(</span><span class="va">X</span>, <span class="fl">15</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">Gpred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">G</span>, newx <span class="op">=</span> <span class="va">grids</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">one.usr</span> <span class="op">&lt;-</span> <span class="fu">autoFRK</span><span class="op">(</span>data <span class="op">=</span> <span class="va">z</span>, loc <span class="op">=</span> <span class="va">X</span>, G <span class="op">=</span> <span class="va">G</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">yhat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">one.usr</span>, newloc <span class="op">=</span> <span class="va">grids</span>, basis <span class="op">=</span> <span class="va">Gpred</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dnychka/fieldsRPackage" class="external-link">fields</a></span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: fields</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: viridis</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: viridisLite</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Try help(fields) to get started.</span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"True"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">X</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">yhat</span><span class="op">$</span><span class="va">pred.value</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Predicted"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">X</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">yhat2</span><span class="op">$</span><span class="va">pred.value</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Predicted (method 2)"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">X</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">yhat</span><span class="op">$</span><span class="va">pred.value</span>, <span class="va">yhat2</span><span class="op">$</span><span class="va">pred.value</span>, mgp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0.5</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"True"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">X</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">yhat</span><span class="op">$</span><span class="va">pred.value</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Predicted"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">X</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">yhat2</span><span class="op">$</span><span class="va">pred.value</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Predicted (method 2)"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">X</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">yhat</span><span class="op">$</span><span class="va">pred.value</span>, <span class="va">yhat2</span><span class="op">$</span><span class="va">pred.value</span>, mgp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0.5</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="autoFRK-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">originalPar</span><span class="op">)</span></span>
-<span class="r-in"><span class="co">#### end of single realization simulation example</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#### independent multi-realization simulation example</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">wt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">20</span><span class="op">)</span></span>
-<span class="r-in"><span class="kw">for</span> <span class="op">(</span><span class="va">tt</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span> <span class="va">wt</span><span class="op">[</span>, <span class="va">tt</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">yt</span> <span class="op">&lt;-</span> <span class="va">fn</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">wt</span></span>
-<span class="r-in"><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">900</span>, <span class="va">n</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">zt</span> <span class="op">&lt;-</span> <span class="va">yt</span><span class="op">[</span><span class="va">obs</span>, <span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="fl">20</span><span class="op">)</span>, <span class="va">n</span>, <span class="fl">20</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">grids</span><span class="op">[</span><span class="va">obs</span>, <span class="op">]</span></span>
-<span class="r-in"><span class="va">multi.imat</span> <span class="op">&lt;-</span> <span class="fu">autoFRK</span><span class="op">(</span>data <span class="op">=</span> <span class="va">zt</span>, loc <span class="op">=</span> <span class="va">X</span>, maxK <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">Gpred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">multi.imat</span><span class="op">$</span><span class="va">G</span>, newx <span class="op">=</span> <span class="va">grids</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">G</span> <span class="op">&lt;-</span> <span class="va">multi.imat</span><span class="op">$</span><span class="va">G</span></span>
-<span class="r-in"><span class="va">Mhat</span> <span class="op">&lt;-</span> <span class="va">multi.imat</span><span class="op">$</span><span class="va">M</span></span>
-<span class="r-in"><span class="va">dec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/eigen.html" class="external-link">eigen</a></span><span class="op">(</span><span class="va">G</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">Mhat</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">G</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">fhat</span> <span class="op">&lt;-</span> <span class="va">Gpred</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">Mhat</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">G</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">dec</span><span class="op">$</span><span class="va">vector</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fn</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"True Eigenfn 1"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fn</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"True Eigenfn 2"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fhat</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Estimated Eigenfn 1"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fhat</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Estimated Eigenfn 2"</span><span class="op">)</span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">originalPar</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">#### end of single realization simulation example</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#### independent multi-realization simulation example</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">wt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">for</span> <span class="op">(</span><span class="va">tt</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span> <span class="va">wt</span><span class="op">[</span>, <span class="va">tt</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">yt</span> <span class="op">&lt;-</span> <span class="va">fn</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">wt</span></span></span>
+<span class="r-in"><span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">900</span>, <span class="va">n</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">zt</span> <span class="op">&lt;-</span> <span class="va">yt</span><span class="op">[</span><span class="va">obs</span>, <span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="fl">20</span><span class="op">)</span>, <span class="va">n</span>, <span class="fl">20</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">grids</span><span class="op">[</span><span class="va">obs</span>, <span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">multi.imat</span> <span class="op">&lt;-</span> <span class="fu">autoFRK</span><span class="op">(</span>data <span class="op">=</span> <span class="va">zt</span>, loc <span class="op">=</span> <span class="va">X</span>, maxK <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">Gpred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">multi.imat</span><span class="op">$</span><span class="va">G</span>, newx <span class="op">=</span> <span class="va">grids</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">G</span> <span class="op">&lt;-</span> <span class="va">multi.imat</span><span class="op">$</span><span class="va">G</span></span></span>
+<span class="r-in"><span><span class="va">Mhat</span> <span class="op">&lt;-</span> <span class="va">multi.imat</span><span class="op">$</span><span class="va">M</span></span></span>
+<span class="r-in"><span><span class="va">dec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/eigen.html" class="external-link">eigen</a></span><span class="op">(</span><span class="va">G</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">Mhat</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">G</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fhat</span> <span class="op">&lt;-</span> <span class="va">Gpred</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">Mhat</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">G</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">dec</span><span class="op">$</span><span class="va">vector</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fn</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"True Eigenfn 1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fn</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"True Eigenfn 2"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fhat</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Estimated Eigenfn 1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html" class="external-link">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fhat</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Estimated Eigenfn 2"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="autoFRK-2.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">originalPar</span><span class="op">)</span></span>
-<span class="r-in"><span class="co">#### end of independent multi-realization simulation example</span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">originalPar</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">#### end of independent multi-realization simulation example</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -258,7 +292,7 @@ in <code>spam</code> package.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

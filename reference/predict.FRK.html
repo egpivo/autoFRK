@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.17</span>
       </span>
     </div>
 
@@ -53,55 +53,76 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="co"># S3 method for FRK</span>
-<span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>
-  <span class="va">object</span>,
-  obsData <span class="op">=</span> <span class="cn">NULL</span>,
-  obsloc <span class="op">=</span> <span class="cn">NULL</span>,
-  mu.obs <span class="op">=</span> <span class="fl">0</span>,
-  newloc <span class="op">=</span> <span class="va">obsloc</span>,
-  basis <span class="op">=</span> <span class="cn">NULL</span>,
-  mu.new <span class="op">=</span> <span class="fl">0</span>,
-  se.report <span class="op">=</span> <span class="cn">FALSE</span>,
-  <span class="va">...</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for FRK</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  obsData <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  obsloc <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  mu.obs <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  newloc <span class="op">=</span> <span class="va">obsloc</span>,</span>
+<span>  basis <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  mu.new <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  se.report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>object</dt>
 <dd><p>a model object obtained from "<code>autoFRK</code>".</p></dd>
+
+
 <dt>obsData</dt>
 <dd><p>a vector with observed data used for prediction.
 Default is <code>NULL</code>, which uses the <code>Data</code> input from <code>object</code>.</p></dd>
+
+
 <dt>obsloc</dt>
 <dd><p>a matrix with rows being coordinates of observation locations for <code>obsData</code>.
 Only <code>object</code> using <code>mrts</code> basis functions can have
 <code>obsloc</code> different from the <code>loc</code> input of <code>object</code>;
 not applicable for user-specified basis functions.
 Default is <code>NULL</code>, which uses the <code>loc</code> input of <code>object</code>.</p></dd>
+
+
 <dt>mu.obs</dt>
 <dd><p>a vector or scalar for the deterministic mean values at <code>obsloc</code>. Default is 0.</p></dd>
+
+
 <dt>newloc</dt>
 <dd><p>a matrix with rows being coordinates of new locations for prediction.
 Default is <code>NULL</code>, which gives prediction at the locations of the observed data.</p></dd>
+
+
 <dt>basis</dt>
 <dd><p>a matrix with each column being a basis function taken values at <code>newloc</code>.
 It can be omitted if <code>object</code> was fitted using  default <code>mrts</code> basis functions.</p></dd>
+
+
 <dt>mu.new</dt>
 <dd><p>a vector or scalar for the deterministic mean values at <code>newloc</code>. Default is 0.</p></dd>
+
+
 <dt>se.report</dt>
 <dd><p>logical; if <code>TRUE</code> then the standard error of prediction is reported.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>not used but needed for the S3 generic/method compatibility.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list with the components described below.</p>
+    
+
+<p>A list with the components described below.</p>
 <dl><dt>pred.value</dt>
 <dd><p>a matrix with the <em>(i,t)</em> element being the predicted value at <em>i</em>-th location and time <em>t</em>.</p></dd>
+
 <dt>se</dt>
 <dd><p>a vector with the <em>i</em>-th element being the standard error of the predicted value at the <em>i</em>-th location.</p></dd>
+
 </dl></div>
     <div id="see-also">
     <h2>See also</h2>
@@ -124,7 +145,7 @@ It can be omitted if <code>object</code> was fitted using  default <code>mrts</c
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

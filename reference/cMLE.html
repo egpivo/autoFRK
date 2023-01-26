@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.17</span>
       </span>
     </div>
 
@@ -53,18 +53,18 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">cMLE</span><span class="op">(</span>
-  <span class="va">Fk</span>,
-  <span class="va">num_columns</span>,
-  <span class="va">sample_covariance_trace</span>,
-  <span class="va">inverse_square_root_matrix</span>,
-  <span class="va">matrix_JSJ</span>,
-  s <span class="op">=</span> <span class="fl">0</span>,
-  ldet <span class="op">=</span> <span class="fl">0</span>,
-  wSave <span class="op">=</span> <span class="cn">FALSE</span>,
-  onlylogLike <span class="op">=</span> <span class="op">!</span><span class="va">wSave</span>,
-  vfixed <span class="op">=</span> <span class="cn">NULL</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cMLE</span><span class="op">(</span></span>
+<span>  <span class="va">Fk</span>,</span>
+<span>  <span class="va">num_columns</span>,</span>
+<span>  <span class="va">sample_covariance_trace</span>,</span>
+<span>  <span class="va">inverse_square_root_matrix</span>,</span>
+<span>  <span class="va">matrix_JSJ</span>,</span>
+<span>  s <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  ldet <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  wSave <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  onlylogLike <span class="op">=</span> <span class="op">!</span><span class="va">wSave</span>,</span>
+<span>  vfixed <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -72,28 +72,49 @@
     <dl><dt>Fk</dt>
 <dd><p>An <em>n</em> by <em>K</em> matrix of basis function values with
 each column being a basis function taken values at <code>loc</code>.</p></dd>
+
+
 <dt>num_columns</dt>
 <dd><p>A positive numeric.</p></dd>
+
+
 <dt>sample_covariance_trace</dt>
 <dd><p>A positive numeric.</p></dd>
+
+
 <dt>inverse_square_root_matrix</dt>
 <dd><p>A matrix.</p></dd>
+
+
 <dt>matrix_JSJ</dt>
 <dd><p>A multiplication matrix</p></dd>
+
+
 <dt>s</dt>
 <dd><p>A numeric.</p></dd>
+
+
 <dt>ldet</dt>
 <dd><p>A numeric. A log determinant.</p></dd>
+
+
 <dt>wSave</dt>
 <dd><p>A logic.</p></dd>
+
+
 <dt>onlylogLike</dt>
 <dd><p>A logic.</p></dd>
+
+
 <dt>vfixed</dt>
 <dd><p>A numeric.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A numeric.</p>
+    
+
+<p>A numeric.</p>
     </div>
 
   </div>
@@ -108,7 +129,7 @@ each column being a basis function taken values at <code>loc</code>.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

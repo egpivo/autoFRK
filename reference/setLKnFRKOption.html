@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.17</span>
       </span>
     </div>
 
@@ -53,26 +53,37 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">setLKnFRKOption</span><span class="op">(</span><span class="va">LK_obj</span>, <span class="va">Fk</span>, nc <span class="op">=</span> <span class="cn">NULL</span>, Ks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NCOL</a></span><span class="op">(</span><span class="va">Fk</span><span class="op">)</span>, a.wght <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">setLKnFRKOption</span><span class="op">(</span><span class="va">LK_obj</span>, <span class="va">Fk</span>, nc <span class="op">=</span> <span class="cn">NULL</span>, Ks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NCOL</a></span><span class="op">(</span><span class="va">Fk</span><span class="op">)</span>, a.wght <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>LK_obj</dt>
 <dd><p>A list produced from <code>initializeLKnFRK</code>.</p></dd>
+
+
 <dt>Fk</dt>
 <dd><p>An <em>n</em> by <em>K</em> matrix of basis function values with
-each column being a basis function taken values at <code>loc</code>.</p></dd>
+each column being a basis function taken values at <code>location</code>.</p></dd>
+
+
 <dt>nc</dt>
 <dd><p>A numeric made by <code>setNC</code>.</p></dd>
+
+
 <dt>Ks</dt>
 <dd><p>An integer.</p></dd>
+
+
 <dt>a.wght</dt>
 <dd><p>A numeric.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>list</p>
+    
+
+<p>list</p>
     </div>
 
   </div>
@@ -87,7 +98,7 @@ each column being a basis function taken values at <code>loc</code>.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

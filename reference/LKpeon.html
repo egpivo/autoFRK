@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.17</span>
       </span>
     </div>
 
@@ -53,59 +53,88 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">LKpeon</span><span class="op">(</span>
-  <span class="va">M</span>,
-  <span class="va">s</span>,
-  <span class="va">Fk</span>,
-  <span class="va">basis</span>,
-  <span class="va">weight</span>,
-  <span class="va">phi1</span>,
-  <span class="va">phi0</span>,
-  <span class="va">Q</span>,
-  <span class="va">lambda</span>,
-  <span class="va">phi0P</span>,
-  L <span class="op">=</span> <span class="cn">NULL</span>,
-  data <span class="op">=</span> <span class="cn">NULL</span>,
-  only.wlk <span class="op">=</span> <span class="cn">FALSE</span>,
-  only.se <span class="op">=</span> <span class="cn">FALSE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">LKpeon</span><span class="op">(</span></span>
+<span>  <span class="va">M</span>,</span>
+<span>  <span class="va">s</span>,</span>
+<span>  <span class="va">Fk</span>,</span>
+<span>  <span class="va">basis</span>,</span>
+<span>  <span class="va">weight</span>,</span>
+<span>  <span class="va">phi1</span>,</span>
+<span>  <span class="va">phi0</span>,</span>
+<span>  <span class="va">Q</span>,</span>
+<span>  <span class="va">lambda</span>,</span>
+<span>  <span class="va">phi0P</span>,</span>
+<span>  L <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  only.wlk <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  only.se <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>M</dt>
 <dd><p>A <em>K</em> by <em>K</em> symmetric matrix.</p></dd>
+
+
 <dt>s</dt>
 <dd><p>A scalar.</p></dd>
+
+
 <dt>Fk</dt>
 <dd><p>An <em>n</em> by <em>K</em> matrix of basis function values with
 each column being a basis function taken values at <code>loc</code>.</p></dd>
+
+
 <dt>basis</dt>
 <dd><p>An <em>n</em> by <em>K</em> matrix</p></dd>
+
+
 <dt>weight</dt>
 <dd><p>A vector</p></dd>
+
+
 <dt>phi1</dt>
 <dd><p>A matrix produced by LatticeKrig basis fucntions</p></dd>
+
+
 <dt>phi0</dt>
 <dd><p>A matrix produced by LatticeKrig basis fucntions with new locations</p></dd>
+
+
 <dt>Q</dt>
 <dd><p>A precision matrix</p></dd>
+
+
 <dt>lambda</dt>
 <dd><p>A scalar.</p></dd>
+
+
 <dt>phi0P</dt>
 <dd><p>A projection matrix of phi1</p></dd>
+
+
 <dt>L</dt>
 <dd><p>An <em>n</em> by <em>K</em> matrix</p></dd>
+
+
 <dt>only.wlk</dt>
 <dd><p>A logic.</p></dd>
+
+
 <dt>only.se</dt>
 <dd><p>A logic.</p></dd>
+
+
 <dt>Data</dt>
 <dd><p>An <em>n</em> by <em>T</em> data matrix</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list.</p>
+    
+
+<p>A list.</p>
     </div>
 
   </div>
@@ -120,7 +149,7 @@ each column being a basis function taken values at <code>loc</code>.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>
