@@ -31,3 +31,22 @@ Volume 60, 2018 - Issue 2](https://www.tandfonline.com/doi/abs/10.1080/00401706.
 
 ### License
   GPL (>= 2)
+
+### Citation
+- To cite package ‘autoFRK’ in publications use:
+```
+  Tzeng S, Huang H, Wang W, Nychka D, Gillespie C (2021). _autoFRK: Automatic Fixed
+  Rank Kriging_. R package version 1.4.3,
+  <https://CRAN.R-project.org/package=autoFRK>.
+```
+
+- A BibTeX entry for LaTeX users is
+```
+  @Manual{,
+    title = {autoFRK: Automatic Fixed Rank Kriging},
+    author = {ShengLi Tzeng and Hsin-Cheng Huang and Wen-Ting Wang and Douglas Nychka and Colin Gillespie},
+    year = {2021},
+    note = {R package version 1.4.3},
+    url = {https://CRAN.R-project.org/package=autoFRK},
+  }
+```
