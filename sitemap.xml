@@ -1,189 +1,64 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/pull_request_template.html</loc>
-  </url>
-  <url>
-    <loc>/reference/DIST.html</loc>
-  </url>
-  <url>
-    <loc>/reference/EM0miss.html</loc>
-  </url>
-  <url>
-    <loc>/reference/LKpeon.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ZinvC.html</loc>
-  </url>
-  <url>
-    <loc>/reference/as.matrix.mrts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/autoFRK.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cMLE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cMLEimat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cMLElk.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cMLEsp.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calculateLatticeKrigBasis.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calculateLogDeterminant.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calculateSARForOneDimLocation.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calculateSARForThreeDimLocation.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calculateSARForTowDimLocation.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeLikelihood.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeMrtsRcpp.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeNegativeLikelihood.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeProjectionMatrix.html</loc>
-  </url>
-  <url>
-    <loc>/reference/convertToPositiveDefinite.html</loc>
-  </url>
-  <url>
-    <loc>/reference/diag.spam.html</loc>
-  </url>
-  <url>
-    <loc>/reference/eigenDecompose.html</loc>
-  </url>
-  <url>
-    <loc>/reference/eigenDecomposeInDecreasingOrder.html</loc>
-  </url>
-  <url>
-    <loc>/reference/estimateEta.html</loc>
-  </url>
-  <url>
-    <loc>/reference/estimateV.html</loc>
-  </url>
-  <url>
-    <loc>/reference/fetchNonZeroIndexs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/getInverseSquareRootMatrix.html</loc>
-  </url>
-  <url>
-    <loc>/reference/getSquareRootMatrix.html</loc>
-  </url>
-  <url>
-    <loc>/reference/indeMLE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/initializeLKnFRK.html</loc>
-  </url>
-  <url>
-    <loc>/reference/invCz.html</loc>
-  </url>
-  <url>
-    <loc>/reference/isDiagonal.html</loc>
-  </url>
-  <url>
-    <loc>/reference/log.html</loc>
-  </url>
-  <url>
-    <loc>/reference/logDeterminant.html</loc>
-  </url>
-  <url>
-    <loc>/reference/mrts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/neg2llik.html</loc>
-  </url>
-  <url>
-    <loc>/reference/normalizeBasis.html</loc>
-  </url>
-  <url>
-    <loc>/reference/predict.FRK.html</loc>
-  </url>
-  <url>
-    <loc>/reference/predict.mrts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/predictMrtsRcpp.html</loc>
-  </url>
-  <url>
-    <loc>/reference/predictMrtsRcppWithBasis.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.FRK.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.mrts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ramSize.html</loc>
-  </url>
-  <url>
-    <loc>/reference/removeWhitespace.html</loc>
-  </url>
-  <url>
-    <loc>/reference/rlimit.html</loc>
-  </url>
-  <url>
-    <loc>/reference/selectBasis.html</loc>
-  </url>
-  <url>
-    <loc>/reference/setDefaultAwght.html</loc>
-  </url>
-  <url>
-    <loc>/reference/setLKnFRKOption.html</loc>
-  </url>
-  <url>
-    <loc>/reference/setNC.html</loc>
-  </url>
-  <url>
-    <loc>/reference/setRectangleAwght.html</loc>
-  </url>
-  <url>
-    <loc>/reference/setUpKrigInfo.html</loc>
-  </url>
-  <url>
-    <loc>/reference/shiftArray.html</loc>
-  </url>
-  <url>
-    <loc>/reference/subKnot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/toSparseMatrix.html</loc>
-  </url>
-  <url>
-    <loc>/reference/wendland.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/DIST.html</loc></url>
+<url><loc>/reference/EM0miss.html</loc></url>
+<url><loc>/reference/LKpeon.html</loc></url>
+<url><loc>/reference/ZinvC.html</loc></url>
+<url><loc>/reference/as.matrix.mrts.html</loc></url>
+<url><loc>/reference/autoFRK.html</loc></url>
+<url><loc>/reference/cMLE.html</loc></url>
+<url><loc>/reference/cMLEimat.html</loc></url>
+<url><loc>/reference/cMLElk.html</loc></url>
+<url><loc>/reference/cMLEsp.html</loc></url>
+<url><loc>/reference/calculateLatticeKrigBasis.html</loc></url>
+<url><loc>/reference/calculateLogDeterminant.html</loc></url>
+<url><loc>/reference/calculateSARForOneDimLocation.html</loc></url>
+<url><loc>/reference/calculateSARForThreeDimLocation.html</loc></url>
+<url><loc>/reference/calculateSARForTowDimLocation.html</loc></url>
+<url><loc>/reference/computeLikelihood.html</loc></url>
+<url><loc>/reference/computeMrtsRcpp.html</loc></url>
+<url><loc>/reference/computeNegativeLikelihood.html</loc></url>
+<url><loc>/reference/computeProjectionMatrix.html</loc></url>
+<url><loc>/reference/convertToPositiveDefinite.html</loc></url>
+<url><loc>/reference/diag.spam.html</loc></url>
+<url><loc>/reference/eigenDecompose.html</loc></url>
+<url><loc>/reference/eigenDecomposeInDecreasingOrder.html</loc></url>
+<url><loc>/reference/estimateEta.html</loc></url>
+<url><loc>/reference/estimateV.html</loc></url>
+<url><loc>/reference/fetchNonZeroIndexs.html</loc></url>
+<url><loc>/reference/getInverseSquareRootMatrix.html</loc></url>
+<url><loc>/reference/getSquareRootMatrix.html</loc></url>
+<url><loc>/reference/indeMLE.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/initializeLKnFRK.html</loc></url>
+<url><loc>/reference/invCz.html</loc></url>
+<url><loc>/reference/isDiagonal.html</loc></url>
+<url><loc>/reference/log.html</loc></url>
+<url><loc>/reference/logDeterminant.html</loc></url>
+<url><loc>/reference/mrts.html</loc></url>
+<url><loc>/reference/neg2llik.html</loc></url>
+<url><loc>/reference/normalizeBasis.html</loc></url>
+<url><loc>/reference/predict.FRK.html</loc></url>
+<url><loc>/reference/predict.mrts.html</loc></url>
+<url><loc>/reference/predictMrtsRcpp.html</loc></url>
+<url><loc>/reference/predictMrtsRcppWithBasis.html</loc></url>
+<url><loc>/reference/print.FRK.html</loc></url>
+<url><loc>/reference/print.mrts.html</loc></url>
+<url><loc>/reference/ramSize.html</loc></url>
+<url><loc>/reference/removeWhitespace.html</loc></url>
+<url><loc>/reference/rlimit.html</loc></url>
+<url><loc>/reference/selectBasis.html</loc></url>
+<url><loc>/reference/setDefaultAwght.html</loc></url>
+<url><loc>/reference/setLKnFRKOption.html</loc></url>
+<url><loc>/reference/setNC.html</loc></url>
+<url><loc>/reference/setRectangleAwght.html</loc></url>
+<url><loc>/reference/setUpKrigInfo.html</loc></url>
+<url><loc>/reference/shiftArray.html</loc></url>
+<url><loc>/reference/subKnot.html</loc></url>
+<url><loc>/reference/toSparseMatrix.html</loc></url>
+<url><loc>/reference/wendland.html</loc></url>
 </urlset>
+
