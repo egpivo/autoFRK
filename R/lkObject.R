@@ -217,7 +217,7 @@ setLKnFRKOption <-
 #' @keywords internal
 #' @param z A matrix
 #' @param location A location matrix
-#' @param nlelve An integer
+#' @param nlevel Number of levels in multi-resolution.
 #' @return numeric
 #'
 setNC <- function(z, location, nlevel) {
