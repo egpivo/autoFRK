@@ -9,3 +9,6 @@
 ^.*\.gcno$
 ^NEWS$
 ^README
+^\.git$
+^\.gitignore$
+^\.Rhistory$
