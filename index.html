@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Automatic Fixed Rank Kriging">
-<meta property="og:description" content="Automatic fixed rank kriging for (irregularly located) spatial data using a class of basis functions with multi-resolution features and ordered in terms of their resolutions. The model parameters are estimated by maximum likelihood (ML) and the number of basis functions is determined by Akaikes information criterion (AIC). For spatial data with either one realization or independent replicates, the ML estimates and AIC are efficiently computed using their closed-form expressions when no missing value occurs. Details regarding the basis function construction, parameter estimation, and AIC calculation can be found in Tzeng and Huang (2018) &lt;doi:10.1080/00401706.2017.1345701&gt;. For data with missing values, the ML estimates are obtained using the expectation-maximization algorithm. Apart from the number of basis functions, there are no other tuning parameters, making the method fully automatic. Users can also include a stationary structure in the spatial covariance, which utilizes LatticeKrig' package.">
+<meta property="og:description" content="Automatic fixed rank kriging for (irregularly located) spatial data using a class of basis functions with multi-resolution features and ordered in terms of their resolutions. The model parameters are estimated by maximum likelihood (ML) and the number of basis functions is determined by Akaikes information criterion (AIC). For spatial data with either one realization or independent replicates, the ML estimates and AIC are efficiently computed using their closed-form expressions when no missing value occurs. Details regarding the basis function construction, parameter estimation, and AIC calculation can be found in Tzeng and Huang (2018) &lt;doi:10.1080/00401706.2017.1345701&gt;. For data with missing values, the ML estimates are obtained using the expectation- maximization algorithm. Apart from the number of basis functions, there are no other tuning parameters, making the method fully automatic. Users can also include a stationary structure in the spatial covariance, which utilizes LatticeKrig' package.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">autoFRK</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.17</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.4</span>
       </span>
     </div>
 
@@ -46,14 +46,7 @@
   <a href="news/index.html">Changelog</a>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/egpivo/autoFRK/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-
-  </a>
-</li>
-      </ul>
+<ul class="nav navbar-nav navbar-right"></ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -138,8 +131,6 @@
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
 <li><a href="https://cloud.r-project.org/package=autoFRK" class="external-link">View on CRAN</a></li>
-<li><a href="https://github.com/egpivo/autoFRK/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/egpivo/autoFRK/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -161,9 +152,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>ShengLi Tzeng <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-3879-9420" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Hsin-Cheng Huang <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-5613-349X" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Wen-Ting Wang <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0003-3051-7302" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>ShengLi Tzeng <br><small class="roles"> Maintainer </small>   </li>
 </ul>
 </div>
 
@@ -175,12 +164,12 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by ShengLi Tzeng, Hsin-Cheng Huang, Wen-Ting Wang.</p>
+<p>Developed by ShengLi Tzeng.</p>
 </div>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>
