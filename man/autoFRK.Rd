@@ -5,14 +5,14 @@
 \title{Automatic Fixed Rank Kriging}
 \usage{
 autoFRK(
-  data,
+  Data,
   loc,
   mu = 0,
-  D = diag.spam(NROW(data)),
+  D = diag.spam(NROW(Data)),
   G = NULL,
   finescale = FALSE,
   maxit = 50,
-  tolerance = 1e-06,
+  tolerance = 0.1^6,
   maxK = NULL,
   Kseq = NULL,
   method = c("fast", "EM"),
@@ -21,7 +21,7 @@ autoFRK(
 )
 }
 \arguments{
-\item{data}{\emph{n} by \emph{T} data matrix (NA allowed) with
+\item{Data}{\emph{n} by \emph{T} data matrix (NA allowed) with
 \eqn{z[t]} as the \emph{t}-th column.}
 
 \item{loc}{\emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.}
@@ -65,7 +65,7 @@ an object of class \code{FRK} is returned, which is a list of the following comp
 \item{V}{\emph{K} by \emph{K} matrix of the prediction error covariance matrix of \eqn{w[t]}.}
 \item{G}{user specified basis function matrix or an automatically generated \code{mrts} object.}
 \item{LKobj}{a list from calling \code{LKrig.MLE} in \code{LatticeKrig} package if \code{useLK=TRUE};
-otherwise \code{NULL}. See that package for details.}
+ otherwise \code{NULL}. See that package for details.}
 }
 \description{
 This function performs resolution adaptive fixed rank kriging based on
@@ -109,13 +109,13 @@ z <- y[obs] + rnorm(n) * sqrt(s)
 X <- grids[obs, ]
 
 #### method1: automatic selection and prediction
-one.imat <- autoFRK(data = z, loc = X, maxK = 15)
+one.imat <- autoFRK(Data = z, loc = X, maxK = 15)
 yhat <- predict(one.imat, newloc = grids)
 
 #### method2: user-specified basis functions
 G <- mrts(X, 15)
 Gpred <- predict(G, newx = grids)
-one.usr <- autoFRK(data = z, loc = X, G = G)
+one.usr <- autoFRK(Data = z, loc = X, G = G)
 yhat2 <- predict(one.usr, newloc = grids, basis = Gpred)
 
 require(fields)
@@ -138,7 +138,7 @@ yt <- fn \%*\% wt
 obs <- sample(900, n)
 zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
 X <- grids[obs, ]
-multi.imat <- autoFRK(data = zt, loc = X, maxK = 15)
+multi.imat <- autoFRK(Data = zt, loc = X, maxK = 15)
 Gpred <- predict(multi.imat$G, newx = grids)
 
 G <- multi.imat$G
@@ -154,14 +154,11 @@ par(originalPar)
 #### end of independent multi-realization simulation example
 }
 \references{
-\itemize{
-\item Tzeng, S., & Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
-\item Nychka D, Hammerling D, Sain S, Lenssen N (2016). “LatticeKrig: Multiresolution Kriging Based on Markov Random Fields.” doi:10.5065/D6HD7T1R \url{https://doi.org/10.5065/D6HD7T1R}, R package version 8.4, \url{https://github.com/NCAR/LatticeKrig}.
-}
+Tzeng, S., & Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
 }
 \seealso{
 \code{\link{predict.FRK}}
 }
 \author{
-ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
+ShengLi Tzeng and Hsin-Cheng Huang.
 }
