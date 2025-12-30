@@ -58,6 +58,22 @@ jobs:
 
     steps:
       - uses: r-hub/actions/checkout@v1
+      - name: Configure LD_LIBRARY_PATH
+        run: |
+          extra=""
+          for dir in /opt/R/devel-rchk/lib/R/lib \
+                     /opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64 \
+                     /opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin \
+                     /opt/intel/oneapi/mkl/latest/lib/intel64 \
+                     /opt/intel/mkl/lib/intel64 \
+                     /opt/intel/compilers_and_libraries*/linux/compiler/lib/intel64; do
+            if [ -d "$dir" ]; then
+              extra="$dir:$extra"
+            fi
+          done
+          if [ -n "$extra" ]; then
+            echo "LD_LIBRARY_PATH=${extra}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          fi
       - uses: r-hub/actions/platform-info@v1
         with:
           token: ${{ secrets.RHUB_TOKEN }}
