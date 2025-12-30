@@ -16,7 +16,7 @@
 #' Parameters are estimated by maximum likelihood in a closed-form expression. The matrix \eqn{G} corresponding to basis functions is
 #' given by an ordered class of thin-plate spline functions, with the number of basis functions
 #' selected by  Akaike's information criterion.
-#' @param data  \emph{n} by \emph{T} data matrix (NA allowed) with
+#' @param Data  \emph{n} by \emph{T} data matrix (NA allowed) with
 #' \eqn{z[t]} as the \emph{t}-th column.
 #' @param loc \emph{n} by \emph{d} matrix of coordinates corresponding to \emph{n} locations.
 #' @param mu \emph{n}-vector or scalar for \eqn{\mu}; Default is 0.
@@ -77,13 +77,13 @@
 #' X <- grids[obs, ]
 #'
 #' #### method1: automatic selection and prediction
-#' one.imat <- autoFRK(data = z, loc = X, maxK = 15)
+#' one.imat <- autoFRK(Data = z, loc = X, maxK = 15)
 #' yhat <- predict(one.imat, newloc = grids)
 #'
 #' #### method2: user-specified basis functions
 #' G <- mrts(X, 15)
 #' Gpred <- predict(G, newx = grids)
-#' one.usr <- autoFRK(data = z, loc = X, G = G)
+#' one.usr <- autoFRK(Data = z, loc = X, G = G)
 #' yhat2 <- predict(one.usr, newloc = grids, basis = Gpred)
 #'
 #' require(fields)
@@ -106,7 +106,7 @@
 #' obs <- sample(900, n)
 #' zt <- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
 #' X <- grids[obs, ]
-#' multi.imat <- autoFRK(data = zt, loc = X, maxK = 15)
+#' multi.imat <- autoFRK(Data = zt, loc = X, maxK = 15)
 #' Gpred <- predict(multi.imat$G, newx = grids)
 #'
 #' G <- multi.imat$G
@@ -121,20 +121,21 @@
 #' par(originalPar)
 #' #### end of independent multi-realization simulation example
 #' @author ShengLi Tzeng, Hsin-Cheng Huang and Wen-Ting Wang.
-autoFRK <- function(data,
+autoFRK <- function(Data,
                     loc,
                     mu = 0,
-                    D = diag.spam(NROW(data)),
+                    D = diag.spam(NROW(Data)),
                     G = NULL,
                     finescale = FALSE,
                     maxit = 50,
-                    tolerance = 1e-6,
+                    tolerance = 0.1^6,
                     maxK = NULL,
                     Kseq = NULL,
                     method = c("fast", "EM"),
                     n.neighbor = 3,
                     maxknot = 5000) {
   method <- match.arg(method)
+  data <- Data
   data <- data - mu
   if (!is.null(G)) {
     Fk <- G
@@ -225,4 +226,3 @@ autoFRK <- function(data,
   class(obj) <- "FRK"
   return(obj)
 }
-
