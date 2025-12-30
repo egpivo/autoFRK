@@ -679,7 +679,7 @@ logDeterminant <-
 #' @param lambda A scalar.
 #' @param phi0P A projection matrix of phi1
 #' @param L An \emph{n} by \emph{K} matrix
-#' @param Data An \emph{n} by \emph{T} data matrix
+#' @param data An \emph{n} by \emph{T} data matrix
 #' @param only.wlk A logic.
 #' @param only.se A logic.
 #' @return A list.

@@ -9,7 +9,9 @@ normalizeBasis(LKinfo, level, PHI)
 \arguments{
 \item{LKinfo}{LKinfo object}
 
-\item{x1}{A matrix}
+\item{level}{an integer}
+
+\item{PHI}{A matrix}
 }
 \value{
 A matrix

@@ -428,8 +428,9 @@ setRectangleAwght <- function(LKinfo, ...) {
 #' Internal function: A modifier of LatticeKrig::LKrig.basis
 #'
 #' @keywords internal
-#' @param x1 A matrix
 #' @param LKinfo LKinfo object
+#' @param level an integer
+#' @param PHI A matrix
 #' @return A matrix
 #'
 calculateLatticeKrigBasis <- function(x1, LKinfo) {
