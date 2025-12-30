@@ -260,9 +260,11 @@ Rcpp::List computeMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
   updateMrtsCoreComponentX(s, Phi, B, BBB, lambda, gamma, k, X, nconst);
   updateMrtsCoreComponentUZ(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, UZ);
   
+  Eigen::MatrixXd BBBH = BBB * Phi;
+
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
-                            Rcpp::Named("BBBH") = BBB * Phi,
+                            Rcpp::Named("BBBH") = BBBH,
                             Rcpp::Named("nconst") = nconst);
 }
 
@@ -302,11 +304,14 @@ Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
   Eigen::MatrixXd B_new = MatrixXd::Ones(n2, d + 1);
   B_new.rightCols(d) = s_new;
   
+  Eigen::MatrixXd BBBH = BBB * Phi;
+  Eigen::MatrixXd X1_out = (X1 - B_new * (BBBH * UZ.block(0, 0, n, k))).eval();
+
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
-                            Rcpp::Named("BBBH") = BBB * Phi,
+                            Rcpp::Named("BBBH") = BBBH,
                             Rcpp::Named("nconst") = nconst,
-                            Rcpp::Named("X1") = X1 - B_new * ((BBB * Phi) * UZ.block(0, 0, n, k)));
+                            Rcpp::Named("X1") = X1_out);
   
 }
 
@@ -343,10 +348,12 @@ Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> s,
   Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
   B.rightCols(d) = s_new;
   
+  Eigen::MatrixXd X1_out = (X1 - B * (BBBH * UZ.block(0, 0, n, k))).eval();
+
   return Rcpp::List::create(Rcpp::Named("X") = s,
                             Rcpp::Named("UZ") = UZ,
                             Rcpp::Named("BBBH") = BBBH,
                             Rcpp::Named("nconst") = nconst,
-                            Rcpp::Named("X1") = X1 - B * ((BBBH) * UZ.block(0, 0, n, k)));
+                            Rcpp::Named("X1") = X1_out);
   
 }
