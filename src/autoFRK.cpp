@@ -11,349 +11,263 @@ using Eigen::Lower;
 typedef Map<MatrixXd> MapMatd;
 using Eigen::VectorXd;                  
 using Eigen::SelfAdjointEigenSolver;
-using namespace Rcpp;
-using namespace std;
+
 using namespace Eigen;
+Eigen::VectorXd getASCeigenValues(const Eigen::Map<Eigen::MatrixXd> A) {
+  SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+  return es.eigenvalues();
+}
+
+using namespace Eigen;
+// [[Rcpp::export]]
+Rcpp::List getASCeigens(const Eigen::Map<Eigen::MatrixXd> A) {
+  SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+  Eigen::MatrixXd V;
+  Eigen::VectorXd lambda;
+  lambda = es.eigenvalues();
+  V = es.eigenvectors();
+  return Rcpp::List::create(Rcpp::Named("value") = lambda,
+                            Rcpp::Named("vector") = V);
+}
+
+
 using namespace Spectra;
+using namespace Eigen;
+using namespace Rcpp;
 
-//' Internal function: Eigen-decompose a matrix
-//' @keywords internal
-//' @param matrix A matrix
-//' @return A list of objects
-//' \item{value}{A vector of eigenvalues}
-//' \item{vector}{A matrix of eigenvectors}
-//' @author Wen-Ting Wang
-// [[Rcpp::export]]
-Rcpp::List eigenDecompose(const Eigen::Map<Eigen::MatrixXd> matrix) {
-  SelfAdjointEigenSolver<Eigen::MatrixXd> es(matrix);
-	Eigen::MatrixXd V;
-	Eigen::VectorXd lambda;
-	lambda = es.eigenvalues();
-	V = es.eigenvectors();
-  return Rcpp::List::create(
-    Rcpp::Named("value") = lambda,
-    Rcpp::Named("vector") = V
-  );
-}
-
-//' Internal function: A wrapper function of 'MatrixBase::sqrt()'
-//' @keywords internal
-//' @param matrix A matrix
-//' @return A matrix
-//' @author Wen-Ting Wang
-// [[Rcpp::export]]
-Eigen::MatrixXd getSquareRootMatrix(Eigen::MatrixXd matrix) {
-  return(matrix.sqrt());
-}
-
-//' Internal function: Inverse square root matrix of  A^t * B
-//' @keywords internal
-//' @param left_matrix A matrix
-//' @param right_matrix A matrix
-//' @return A matrix
-//' @author Wen-Ting Wang
-// [[Rcpp::export]]
-Eigen::MatrixXd getInverseSquareRootMatrix(const Eigen::Map<Eigen::MatrixXd> left_matrix,
-                                           const Eigen::Map<Eigen::MatrixXd> right_matrix) {
-  SelfAdjointEigenSolver<Eigen::MatrixXd> es(left_matrix.transpose() * right_matrix);
-  return(es.operatorSqrt().inverse());
-}
-
-void decomposeSymmetricMatrix(const Eigen::MatrixXd &M,
-                              const int ncv,
-                              const int k,
-                              Eigen::VectorXd &lambda,
-                              Eigen::MatrixXd &gamma) {
-  /*
-   * Parameters:
-   *  - M: decomposed symmetric matrix
-   *  - k:	Number of eigenvalues requested. 
-   *     - Should satisfy 1≤nev≤n−1, where n is the size of matrix.
-   *  - ncv: controls the convergence speed of the algorithm 
-   * 
-   */
+void mrtseigencpp(const Eigen::MatrixXd & M, const int ncv, const int k, Eigen::VectorXd &rho, Eigen::MatrixXd &gamma){
+  
   DenseSymMatProd<double> op(M);
   
-  // Construct eigen solver object, requesting the largest k eigenvalues
-  SymEigsSolver< double, LARGEST_ALGE, DenseSymMatProd<double>> eigs(&op, k, ncv);
+  // Construct eigen solver object, requesting the largest three eigenvalues
+  SymEigsSolver< double, LARGEST_ALGE, DenseSymMatProd<double> > eigs(&op, k, ncv);
   
   eigs.init();
   eigs.compute(1000, 1e-10);
   
-  lambda = eigs.eigenvalues();
+  rho = eigs.eigenvalues();
   gamma.noalias() = eigs.eigenvectors();
 }
 
-double thinPlateSplines(const double dist, const int d) {
-  /*
-   * Parameters:
-   *  - dist: distance
-   *  - d: dimension of positions (d <= 3)
-   * Returns:
-   *  - thin plate splines function of `dist`
-   */
-  double ret;
-  
-  if(d == 1)
-    ret = pow(dist, 3) / 12;
-  else if(d == 2) {
-    if(dist != 0)
-      ret = dist * dist * log(dist) / (8.0 * M_PI);
-    else
-      ret = 0;
-  }
-  else if(d == 3)
-    ret = - dist / 8;
-  else
-    Rcpp::stop("Invalid dimension\n");
-  
-  return ret;
-}
 
-void createThinPlateMatrix(const MatrixXd s, MatrixXd &L) {
-  /*
-   * Parameters:
-   *  - s: position matrix (n x d)
-   *  - L: (return) resultant matrix (n x n)
-   */
-  int n(s.rows()), d(s.cols());
-  double dist;
-  // Update elements in the upper triangle 
-  for(unsigned int i = 0; i < n; ++i) {
-    for(unsigned int j = i + 1; j < n; ++j) {
-      dist = (s.row(i) - s.row(j)).norm();
-      L(i, j) = thinPlateSplines(dist, d);
+using namespace Rcpp;
+using namespace std;
+using namespace Eigen;
+void tpm2(const MatrixXd P, MatrixXd& L, int p, int d){
+  
+  double r;
+  
+  if(d == 1){
+    for(unsigned int i = 0; i < p; i++){
+      for(unsigned int j = i + 1; j < p; ++j){
+        r  = abs(P(i, 0) - P(j, 0));
+        L(i,j) = pow(r, 3)/12;
+      }
+    }
+  }
+  else if(d == 2){
+    for(unsigned int i = 0; i < p; i++){
+      for(unsigned int j = i + 1; j < p; ++j){
+        r  = sqrt(pow(P(i, 0) - P(j, 0),2) +
+          (pow(P(i, 1) - P(j, 1), 2)));
+        if(r != 0)
+          L(i, j) = r*r*log(r)/(8.0*M_PI);
+      }
+    }
+  }
+  else if(d ==3){
+    for(unsigned int i = 0; i < p; i++){
+      for(unsigned int j = i + 1; j < p; ++j){
+        r = sqrt(pow(P(i, 0) - P(j, 0), 2) +
+          pow(P(i, 1) - P(j, 1), 2) +
+          pow(P(i, 2) - P(j, 2), 2));
+        L(i, j) = -r/8;
+      }
     }
   }
   
-  L += L.transpose().eval();
 }
 
-void predictThinPlateMatrix(const MatrixXd s_new,
-                            const MatrixXd s,
-                            MatrixXd &L) {
-  /*
-   * Parameters:
-   *  - s_new: new position matrix (n1 x d)
-   *  - s: reference position matrix (n2 x d)
-   *  - L: (return) resultant matrix (n1 x n2)
-   */
-  int n1(s_new.rows()), n2(s.rows()), d(s.cols());
-  double dist;
+
+using namespace Rcpp;
+using namespace std;
+using namespace Eigen;
+void tpm_predict(const MatrixXd P_new, const MatrixXd P, MatrixXd& L, int d){
   
-  for(unsigned int i = 0; i < n1; ++i) {
-    for(unsigned int j = 0; j < n2; ++j) {
-      dist = (s_new.row(i) - s.row(j)).norm();
-      L(i, j) = thinPlateSplines(dist, d);
+  double r;
+  int p1 = P_new.rows();
+  int p2 = P.rows();
+  
+  if(d == 1){
+    for(unsigned int i = 0; i < p1; i++){
+      for(unsigned int j = 0; j < p2; ++j){
+        r  = abs(P_new(i, 0) - P(j, 0));
+        L(i,j) = pow(r, 3)/12;
+      }
     }
   }
+  else if(d == 2){
+    for(unsigned int i = 0; i < p1; i++){
+      for(unsigned int j = 0; j < p2; ++j){
+        r  = sqrt(pow(P_new(i, 0) - P(j, 0),2) +
+          (pow(P_new(i, 1) - P(j, 1), 2)));
+        if(r != 0)
+          L(i, j) = r*r*log(r)/(8.0*M_PI);
+      }
+    }
+  }
+  else if(d ==3){
+    for(unsigned int i = 0; i < p1; i++){
+      for(unsigned int j = 0; j < p2; ++j){
+        r = sqrt(pow(P_new(i, 0) - P(j, 0), 2) +
+          pow(P_new(i, 1) - P(j, 1), 2) +
+          pow(P_new(i, 2) - P(j, 2), 2));
+        L(i, j) = -r/8;
+      }
+    }
+  }
+  
 }
 
-void updateMrtsBasisComponents(const Eigen::MatrixXd s,
-               const int k,
-               Eigen::MatrixXd &Phi,
-               Eigen::MatrixXd &B,
-               Eigen::MatrixXd &BBB,
-               Eigen::VectorXd &lambda,
-               Eigen::MatrixXd &gamma) {
-  /* MRTS: eigendecompose (I-B(B'B)^{-1}B')\Phi(I-B(B'B)^{-1}B')
-   *    - Phi: thin plate splines
-   *    - B := (1, s)
-   *    
-   * Parameters:
-   *  - s: position matrix (n x d)
-   *  - k:	Number of eigenvalues requested. 
-   *     - Should satisfy 1≤nev≤n−1, where n is the size of matrix.
-   * 
-   */
-  int n(s.rows()), d(s.cols());
+
+
+using namespace Eigen;
+using namespace Rcpp;
+
+void mrts(const Eigen::MatrixXd &Xu,
+          const Eigen::MatrixXd &xobs_diag,
+          const int k,
+          const int n,
+          const int d,
+          Eigen::MatrixXd &H,
+          Eigen::MatrixXd &X,
+          Eigen::MatrixXd &UZ,
+          Eigen::MatrixXd &BBB,
+          Eigen::VectorXd &nconst){
+  double root = sqrt(n);
+  Eigen::MatrixXd B, gammas, X2_temp, gamma;
+  Eigen::VectorXd rho;
+  
+  H = MatrixXd::Zero(n, n);
   B = MatrixXd::Ones(n, d + 1);
-  Phi = MatrixXd::Zero(n, n);
+  X =  MatrixXd::Ones(n, k + d + 1);
   
-  // Create thin plate splines Phi
-  createThinPlateMatrix(s, Phi);
+  tpm2(Xu, H, n, d);
   
-  B.rightCols(d) = s;
+  H += H.transpose().eval();
+  B.rightCols(d) = Xu;
   const Eigen::MatrixXd Bt = B.transpose();
-  Eigen::MatrixXd BtB(MatrixXd(d + 1, d + 1).setZero().
+  Eigen::MatrixXd BtB(MatrixXd(d+1, d+1).setZero().
                         selfadjointView<Lower>().rankUpdate(Bt));
   
   const Eigen::LLT<MatrixXd> llt(BtB);
-  // BBB := B(B'B)^{-1}B'
   BBB = llt.solve(Bt);
-  // Phi_proj := \Phi((I-B(B'B)^{-1}B')
-  const Eigen::MatrixXd Phi_proj = Phi - (Phi * B) * BBB;
-  // quadratic := ((I-B(B'B)^{-1}B')\Phi((I-B(B'B)^{-1}B')
-  const Eigen::MatrixXd quadratic = Phi_proj - BBB.transpose() * (Bt * Phi_proj);
+  const Eigen::MatrixXd AH = H - (H * B) * BBB;
+  const Eigen::MatrixXd AHA = AH - BBB.transpose() * (Bt * AH);
   
-  // Set a convergence threshold for eigen-decomposition
   int ncv = min(n, max(2 * k + 1, 20));
-  // Update lambda and gamma
-  decomposeSymmetricMatrix(quadratic, ncv, k, lambda, gamma);
-}
-
-void updateMrtsCoreComponentX(const Eigen::MatrixXd s,
-               const Eigen::MatrixXd Phi,
-               const Eigen::MatrixXd B,
-               const Eigen::MatrixXd BBB,
-               const Eigen::VectorXd lambda,
-               const Eigen::MatrixXd gamma,
-               int k,
-               Eigen::MatrixXd &X,
-               Eigen::VectorXd &nconst) {
-  int n(s.rows()), d(s.cols());
-  double root = sqrt(n);
-  X = MatrixXd::Ones(n, k + d + 1);
   
-  Eigen::MatrixXd X_center = s.rowwise() - s.colwise().mean();
-  nconst = X_center.colwise().norm();
+  mrtseigencpp(AHA, ncv, k, rho, gamma);
   
-  X.block(0, 1, n, d) = X_center.array().rowwise() * (root / nconst.transpose().array());
+  
+  gammas = (gamma - B * (BBB * gamma)).array().rowwise() / rho.transpose().array() * root;
+  Eigen::MatrixXd X_temp = Xu.rowwise() - Xu.colwise().mean();
+  nconst = X_temp.colwise().norm();
+  
+  X.block(0, 1, n, d) = X_temp.array().rowwise() * (root / nconst.transpose().array());
   X.block(0, d + 1, n, k) = gamma * root;
-  
-  nconst /= root;
-}
-
-void updateMrtsCoreComponentUZ(const Eigen::MatrixXd s,
-                const Eigen::MatrixXd xobs_diag,
-                const Eigen::MatrixXd Phi,
-                const Eigen::MatrixXd B,
-                const Eigen::MatrixXd BBB,
-                const Eigen::VectorXd lambda,
-                const Eigen::MatrixXd gamma,
-                int k,
-                Eigen::MatrixXd &UZ) {
-  
-  int n(s.rows()), d(s.cols());
-  double root = sqrt(n);
-  Eigen::MatrixXd gammas;
-  
-  gammas = (gamma - B * (BBB * gamma)).array().rowwise() / lambda.transpose().array() * root;
   
   UZ = MatrixXd::Zero(n + d + 1, k + d + 1);
   UZ.block(0, 0, n, k) = gammas;
   UZ(n , k) = 1;
   UZ.block(n + 1, k + 1, d, d) = xobs_diag;
+  nconst /= root;
 }
 
-//' Internal function: Compute MRTS method
-//' @keywords internal
-//' @param s A location matrix
-//' @param xobs_diag A matrix of observations
-//' @param k A rank
-//' @return A list of objects
-//' \item{X}{A matrix}
-//' \item{UZ}{A matrix}
-//' \item{BBBH}{A matrix}
-//' \item{nconst}{A vector of column means}
-//' @author Wen-Ting Wang
-// [[Rcpp::export]]
-Rcpp::List computeMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
-                           const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                           const int k) {
-  Eigen::MatrixXd Phi, X, UZ, B, BBB, gamma;
-  Eigen::VectorXd lambda, nconst;
-  
-  // Update B, BBB, lambda, gamma
-  updateMrtsBasisComponents(s, k, Phi, B, BBB, lambda, gamma);
-  // Update X, UZ, nconst
-  updateMrtsCoreComponentX(s, Phi, B, BBB, lambda, gamma, k, X, nconst);
-  updateMrtsCoreComponentUZ(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, UZ);
-  
-  Eigen::MatrixXd BBBH = BBB * Phi;
 
+
+using namespace Eigen;
+using namespace Rcpp;
+// [[Rcpp::export]]
+Rcpp::List mrtsrcpp(const Eigen::Map<Eigen::MatrixXd> Xu,
+                    const Eigen::Map<Eigen::MatrixXd> xobs_diag,
+                    const int k){
+  
+  int n(Xu.rows()), d(Xu.cols());
+  Eigen::MatrixXd  H, X, UZ, BBB;
+  Eigen::VectorXd nconst;
+  
+  mrts(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
+  
+  
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
-                            Rcpp::Named("BBBH") = BBBH,
+                            Rcpp::Named("BBBH") = BBB * H,
                             Rcpp::Named("nconst") = nconst);
 }
 
-//' Internal function: Predict on new locatoins by MRTS method
-//' @keywords internal
-//' @param s A location matrix
-//' @param xobs_diag A matrix of observations
-//' @param s_new A new location matrix
-//' @param k A rank
-//' @return A list of objects
-//' \item{X}{A matrix}
-//' \item{UZ}{A matrix}
-//' \item{BBBH}{A matrix}
-//' \item{nconst}{A vector of column means}
-//' \item{X1}{A matrix}
-//' @author Wen-Ting Wang
-// [[Rcpp::export]]
-Rcpp::List predictMrtsRcpp(const Eigen::Map<Eigen::MatrixXd> s,
-                           const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                           const Eigen::Map<Eigen::MatrixXd> s_new,
-                           const int k) {
-  int n(s.rows()), d(s.cols()), n2(s_new.rows());
-  Eigen::MatrixXd Phi, X, UZ, B, BBB, gamma, Phi_new;
-  Eigen::VectorXd lambda, nconst;
-  
-  // Update B, BBB, lambda, gamma
-  updateMrtsBasisComponents(s, k, Phi, B, BBB, lambda, gamma);
-  // Update X, UZ, nconst
-  updateMrtsCoreComponentX(s, Phi, B, BBB, lambda, gamma, k, X, nconst);
-  updateMrtsCoreComponentUZ(s, xobs_diag, Phi, B, BBB, lambda, gamma, k, UZ);
-  
-  Phi_new = MatrixXd::Zero(n2, n);
-  //Create thin plate splines, Phi_new by new positions `s_new`
-  predictThinPlateMatrix(s_new, s, Phi_new);
-  
-  Eigen::MatrixXd X1 = Phi_new * UZ.block(0, 0, n, k);
-  Eigen::MatrixXd B_new = MatrixXd::Ones(n2, d + 1);
-  B_new.rightCols(d) = s_new;
-  
-  Eigen::MatrixXd BBBH = BBB * Phi;
-  Eigen::MatrixXd X1_out = (X1 - B_new * (BBBH * UZ.block(0, 0, n, k))).eval();
 
+using namespace Eigen;
+using namespace Rcpp;
+// [[Rcpp::export]]
+Rcpp::List mrtsrcpp_predict0(const Eigen::Map<Eigen::MatrixXd> Xu,
+                             const Eigen::Map<Eigen::MatrixXd> xobs_diag,
+                             const Eigen::Map<Eigen::MatrixXd> xnew,
+                             const int k){
+  
+  
+  int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
+  Eigen::MatrixXd  H, X, UZ, BBB, Hnew;
+  Eigen::VectorXd nconst;
+  
+  mrts(Xu, xobs_diag, k, n, d, H, X, UZ, BBB, nconst);
+  
+  Hnew = MatrixXd::Zero(n2, n);
+  
+  tpm_predict(xnew, Xu, Hnew, d);
+  
+  
+  Eigen::MatrixXd X1 = Hnew * UZ.block(0, 0, n, k);
+  Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
+  B.rightCols(d) = xnew;
+  
   return Rcpp::List::create(Rcpp::Named("X") = X,
                             Rcpp::Named("UZ") = UZ,
-                            Rcpp::Named("BBBH") = BBBH,
+                            Rcpp::Named("BBBH") = BBB * H,
                             Rcpp::Named("nconst") = nconst,
-                            Rcpp::Named("X1") = X1_out);
+                            Rcpp::Named("X1") = X1 - B*((BBB* H) *UZ.block(0, 0, n, k)));
   
 }
 
-//' Internal function: Predict on new locatoins by MRTS method
-//' @keywords internal
-//' @param s A location matrix
-//' @param xobs_diag A matrix of observations
-//' @param s_new A new location matrix
-//' @param BBBH A matrix for internal computing use
-//' @param UZ A matrix for internal computing use
-//' @param nconst A A vector of column means
-//' @param k A rank
-//' @return A list of objects
-//' \item{X}{A matrix}
-//' \item{UZ}{A matrix}
-//' \item{BBBH}{A matrix}
-//' \item{nconst}{A vector of column means}
-//' \item{X1}{A matrix}
-//' @author Wen-Ting Wang
-// [[Rcpp::export]]
-Rcpp::List predictMrtsRcppWithBasis(const Eigen::Map<Eigen::MatrixXd> s,
-                                    const Eigen::Map<Eigen::MatrixXd> xobs_diag,
-                                    const Eigen::Map<Eigen::MatrixXd> s_new,
-                                    const Eigen::Map<Eigen::MatrixXd> BBBH,
-                                    const Eigen::Map<Eigen::MatrixXd> UZ,
-                                    const Eigen::Map<Eigen::VectorXd> nconst,
-                                    const int k) {
-  int n(s.rows()), d(s.cols()), n2(s_new.rows());
-  Eigen::MatrixXd Phi_new = MatrixXd::Zero(n2, n);
-  //Create thin plate splines, Phi_new by new positions `s_new`
-  predictThinPlateMatrix(s_new, s, Phi_new);
-  
-  Eigen::MatrixXd X1 = Phi_new * UZ.block(0, 0, n, k);
-  Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
-  B.rightCols(d) = s_new;
-  
-  Eigen::MatrixXd X1_out = (X1 - B * (BBBH * UZ.block(0, 0, n, k))).eval();
 
-  return Rcpp::List::create(Rcpp::Named("X") = s,
+using namespace Eigen;
+using namespace Rcpp;
+// [[Rcpp::export]]
+Rcpp::List mrtsrcpp_predict(const Eigen::Map<Eigen::MatrixXd> Xu,
+                            const Eigen::Map<Eigen::MatrixXd> xobs_diag,
+                            const Eigen::Map<Eigen::MatrixXd> xnew,
+                            const Eigen::Map<Eigen::MatrixXd> BBBH,
+                            const Eigen::Map<Eigen::MatrixXd> UZ,
+                            const Eigen::Map<Eigen::VectorXd> nconst,
+                            const int k){
+  
+  
+  int n(Xu.rows()), d(Xu.cols()), n2(xnew.rows());
+  Eigen::MatrixXd  Hnew;
+  
+  Hnew = MatrixXd::Zero(n2, n);
+  
+  tpm_predict(xnew, Xu, Hnew, d);
+  
+  
+  Eigen::MatrixXd X1 = Hnew * UZ.block(0, 0, n, k);
+  Eigen::MatrixXd B = MatrixXd::Ones(n2, d + 1);
+  B.rightCols(d) = xnew;
+  
+  return Rcpp::List::create(Rcpp::Named("X") = Xu,
                             Rcpp::Named("UZ") = UZ,
                             Rcpp::Named("BBBH") = BBBH,
                             Rcpp::Named("nconst") = nconst,
-                            Rcpp::Named("X1") = X1_out);
+                            Rcpp::Named("X1") = X1 - B*((BBBH) *UZ.block(0, 0, n, k)));
   
 }
