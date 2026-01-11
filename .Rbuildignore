@@ -12,3 +12,8 @@
 ^\.git$
 ^\.gitignore$
 ^\.Rhistory$
+^src/.*\.o$
+^src/.*\.so$
+^src/.*\.dll$
+^src/.*\.dSYM$
+^\.\.Rcheck$
