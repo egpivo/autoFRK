@@ -2,7 +2,6 @@
   [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/autoFRK?color=green)](https://cran.r-project.org/package=autoFRK)
   [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/autoFRK?color=brightgreen)](https://www.r-pkg.org/pkg/autoFRK)
   [![R build status](https://github.com/egpivo/autoFRK/workflows/R-CMD-check/badge.svg)](https://github.com/egpivo/autoFRK/actions)
-  [![Coverage Status](https://img.shields.io/codecov/c/github/egpivo/autoFRK/master.svg)](https://codecov.io/github/egpivo/autoFRK?branch=master)
   
 
 ### Introduction
